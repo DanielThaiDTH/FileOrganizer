@@ -1,14 +1,26 @@
 using System;
 using System.IO;
+using System.Xml;
 using Xunit;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
 namespace SymLinkMaker.Test
 {
+    public static class TestLoader
+    {
+        public static string GetNodeValue(string nodeName)
+        {
+            XmlDocument xml = new XmlDocument();
+            xml.Load(@"..\..\..\TestData.xml");
+            var nodeList = xml.GetElementsByTagName(nodeName);
+            return nodeList[0].InnerText;
+        }
+    }
+
     public class TestFixture : IDisposable
     {
-        string root = @"C:\Temp\SymLinks";
+        string root = TestLoader.GetNodeValue("DataRoot");
         HashSet<string> seen;
         public TestLogger logger;
         public TestFixture()
@@ -40,8 +52,8 @@ namespace SymLinkMaker.Test
     public class Test : IClassFixture<TestFixture>
     {
         TestFixture fix;
-        string root = @"C:\Temp\SymLinks";
-        string source = @"C:\Temp\SymLinksSource\test.txt";
+        string root = TestLoader.GetNodeValue("DataRoot");
+        string source = TestLoader.GetNodeValue("DataSource");
 
         public Test(TestFixture fix)
         {
