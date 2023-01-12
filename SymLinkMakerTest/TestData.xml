@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?> 
-<!--Template for test data, actual XML file should not be in source tree-->
-<Data>
-  <DataRoot></DataRoot>
-  <DataSource></DataSource>
-</Data>
