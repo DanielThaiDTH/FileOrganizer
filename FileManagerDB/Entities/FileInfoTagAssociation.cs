@@ -11,9 +11,11 @@ namespace FileManagerDB.Entities
     class FileInfoTagAssociation
     {
         [PrimaryKey]
+        [Column("FileID")]
         public int FileID { get; set; }
 
         [PrimaryKey]
+        [Column("TagID")]
         public int TagID { get; set; }
     }
 }
