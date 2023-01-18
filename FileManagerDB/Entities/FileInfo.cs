@@ -14,7 +14,6 @@ namespace FileManagerDB.Entities
         [Column("ID")]
         public int ID { get; set; }
 
-        [Indexed]
         [Column("PathID")]
         public int PathID { get; set; }
 
@@ -26,8 +25,9 @@ namespace FileManagerDB.Entities
         public string AltName { get; set; }
 
         [Column("FileType")]
-        public string FileType { get; set; }
+        public int FileTypeID { get; set; }
 
+        [Indexed]
         [Column("Hash")]
         public string Hash { get; set; }
     }

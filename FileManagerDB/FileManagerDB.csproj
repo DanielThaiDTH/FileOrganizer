@@ -103,6 +103,7 @@
     <Compile Include="Entities\FileInfo.cs" />
     <Compile Include="Entities\FileInfoTagAssociation.cs" />
     <Compile Include="Entities\FilePath.cs" />
+    <Compile Include="Entities\FileType.cs" />
     <Compile Include="Entities\Tag.cs" />
     <Compile Include="Entities\TagCategory.cs" />
     <Compile Include="FileManagerDB.cs" />
