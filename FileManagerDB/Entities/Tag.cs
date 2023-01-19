@@ -14,9 +14,11 @@ namespace FileManagerDB.Entities
         [Column("ID")]
         public int ID { get; set; }
 
+        [Unique]
         [Column("Name")]
         public string Name { get; set; }
 
+        [Indexed]
         [Column("CategoryID")]
         public int CategoryID { get; set; }
     }

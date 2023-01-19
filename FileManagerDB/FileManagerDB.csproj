@@ -100,8 +100,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\FileInfo.cs" />
-    <Compile Include="Entities\FileInfoTagAssociation.cs" />
+    <Compile Include="Entities\FileMetadata.cs" />
+    <Compile Include="Entities\FileTagAssociation.cs" />
     <Compile Include="Entities\FilePath.cs" />
     <Compile Include="Entities\FileType.cs" />
     <Compile Include="Entities\Tag.cs" />

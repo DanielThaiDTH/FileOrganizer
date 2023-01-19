@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 
 namespace FileManagerDB.Entities
 {
-    [Table("Filepaths")]
+    [Table("FilePaths")]
     class FilePath
     {
         [PrimaryKey, AutoIncrement]
         [Column("ID")]
         public int ID { get; set; }
 
+        [Unique]
         [Column("Path")]
         public string PathString { get; set; }
     }

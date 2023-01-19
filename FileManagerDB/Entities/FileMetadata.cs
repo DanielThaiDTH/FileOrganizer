@@ -8,26 +8,30 @@ using System.Threading.Tasks;
 namespace FileManagerDB.Entities
 {
     [Table("Files")]
-    public class FileInfo
+    public class FileMetadata
     {
         [PrimaryKey, AutoIncrement]
         [Column("ID")]
         public int ID { get; set; }
 
+        [Indexed]
         [Column("PathID")]
         public int PathID { get; set; }
 
-        [Indexed]
+        [Unique]
+        [Column("Fullname")]
+        public string Fullname { get; set; }
+
         [Column("Filename")]
         public string Filename { get; set; }
 
         [Column("AltName")]
         public string AltName { get; set; }
 
+        [Indexed]
         [Column("FileType")]
         public int FileTypeID { get; set; }
 
-        [Indexed]
         [Column("Hash")]
         public string Hash { get; set; }
     }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace FileManagerDB.Entities
 {
     [Table("FileTagAssociations")]
-    class FileInfoTagAssociation
+    class FileTagAssociation
     {
         [PrimaryKey]
         [Column("FileID")]

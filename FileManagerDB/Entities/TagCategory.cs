@@ -13,6 +13,7 @@ namespace FileManagerDB.Entities
         [PrimaryKey, AutoIncrement]
         public int ID { get; set; }
 
+        [Unique]
         [Column("Name")]
         public string Name { get; set; }
     }
