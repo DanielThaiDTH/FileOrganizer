@@ -6,16 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using FileManagerDB.Entities;
+using FileDBManager.Entities;
 
-namespace FileManagerDB
+namespace FileDBManager
 {
-    public class FileManagerDB
+    public class FileDBManagerClass
     {
         private SQLiteConnection db;
         private ILogger logger;
 
-        public FileManagerDB(string dbLoc, ILogger logger)
+        public FileDBManagerClass(string dbLoc, ILogger logger)
         {
             db = new SQLiteConnection(dbLoc);
             this.logger = logger;

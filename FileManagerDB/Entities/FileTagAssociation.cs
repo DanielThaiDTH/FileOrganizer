@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerDB.Entities
+namespace FileDBManager.Entities
 {
     [Table("FileTagAssociations")]
     class FileTagAssociation
