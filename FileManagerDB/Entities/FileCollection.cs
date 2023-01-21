@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FileManagerDB.Entities
+namespace FileDBManager.Entities
 {
     [Table("Collections")]
     public class FileCollection
@@ -17,7 +17,5 @@ namespace FileManagerDB.Entities
         [Unique]
         [Column("Name")]
         public string Name { get; set; }
-
-
     }
 }

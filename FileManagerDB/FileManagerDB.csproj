@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\FileCollection.cs" />
+    <Compile Include="Entities\FileCollectionAssociation.cs" />
     <Compile Include="Entities\FileMetadata.cs" />
     <Compile Include="Entities\FileTagAssociation.cs" />
     <Compile Include="Entities\FilePath.cs" />

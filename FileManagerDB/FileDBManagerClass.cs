@@ -26,6 +26,8 @@ namespace FileDBManager
             db.CreateTable<TagCategory>();
             db.CreateTable<Tag>();
             db.CreateTable<FileTagAssociation>();
+            db.CreateTable<FileCollection>();
+            db.CreateTable<FileCollectionAssociation>();
         }
 
         /// <summary>
@@ -71,9 +73,9 @@ namespace FileDBManager
                 logger.LogInformation(filePath + " added to FilePath table");
             }
 
-            int pathID = db.Query<int>("SELECT \"ID\" FROM \"FilePaths\" WHERE \"Path\" = ?", path)[0];
+            int pathID = db.QueryScalars<int>("SELECT \"ID\" FROM \"FilePaths\" WHERE \"Path\" = ?", path)[0];
             logger.LogDebug($"Found ID {pathID} for {path}");
-            int typeID = db.Query<int>("SELECT \"ID\" FROM \"FileTypes\" WHERE \"Name\" = ?", filetype.ToLowerInvariant())[0];
+            int typeID = db.QueryScalars<int>("SELECT \"ID\" FROM \"FileTypes\" WHERE \"Name\" = ?", filetype.ToLowerInvariant())[0];
             logger.LogDebug($"Found ID {typeID} for {filetype}");
 
             var fileInfo = new FileMetadata
@@ -102,7 +104,7 @@ namespace FileDBManager
         {
             bool result;
 
-            result = db.Query<int>("SELECT COUNT(*) FROM \"Files\" WHERE \"ID\" = ?", fileID)[0] == 1;
+            result = db.QueryScalars<int>("SELECT COUNT(*) FROM \"Files\" WHERE \"ID\" = ?", fileID)[0] == 1;
             if (!result) {
                 logger.LogWarning(fileID + " does not exist in DB, cannot add tag");
                 return result;
@@ -110,8 +112,8 @@ namespace FileDBManager
 
             AddTag(tag, tagCategory);
 
-            int tagID = db.Query<int>("SELECT \"ID\" FROM \"Tags\" WHERE \"Name\" = ?", tag.ToLowerInvariant())[0];
-            result = db.Query<int>("SELECT COUNT(*) FROM \"FileTagAssociations\" " +
+            int tagID = db.QueryScalars<int>("SELECT \"ID\" FROM \"Tags\" WHERE \"Name\" = ?", tag.ToLowerInvariant())[0];
+            result = db.QueryScalars<int>("SELECT COUNT(*) FROM \"FileTagAssociations\" " +
                 "WHERE \"FileID\" = ? AND \"TagID\" = ?", fileID, tagID)[0] == 0;
 
             if (result) {
@@ -161,7 +163,7 @@ namespace FileDBManager
 
             AddTagCategory(tagCategory);
 
-            int categoryID = db.Query<int>("SELECT \"ID\" FROM \"TagCategories\" WHERE \"Name\" = ?", tagCategory)[0];
+            int categoryID = db.QueryScalars<int>("SELECT \"ID\" FROM \"TagCategories\" WHERE \"Name\" = ?", tagCategory)[0];
             logger.LogDebug($"Found ID {categoryID} for {tagCategory}");
 
             var tagObj = new Tag
@@ -171,6 +173,92 @@ namespace FileDBManager
             };
             result = db.Insert(tagObj) == 1;
             logger.LogInformation(tag + " was" + (result ? " " : " not ") + "added to Tags table");
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Adds a file collection. Items will be ordered in the provided sequence.
+        ///     If a collection with the same name already exists, add will fail.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="fileSequence"></param>
+        /// <returns>Status of adding the new collection.</returns>
+        public bool AddCollection(string name, IEnumerable<int> fileSequence)
+        {
+            bool result;
+
+            if (name.Length == 0) return false;
+
+            var collection = new FileCollection
+            {
+                Name = name
+            };
+            result = db.Insert(collection) == 1;
+            logger.LogInformation(name + " was" + (result ? " " : " not ") + "added to Collections table");
+
+            if (result) {
+                int collectionID = db.QueryScalars<int>("SELECT \"ID\" FROM \"Collections\" WHERE \"Name\" = ?", name)[0];
+                logger.LogDebug($"Found ID {collectionID} for {name}");
+                
+                int index = 0;
+                
+                foreach (int fileID in fileSequence) {
+                    var fileCollectionAssociation = new FileCollectionAssociation
+                    {
+                        CollectionID = collectionID,
+                        FileID = fileID,
+                        Position = index
+                    };
+                    bool insertResult = db.Insert(fileCollectionAssociation) == 1;
+                    logger.LogInformation($"File {fileID} in collection {name} was" + (result ? " " : " not ") 
+                        + "added to FileCollectionAssociations table");
+                    result = result && insertResult;
+                }
+            }
+            
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Adds a file to a collection. Can only add to the end of the collection.
+        /// </summary>
+        /// <param name="collectionID"></param>
+        /// <param name="fileID"></param>
+        /// <returns>Status of adding file to new collection.</returns>
+        public bool AddFileToCollection(int collectionID, int fileID)
+        {
+            bool result;
+
+            List<int> files = db.QueryScalars<int>("SELECT COUNT(*) FROM \"Files\" WHERE \"ID\" = ?", fileID);
+            List<int> collections = db.QueryScalars<int>("SELECT COUNT(*) FROM \"Collections\" WHERE \"ID\" = ?", collectionID);
+            if (files.Count == 0) {
+                logger.LogWarning("File with ID of" + fileID + " was not found, could not add to collection");
+                return false;
+            }
+            if (collections.Count == 0) {
+                logger.LogWarning("Collection with ID of" + fileID + " was not found, could not add to collection");
+                return false;
+            }
+
+            var positionList = db.QueryScalars<int>("SELECT MAX(Position) FROM FileCollectionAssociations " +
+                "WHERE FileID = ? AND CollectionID = ?", fileID, collectionID);
+
+            int idx = 0;
+            if (positionList.Count > 0) {
+                idx += positionList[0] + 1;
+            }
+
+            var fileCollectionAssociation = new FileCollectionAssociation
+            {
+                FileID = fileID,
+                CollectionID = collectionID,
+                Position = idx
+            };
+            result = db.Insert(fileCollectionAssociation) == 1;
+            logger.LogInformation($"File {fileID} in collection {collectionID} was" + (result ? " " : " not ")
+                        + "added to FileCollectionAssociations table");
 
             return result;
         }
