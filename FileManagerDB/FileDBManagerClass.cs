@@ -30,6 +30,8 @@ namespace FileDBManager
             db.CreateTable<FileCollectionAssociation>();
         }
 
+        /* File Section */
+
         /// <summary>
         ///     Adds filemeta data to the database. Be consistent with casing in
         ///     the filepath and hash, otherwise duplicate entries may occur.
@@ -92,6 +94,130 @@ namespace FileDBManager
 
             return result;
         }
+
+        /// <summary>
+        ///     Returns full metadata of a file from a file ID.
+        /// </summary>
+        /// <param name="fileID"></param>
+        /// <returns>
+        ///     Dynamic type with the following format: <br/>
+        ///         <list type="bullet">
+        ///         <item>
+        ///             FileMetadata: <br/>
+        ///             <list type="bullet">
+        ///                 <item>
+        ///                     FileMetadata: <br/>
+        ///                         <list type="bullet">
+        ///                             FileMeta columns... <br/>
+        ///                         </list>
+        ///                 </item>
+        ///                 <item>
+        ///                     FileType: <br/>
+        ///                     <list type="bullet">
+        ///                         ID, Name <br/>
+        ///                     </list>
+        ///                 </item>
+        ///             </list>
+        ///         </item>
+        ///         <item>
+        ///             Path: <br/>
+        ///                 ID, Path <br/>
+        ///         </item>
+        ///         </list>
+        /// </returns>
+        public dynamic GetFileMetadata(int fileID)
+        {
+            var results = db.Table<FileMetadata>().Where(t => t.ID == fileID).ToList()
+                            .Join(db.Table<FileType>().ToList(), 
+                                    file => file.FileTypeID, 
+                                    filetype => filetype.ID, 
+                                    (file, filetype) => new {
+                                        FileMetadata = file,
+                                        FileType = filetype
+                                    })
+                            .ToList()
+                            .Join(db.Table<FilePath>().ToList(), 
+                                    a => a.FileMetadata.PathID, 
+                                    path => path.ID,
+                                    (a, path) => new { 
+                                        FileMetadata = a,
+                                        Path = path
+                                    })
+                            .ToList();
+
+            if (results.Count == 0) {
+                logger.LogInformation("No file found with ID of " + fileID);
+                return null;
+            }
+
+            return results[0];
+        }
+
+        /// <summary>
+        ///     Gets all metadata for all files.
+        /// </summary>
+        /// <returns>
+        /// Dynamic type with the following format: <br/>
+        ///         <list type="bullet">
+        ///         <item>
+        ///             FileMetadata: <br/>
+        ///             <list type="bullet">
+        ///                 <item>
+        ///                     FileMetadata: <br/>
+        ///                         <list type="bullet">
+        ///                             FileMeta columns... <br/>
+        ///                         </list>
+        ///                 </item>
+        ///                 <item>
+        ///                     FileType: <br/>
+        ///                     <list type="bullet">
+        ///                         ID, Name <br/>
+        ///                     </list>
+        ///                 </item>
+        ///             </list>
+        ///         </item>
+        ///         <item>
+        ///             Path: <br/>
+        ///                 ID, Path <br/>
+        ///         </item>
+        ///         </list>
+        /// </returns>
+        public List<dynamic> GetAllFileMetadata()
+        {
+            var results = db.Table<FileMetadata>().ToList()
+                            .Join(db.Table<FileType>().ToList(),
+                                    file => file.FileTypeID,
+                                    filetype => filetype.ID,
+                                    (file, filetype) => new {
+                                        FileMetadata = file,
+                                        FileType = filetype
+                                    })
+                            .ToList()
+                            .Join(db.Table<FilePath>().ToList(),
+                                    a => a.FileMetadata.PathID,
+                                    path => path.ID,
+                                    (a, path) => new {
+                                        FileMetadata = a,
+                                        Path = path
+                                    })
+                            .ToList<dynamic>();
+
+            if (results.Count == 0) {
+                logger.LogInformation("No files found");
+                return null;
+            }
+
+            return results;
+        }
+
+        public List<dynamic> GetFileMetadataFiltered(FileSearchFilter filter)
+        {
+
+        }
+
+        /* End File Section */
+
+        /* Tag Section */
 
         /// <summary>
         ///     Adds a tag to a file. Can optionally add a tag category to the tag.
@@ -176,6 +302,10 @@ namespace FileDBManager
 
             return result;
         }
+
+        /* End Tag Section */
+
+        /* Collection Section*/
 
         /// <summary>
         ///     Adds a file collection. Items will be ordered in the provided sequence.
@@ -262,5 +392,7 @@ namespace FileDBManager
 
             return result;
         }
+
+        /* End Collection Section */
     }
 }
