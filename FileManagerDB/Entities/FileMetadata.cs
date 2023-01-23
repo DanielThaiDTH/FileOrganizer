@@ -38,7 +38,7 @@ namespace FileDBManager.Entities
 
     public class FileSearchFilter
     {
-        int ID;
+        int _ID;
         int pathID;
         string path;
         bool pathExact;
@@ -61,7 +61,7 @@ namespace FileDBManager.Entities
         public bool FileTypeFilterExact { get { return fileTypeExact; } }
         public bool hashFilterExact { get { return hashExact; } }
 
-        public bool UsingID { get { return ID >= 0; } }
+        public bool UsingID { get { return _ID >= 0; } }
         public bool UsingPathID { get { return pathID >= 0; } }
         public bool UsingPath { get { return path != null; } }
         public bool UsingFullname { get { return fullname != null; } }
@@ -71,8 +71,18 @@ namespace FileDBManager.Entities
         public bool UsingFileType {  get { return fileType != null; } }
         public bool UsingHash { get { return hash != null; } }
 
+        public int ID { get { return _ID; } }
+        public int PathID { get { return pathID; } }
+        public string Path { get { return path; } }
+        public string Fullname { get { return fullname; } }
+        public string Filename { get { return filename; } }
+        public string Altname { get { return altname; } }
+        public int FileTypeID { get { return filetypeID; } }
+        public string FileType { get { return fileType; } }
+        public string Hash { get { return hash; } }
+
         public FileSearchFilter() {
-            ID = int.MinValue;
+            _ID = int.MinValue;
             pathID = int.MinValue;
             path = null;
             pathExact = true;
@@ -91,7 +101,7 @@ namespace FileDBManager.Entities
 
         public FileSearchFilter SetIDFilter(int id)
         {
-            ID = id;
+            _ID = id;
             return this;
         }
 

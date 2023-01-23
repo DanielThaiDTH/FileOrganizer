@@ -184,16 +184,15 @@ namespace FileDBManager
         /// </returns>
         public List<dynamic> GetAllFileMetadata()
         {
-            var results = db.Table<FileMetadata>().ToList()
-                            .Join(db.Table<FileType>().ToList(),
+            var results = db.Table<FileMetadata>()
+                            .Join(db.Table<FileType>(),
                                     file => file.FileTypeID,
                                     filetype => filetype.ID,
                                     (file, filetype) => new {
                                         FileMetadata = file,
                                         FileType = filetype
                                     })
-                            .ToList()
-                            .Join(db.Table<FilePath>().ToList(),
+                            .Join(db.Table<FilePath>(),
                                     a => a.FileMetadata.PathID,
                                     path => path.ID,
                                     (a, path) => new {
@@ -210,10 +209,126 @@ namespace FileDBManager
             return results;
         }
 
+        /// <summary>
+        ///     Applies standard match or equality filters to file metadata search.
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns>
+        /// Dynamic type with the following format: <br/>
+        ///         <list type="bullet">
+        ///         <item>
+        ///             FileMetadata: <br/>
+        ///             <list type="bullet">
+        ///                 <item>
+        ///                     FileMetadata: <br/>
+        ///                         <list type="bullet">
+        ///                             FileMeta columns... <br/>
+        ///                         </list>
+        ///                 </item>
+        ///                 <item>
+        ///                     FileType: <br/>
+        ///                     <list type="bullet">
+        ///                         ID, Name <br/>
+        ///                     </list>
+        ///                 </item>
+        ///             </list>
+        ///         </item>
+        ///         <item>
+        ///             Path: <br/>
+        ///                 ID, Path <br/>
+        ///         </item>
+        ///         </list>
+        /// </returns>
         public List<dynamic> GetFileMetadataFiltered(FileSearchFilter filter)
         {
+            var result = db.Table<FileMetadata>();
+            if (filter.UsingID) {
+                result = result.Where(t => t.ID == filter.ID);
+            }
+            if (filter.UsingPathID) {
+                result = result.Where(t => t.PathID == filter.PathID);
+            }
+            if (filter.UsingFilename) {
+                if (filter.FilenameFilterExact) {
+                    result = result.Where(t => t.Filename == filter.Filename);
+                } else {
+                    result = result.Where(t => t.Filename.Contains(filter.Filename));
+                }
+            }
+            if (filter.UsingFullname) {
+                if (filter.FullnameFilterExact) {
+                    result = result.Where(t => t.Fullname == filter.Fullname);
+                } else {
+                    result = result.Where(t => t.Fullname.Contains(filter.Fullname));
+                }
+            }
+            if (filter.UsingAltname) {
+                if (filter.AltnameFilterExact) {
+                    result = result.Where(t => t.AltName == filter.Altname);
+                } else {
+                    result = result.Where(t => t.AltName.Contains(filter.Altname));
+                }
+            }
+            if (filter.UsingFileTypeID) {
+                result = result.Where(t => t.FileTypeID == filter.FileTypeID);
+            }
+            if (filter.UsingHash) {
+                if (filter.hashFilterExact) {
+                    result = result.Where(t => t.Hash == filter.Hash);
+                } else {
+                    result = result.Where(t => t.Hash.Contains(filter.Hash));
+                }
+            }
 
+            Func<FilePath, bool> PathFunc = (FilePath t) => 
+            {
+                if (!filter.UsingPath) return true;
+                if (filter.PathFilterExact) {
+                    return t.PathString == filter.Path;
+                } else {
+                    return t.PathString.Contains(filter.Path);
+                }
+            };
+
+            Func<FileType, bool> TypeFunc = (FileType t) =>
+            {
+                if (!filter.UsingFileType) return true;
+                if (filter.FileTypeFilterExact) {
+                    return t.Name == filter.FileType;
+                } else {
+                    return t.Name.Contains(filter.FileType);
+                }
+            };
+
+            var resultA = result.Join(db.Table<FileType>().Where(TypeFunc),
+                                    file => file.FileTypeID,
+                                    filetype => filetype.ID,
+                                    (file, filetype) => new
+                                    {
+                                        FileMetadata = file,
+                                        FileType = filetype
+                                    })
+                                .Join(db.Table<FilePath>().Where(PathFunc),
+                                    a => a.FileMetadata.PathID,
+                                    path => path.ID,
+                                    (a, path) => new {
+                                        FileMetadata = a,
+                                        Path = path
+                                    });
+
+            return resultA.ToList<dynamic>();
         }
+
+        public bool DeleteFileMetadata(int id)
+        {
+            bool result;
+
+            result = db.Delete<FileMetadata>(id) == 1;
+
+            return result;
+        }
+
+        
 
         /* End File Section */
 
