@@ -319,16 +319,97 @@ namespace FileDBManager
             return resultA.ToList<dynamic>();
         }
 
+        /// <summary>
+        ///     Deletes a file and all dependendent entities.
+        /// </summary>
+        /// <param name="id">The file ID</param>
+        /// <returns>Result of deletion</returns>
         public bool DeleteFileMetadata(int id)
         {
             bool result;
 
+            logger.LogInformation("Delete file metadata with id of " + id);
             result = db.Delete<FileMetadata>(id) == 1;
+
+            if (result) {
+                db.Execute("DELETE FROM FileCollectionAssociations WHERE FileID = ?", id);
+                db.Execute("DELETE FROM FileTagAssociations WHERE FileID = ?", id);
+                logger.LogInformation("File metadata and dependencies removed");
+            } else {
+                logger.LogWarning("Could not delete file metadata with id of " + id);
+            }
 
             return result;
         }
 
-        
+        /// <summary>
+        ///     Updates a file's metadata. The info object must 
+        ///     have the file id.
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns>Status of update</returns>
+        public bool UpdateFileMetadata(FileMetadataUpdateObj info)
+        {
+            if (info.ID < 0) {
+                logger.LogWarning("No or negative ID provided");
+                return false;
+            }
+
+            List<string> cols = new List<string>();
+            List<object> vals = new List<object>();
+            if (info.Path != null) {
+                db.Execute("INSERT INTO FilePaths (Path) VALUES (?)", info.Path);
+                var results = db.QueryScalars<int>("SELECT ID FROM FilePaths WHERE Path = ?", info.Path);
+                cols.Add("PathID");
+                vals.Add(results[0]);
+            } 
+            if (info.FileType != null) {
+                db.Execute("INSERT INTO FileTypes (Name) VALUES (?)", info.FileType);
+                var results = db.QueryScalars<int>("SELECT ID FROM FileTypes WHERE Name = ?", info.FileType);
+                cols.Add("FileTypeID");
+                vals.Add(results[0]);
+            }
+            if (info.Filename != null) {
+                cols.Add("Filename");
+                vals.Add(info.Filename);
+            }
+            if (info.Altname != null) {
+                cols.Add("Altname");
+                vals.Add(info.Altname);
+            }
+            if (info.Hash != null) {
+                cols.Add("Hash");
+                vals.Add(info.Hash);
+            }
+
+            string columns = "";
+            string valParams = "";
+            for (int i = 0; i < cols.Count; i++) {
+                columns += cols[i];
+                valParams += "?";
+                if (i + 1 < cols.Count) {
+                    columns += ", ";
+                    valParams += ", ";
+                }
+            }
+
+            vals.Add(info.ID);
+
+            bool result = db.Execute($"UPDATE Files ({columns}) VALUES ({valParams}) WHERE ID = ?", vals.ToArray()) == 1;
+
+            if (result) {
+                var fileResult = db.Table<FileMetadata>().Where(t => t.ID == info.ID)
+                                    .Join(db.Table<FilePath>(), fm => fm.PathID, p => p.ID, (fm, p) => new { FileMetadata = fm, Path = p.PathString })
+                                    .ToList()[0];
+                string fullname = fileResult.Path + "\\" + fileResult.FileMetadata.Filename;
+                db.Execute($"UPDATE Files (Fullname) VALUES (?) WHERE ID = ?", fullname, info.ID);
+                logger.LogInformation("Updated file metadata with the following data: \n" + info.ToString());
+            } else {
+                logger.LogWarning("Could not update with the following information: \n" + info.ToString());
+            }
+
+            return result;
+        }
 
         /* End File Section */
 

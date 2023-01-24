@@ -159,4 +159,31 @@ namespace FileDBManager.Entities
             return this;
         }
     }
+
+    public class FileMetadataUpdateObj
+    {
+        public int ID { get; set; } = int.MinValue;
+        public string Path { get; set; } = null;
+        public string Filename { get; set; } = null;
+        public string Altname { get; set; } = null;
+        public string FileType { get; set; } = null;
+        public string Hash { get; set; } = null;
+
+        public override string ToString()
+        {
+            string str = "ID: " + ID.ToString();
+            str += "\nPath: ";
+            if (Path != null) str += Path;
+            str += "\nFilename: ";
+            if (Filename != null) str += Filename;
+            str += "\nAltname: ";
+            if (Altname != null) str += Altname;
+            str += "\nFileType: ";
+            if (FileType != null) str += FileType;
+            str += "\nHash: ";
+            if (Hash != null) str += Hash;
+
+            return str;
+        }
+    }
 }

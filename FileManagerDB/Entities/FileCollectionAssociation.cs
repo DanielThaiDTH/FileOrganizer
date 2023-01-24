@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace FileDBManager.Entities
 {
+    [Table("FileCollectionAssociations")]
     public class FileCollectionAssociation
     {
         [PrimaryKey]
