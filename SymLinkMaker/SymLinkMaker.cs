@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace SymLinkMaker
 {
@@ -81,7 +82,7 @@ namespace SymLinkMaker
 
             logger.LogInformation("Creating SymLinkMaker with root {0}", root);
             symLinks = new HashSet<string>();
-            this.logger = logger;
+            this.logger = logger ?? NullLogger.Instance;
             this.root = root;
         }
 

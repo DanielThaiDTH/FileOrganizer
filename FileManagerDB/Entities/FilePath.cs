@@ -1,5 +1,4 @@
-﻿using SQLite;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,15 +6,22 @@ using System.Threading.Tasks;
 
 namespace FileDBManager.Entities
 {
-    [Table("FilePaths")]
+    //[Table("FilePaths")]
     class FilePath
     {
-        [PrimaryKey, AutoIncrement]
-        [Column("ID")]
+        public static string TableName = "FilePaths";
+        public static Dictionary<string, string> Columns 
+            = new Dictionary<string, string>(){
+                { "ID", "INTEGER PRIMARY KEY AUTOINCREMENT" },
+                { "Path", "TEXT UNIQUE" }
+            };
+
+        //[PrimaryKey, AutoIncrement]
+        //[Column("ID")]
         public int ID { get; set; }
 
-        [Unique]
-        [Column("Path")]
+        //[Unique]
+        //[Column("Path")]
         public string PathString { get; set; }
     }
 }

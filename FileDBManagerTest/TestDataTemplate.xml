@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<!--Template for test data, actual XML file should not be in source tree-->
+<Data>
+  <TestDB></TestDB>
+  <ExistingDB></ExistingDB>
+</Data>
