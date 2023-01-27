@@ -9,6 +9,18 @@ namespace FileDBManager.Entities
     //[Table("Files")]
     public class FileMetadata
     {
+        public static string TableName = "Files";
+        public static Dictionary<string, string> Columns
+            = new Dictionary<string, string>(){
+                { "ID", "INTEGER PRIMARY KEY" },
+                { "PathID", "INTEGER REFERENCES FilePaths (ID)" },
+                { "Filename", "TEXT" },
+                { "Altname", "TEXT" },
+                { "FileTypeID", "INTEGER REFERENCES FileTypes (ID)" },
+                { "Hash", "TEXT" }
+            };
+        public static string Constraint = "UNIQUE (PathID, Filename)";
+
         //[PrimaryKey, AutoIncrement]
         //[Column("ID")]
         public int ID { get; set; }

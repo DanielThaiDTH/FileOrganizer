@@ -24,23 +24,36 @@ namespace FileDBManager
             db.Open();
             CreateTable(FilePath.TableName, FilePath.Columns);
             CreateTable(FileType.TableName, FileType.Columns);
+            CreateTable(FileMetadata.TableName, FileMetadata.Columns, FileMetadata.Constraint);
+            CreateTable(TagCategory.TableName, TagCategory.Columns);
+            CreateTable(Tag.TableName, Tag.Columns);
+            CreateTable(FileTagAssociation.TableName, FileTagAssociation.Columns, FileTagAssociation.Constraint);
+            CreateTable(FileCollection.TableName, FileCollection.Columns);
+            CreateTable(FileCollectionAssociation.TableName, 
+                FileCollectionAssociation.Columns, 
+                FileCollectionAssociation.Constraint);
         }
 
-        private void CreateTable(string name, Dictionary<string, string> cols)
+        private void CreateTable(string name, Dictionary<string, string> cols, string constraint = null)
         {
             string query = "CREATE TABLE IF NOT EXISTS " + name + "\n (";
             int count = 0;
             foreach (var col in cols) {
                 query += col.Key + " " + col.Value;
-                if (count + 1 < cols.Count) query += ",";
+                if (count + 1 < cols.Count || (count + 1 == cols.Count && constraint != null)) {
+                    query += ",";
+                }
                 count++;
                 query += "\n";
+            }
+            if (constraint != null) {
+                query += constraint;
             }
             query += ")";
             logger.LogInformation($"QUERY: \n{query}");
             var com = new SQLiteCommand(query, db);
             count = com.ExecuteNonQuery();
-            logger.LogInformation("Affecting {count} row(s).");
+            logger.LogInformation($"Affecting {count} row(s).");
         }
     }
 }

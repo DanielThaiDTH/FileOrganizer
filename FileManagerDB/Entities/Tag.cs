@@ -10,7 +10,13 @@ namespace FileDBManager.Entities
     public class Tag
     {
         public static string TableName = "Tags";
-
+        public static Dictionary<string, string> Columns
+            = new Dictionary<string, string>()
+            {
+                { "ID", "INTEGER PRIMARY KEY" },
+                { "Name", "TEXT UNIQUE" },
+                { "CategoryID", "INTEGER REFERENCES TagCategories (ID)" }
+            };
 
         //[PrimaryKey, AutoIncrement]
         //[Column("ID")]

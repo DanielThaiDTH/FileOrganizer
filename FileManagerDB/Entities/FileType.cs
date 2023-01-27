@@ -12,9 +12,10 @@ namespace FileDBManager.Entities
         public static string TableName = "FileTypes";
         public static Dictionary<string, string> Columns
             = new Dictionary<string, string>(){
-                { "ID", "INTEGER PRIMARY KEY AUTOINCREMENT" },
+                { "ID", "INTEGER PRIMARY KEY" },
                 { "Name", "TEXT UNIQUE" }
             };
+
         //[PrimaryKey, AutoIncrement]
         //[Column("ID")]
         public int ID { get; set; }

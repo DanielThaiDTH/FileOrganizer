@@ -9,6 +9,14 @@ namespace FileDBManager.Entities
     //[Table("Collections")]
     public class FileCollection
     {
+        public static string TableName = "Collections";
+        public static Dictionary<string, string> Columns
+            = new Dictionary<string, string>()
+            {
+                { "ID", "INTEGER PRIMARY KEY" },
+                { "Name", "TEXT UNIQUE" },
+            };
+
         //[PrimaryKey, AutoIncrement]
         //[Column("ID")]
         public int ID { get; set; }

@@ -12,7 +12,7 @@ namespace FileDBManager.Entities
         public static string TableName = "FilePaths";
         public static Dictionary<string, string> Columns 
             = new Dictionary<string, string>(){
-                { "ID", "INTEGER PRIMARY KEY AUTOINCREMENT" },
+                { "ID", "INTEGER PRIMARY KEY" },
                 { "Path", "TEXT UNIQUE" }
             };
 
