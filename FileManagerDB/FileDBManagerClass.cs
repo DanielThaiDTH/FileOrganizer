@@ -55,6 +55,11 @@ namespace FileDBManager
             count = com.ExecuteNonQuery();
             logger.LogInformation($"Affecting {count} row(s).");
         }
+
+        public void CloseConnection()
+        {
+            db.Close();
+        }
     }
 }
 

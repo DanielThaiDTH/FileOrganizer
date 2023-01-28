@@ -30,7 +30,7 @@ namespace FileDBManager.Test
     
     public class TestFixture : IDisposable
     {
-        public FileDBManagerClass db;
+        public FileDBManagerClass db = null;
         public Microsoft.Extensions.Logging.ILogger logger;
         
         public TestFixture()
@@ -42,12 +42,13 @@ namespace FileDBManager.Test
                 .WriteTo.Debug()
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
-            //db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), diLogger);
+            db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), logger);
         }
 
         public void Dispose()
         {
             Log.CloseAndFlush();
+            db.CloseConnection();
         }
     }
 
