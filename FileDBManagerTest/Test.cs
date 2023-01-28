@@ -49,6 +49,7 @@ namespace FileDBManager.Test
         {
             Log.CloseAndFlush();
             db.CloseConnection();
+            //File.Delete(TestLoader.GetNodeValue("TestDB"));
         }
     }
 
@@ -61,9 +62,9 @@ namespace FileDBManager.Test
         }
 
         [Fact]
-        public void GetAllFileMetadataReturnsNothingInEmptyDB()
+        public void AddFileForNewFileReturnsTrue()
         {
-            Program.Main(new string[] { });
+            Assert.True(fix.db.AddFile(@"C:\Temp\temp.txt", "text", "aaa", "testfile"));
         }
 
         [Fact]

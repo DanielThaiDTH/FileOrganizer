@@ -14,7 +14,7 @@ namespace FileDBManager.Entities
             = new Dictionary<string, string>()
             {
                 { "ID", "INTEGER PRIMARY KEY" },
-                { "Name", "TEXT UNIQUE" }
+                { "Name", "TEXT UNIQUE ON CONFLICT IGNORE" }
             };
         //[PrimaryKey, AutoIncrement]
         public int ID { get; set; }

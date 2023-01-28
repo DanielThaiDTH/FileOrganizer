@@ -19,7 +19,7 @@ namespace FileDBManager.Entities
                 { "FileTypeID", "INTEGER REFERENCES FileTypes (ID)" },
                 { "Hash", "TEXT" }
             };
-        public static string Constraint = "UNIQUE (PathID, Filename)";
+        public static string Constraint = "UNIQUE (PathID, Filename) ON CONFLICT IGNORE";
 
         //[PrimaryKey, AutoIncrement]
         //[Column("ID")]

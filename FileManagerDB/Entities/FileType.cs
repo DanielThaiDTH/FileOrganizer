@@ -13,7 +13,7 @@ namespace FileDBManager.Entities
         public static Dictionary<string, string> Columns
             = new Dictionary<string, string>(){
                 { "ID", "INTEGER PRIMARY KEY" },
-                { "Name", "TEXT UNIQUE" }
+                { "Name", "TEXT UNIQUE ON CONFLICT IGNORE" }
             };
 
         //[PrimaryKey, AutoIncrement]

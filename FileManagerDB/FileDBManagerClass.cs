@@ -11,10 +11,10 @@ using SQLitePCL;
 
 namespace FileDBManager
 {
-    public class FileDBManagerClass
+    public partial class FileDBManagerClass
     {
-        private SQLiteConnection db;
-        private ILogger logger;
+        public SQLiteConnection db;
+        public ILogger logger;
 
         public FileDBManagerClass(string dbLoc, ILogger logger)
         {
@@ -32,6 +32,27 @@ namespace FileDBManager
             CreateTable(FileCollectionAssociation.TableName, 
                 FileCollectionAssociation.Columns, 
                 FileCollectionAssociation.Constraint);
+        }
+
+        private string createQueryString(string query, params object[] args)
+        {
+            string filledQuery = "";
+            if (query.Count(c => c == '?') != args.Length) {
+                logger.LogWarning("Argument mismatch - query: '" + query + $"' does not have {args.Length} params");
+                return null;
+            }
+            var queryParts = query.Split('?');
+            int count = 0;
+            filledQuery += queryParts[0];
+            foreach (object arg in args) {
+                string fixArg = "'" + arg.ToString().Replace("'", "''") + "'";
+                filledQuery += fixArg + queryParts[count + 1];
+                count++;
+            }
+
+            logger.LogDebug("Created query: " + filledQuery);
+
+            return filledQuery;
         }
 
         private void CreateTable(string name, Dictionary<string, string> cols, string constraint = null)
@@ -56,6 +77,64 @@ namespace FileDBManager
             logger.LogInformation($"Affecting {count} row(s).");
         }
 
+        /// <summary>
+        ///     Adds filemeta data to the database. Be consistent with casing in
+        ///     the filepath and hash, otherwise duplicate entries may occur.
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="filetype"></param>
+        /// <param name="hash"></param>
+        /// <param name="altname"></param>
+        /// <returns></returns>
+        public bool AddFile(string filepath, string filetype, string hash, string altname = "")
+        {
+            bool result;
+            string queryString = createQueryString("INSERT INTO FileTypes (Name) VALUES (?)", filetype);
+            int num = new SQLiteCommand(queryString, db).ExecuteNonQuery();
+
+            if (num == 0) {
+                logger.LogInformation(filetype + " already exists in FileType table");
+            } else {
+                logger.LogInformation(filetype + " added to FileType table");
+            }
+
+            int idx = filepath.LastIndexOf('\\');
+            string path = filepath.Substring(0, idx);
+            string filename = filepath.Substring(idx + 1);
+            if (!Path.IsPathRooted(path)) {
+                logger.LogWarning(path + " is not a proper full path");
+                return false;
+            }
+
+            queryString = createQueryString("INSERT INTO FilePaths (Path) VALUES (?)", path);
+            num = new SQLiteCommand(queryString, db).ExecuteNonQuery();
+            if (num == 0) {
+                logger.LogInformation(path + " already exists in FilePath table");
+            } else {
+                logger.LogInformation(path + " added to FilePath table");
+            }
+
+            queryString = createQueryString("SELECT ID FROM FilePaths WHERE Path = ?", path);
+            var com = new SQLiteCommand(queryString, db).ExecuteReader();
+            com.Read();
+            int pathID = com.GetInt32(0);
+            logger.LogDebug($"Found ID {pathID} for {path}");
+            queryString = createQueryString("SELECT ID FROM FileTypes WHERE Name = ?",
+                            filetype.ToLowerInvariant());
+            com = new SQLiteCommand(queryString, db).ExecuteReader();
+            com.Read();
+            int typeID = com.GetInt32(0);
+            logger.LogDebug($"Found ID {typeID} for {filetype}");
+
+            queryString = createQueryString("INSERT INTO Files " +
+                            "(Filename, PathID, FileTypeID, Altname, Hash) VALUES (?,?,?,?,?)",
+                            filename, pathID, typeID, altname, hash);
+            result = new SQLiteCommand(queryString, db).ExecuteNonQuery() == 1;
+            logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
+
+            return result;
+        }
+
         public void CloseConnection()
         {
             db.Close();
@@ -67,90 +146,7 @@ namespace FileDBManager
 //{
 //    public class FileDBManagerClass
 //    {
-//        private SqliteConnection db;
-//        private ILogger logger;
-
-//        public FileDBManagerClass(string dbLoc, ILogger logger)
-//        {
-//            Batteries.Init();
-//            db = new SqliteConnection(dbLoc);
-//            this.logger = logger;
-//            logger.LogInformation("FileDB manager started");
-//            db.CreateTable<FilePath>();
-//            db.CreateTable<FileType>();
-//            db.CreateTable<FileMetadata>();
-//            db.CreateTable<TagCategory>();
-//            db.CreateTable<Tag>();
-//            db.CreateTable<FileTagAssociation>();
-//            db.CreateTable<FileCollection>();
-//            db.CreateTable<FileCollectionAssociation>();
-//        }
-
 //        /* File Section */
-
-//        /// <summary>
-//        ///     Adds filemeta data to the database. Be consistent with casing in
-//        ///     the filepath and hash, otherwise duplicate entries may occur.
-//        /// </summary>
-//        /// <param name="filepath"></param>
-//        /// <param name="filetype"></param>
-//        /// <param name="hash"></param>
-//        /// <param name="altname"></param>
-//        /// <returns></returns>
-//        public bool AddFile(string filepath, string filetype, string hash, string altname="")
-//        {
-//            bool result;
-
-//            var fileType = new FileType
-//            {
-//                Name = filetype.ToLowerInvariant()
-//            };
-//            int num = db.Insert(fileType);
-//            if (num == 0) {
-//                logger.LogInformation(fileType + " already exists in FileType table");
-//            } else {
-//                logger.LogInformation(fileType + " added to FileType table");
-//            }
-
-//            int idx = filepath.LastIndexOf('\\');
-//            string path = filepath.Substring(0, idx);
-//            string filename = filepath.Substring(idx + 1);
-//            if (!Path.IsPathRooted(path)) {
-//                logger.LogWarning(path + " is not a proper full path");
-//                return false;
-//            }
-
-//            var filePath = new FilePath
-//            {
-//                PathString = path
-//            };
-//            num = db.Insert(filePath);
-//            if (num == 0) {
-//                logger.LogInformation(filePath + " already exists in FilePath table");
-//            } else {
-//                logger.LogInformation(filePath + " added to FilePath table");
-//            }
-
-//            int pathID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"FilePaths\" WHERE \"Path\" = ?", path);
-//            logger.LogDebug($"Found ID {pathID} for {path}");
-//            int typeID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"FileTypes\" WHERE \"Name\" = ?", 
-//                filetype.ToLowerInvariant());
-//            logger.LogDebug($"Found ID {typeID} for {filetype}");
-
-//            var fileInfo = new FileMetadata
-//            {
-//                Filename = filename,
-//                Fullname = filepath,
-//                PathID = pathID,
-//                FileTypeID = typeID,
-//                AltName = altname,
-//                Hash = hash
-//            };
-//            result = db.Insert(fileInfo) == 1;
-//            logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
-
-//            return result;
-//        }
 
 //        /// <summary>
 //        ///     Returns full metadata of a file from a file ID.
