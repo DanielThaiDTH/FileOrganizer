@@ -120,6 +120,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBReturnTypes.cs" />
     <Compile Include="Entities\FileCollection.cs" />
     <Compile Include="Entities\FileCollectionAssociation.cs" />
     <Compile Include="Entities\FileMetadata.cs" />

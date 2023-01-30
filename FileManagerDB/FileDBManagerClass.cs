@@ -125,6 +125,7 @@ namespace FileDBManager
             com.Read();
             int typeID = com.GetInt32(0);
             logger.LogDebug($"Found ID {typeID} for {filetype}");
+            com.Close();
 
             queryString = createQueryString("INSERT INTO Files " +
                             "(Filename, PathID, FileTypeID, Altname, Hash) VALUES (?,?,?,?,?)",
@@ -132,7 +133,130 @@ namespace FileDBManager
             result = new SQLiteCommand(queryString, db).ExecuteNonQuery() == 1;
             logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
 
+            com.Close();
+
             return result;
+        }
+
+        /// <summary>
+        ///     Returns full metadata of a file from a file ID.
+        /// </summary>
+        /// <param name="fileID"></param>
+        /// <returns>
+        ///     Dynamic type with the following format: <br/>
+        ///         <list type="bullet">
+        ///         <item>
+        ///             FileMetadata: <br/>
+        ///             <list type="bullet">
+        ///                 <item>
+        ///                     FileMetadata: <br/>
+        ///                         <list type="bullet">
+        ///                             FileMeta columns... <br/>
+        ///                         </list>
+        ///                 </item>
+        ///                 <item>
+        ///                     FileType: <br/>
+        ///                     <list type="bullet">
+        ///                         ID, Name <br/>
+        ///                     </list>
+        ///                 </item>
+        ///             </list>
+        ///         </item>
+        ///         <item>
+        ///             Path: <br/>
+        ///                 ID, Path <br/>
+        ///         </item>
+        ///         </list>
+        /// </returns>
+        public dynamic GetFileMetadata(int fileID)
+        {
+            string queryString = $"SELECT * FROM Files WHERE ID = {fileID} " 
+                            + "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID "
+                            + "JOIN FilePaths ON Files.PathID = FilePaths.ID";
+            var com = new SQLiteCommand(queryString, db).ExecuteReader();
+            List<dynamic> results = new List<dynamic>(); 
+            if (com.Read()) {
+                results.Add(new { 
+                    ID = fileID,
+                    PathID = com.GetInt32(com.GetOrdinal("PathID")),
+                    Path = com.GetString(com.GetOrdinal("Path")),
+                    Filename = com.GetString(com.GetOrdinal("Filename")),
+                    Altname = com.GetString(com.GetOrdinal("Altname")),
+                    FileTypeID = com.GetInt32(com.GetOrdinal("FileTypeID")),
+                    FileType = com.GetString(com.GetOrdinal("Name")),
+                    Hash = com.GetString(com.GetOrdinal("Hash"))
+                });
+            }
+
+            com.Close();
+
+            if (results.Count == 0) {
+                logger.LogInformation("No file found with ID of " + fileID);
+                return null;
+            }
+
+            return results[0];
+        }
+
+        /// <summary>
+        ///     Gets all metadata for all files.
+        /// </summary>
+        /// <returns>
+        /// Dynamic type with the following format: <br/>
+        ///         <list type="bullet">
+        ///         <item>
+        ///             FileMetadata: <br/>
+        ///             <list type="bullet">
+        ///                 <item>
+        ///                     FileMetadata: <br/>
+        ///                         <list type="bullet">
+        ///                             FileMeta columns... <br/>
+        ///                         </list>
+        ///                 </item>
+        ///                 <item>
+        ///                     FileType: <br/>
+        ///                     <list type="bullet">
+        ///                         ID, Name <br/>
+        ///                     </list>
+        ///                 </item>
+        ///             </list>
+        ///         </item>
+        ///         <item>
+        ///             Path: <br/>
+        ///                 ID, Path <br/>
+        ///         </item>
+        ///         </list>
+        /// </returns>
+        public List<GetFileMetadataType> GetAllFileMetadata()
+        {
+            string queryString = $"SELECT * FROM Files "
+                            + "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID "
+                            + "JOIN FilePaths ON Files.PathID = FilePaths.ID";
+            var com = new SQLiteCommand(queryString, db).ExecuteReader();
+            List<GetFileMetadataType> results = new List<GetFileMetadataType>();
+            while (com.HasRows && com.Read()) {
+                results.Add(new GetFileMetadataType()
+                {
+                    ID = com.GetInt32(com.GetOrdinal("ID")),
+                    PathID = com.GetInt32(com.GetOrdinal("PathID")),
+                    Path = com.GetString(com.GetOrdinal("Path")),
+                    Filename = com.GetString(com.GetOrdinal("Filename")),
+                    Altname = com.GetString(com.GetOrdinal("Altname")),
+                    FileTypeID = com.GetInt32(com.GetOrdinal("FileTypeID")),
+                    FileType = com.GetString(com.GetOrdinal("Name")),
+                    Hash = com.GetString(com.GetOrdinal("Hash"))
+                });
+            }
+
+            com.Close();
+
+            if (results.Count == 0) {
+                logger.LogInformation("No files found");
+                logger.LogDebug("Could not find any files with query of " + queryString);
+                return results;
+            }
+
+            return results;
         }
 
         public void CloseConnection()
@@ -148,119 +272,7 @@ namespace FileDBManager
 //    {
 //        /* File Section */
 
-//        /// <summary>
-//        ///     Returns full metadata of a file from a file ID.
-//        /// </summary>
-//        /// <param name="fileID"></param>
-//        /// <returns>
-//        ///     Dynamic type with the following format: <br/>
-//        ///         <list type="bullet">
-//        ///         <item>
-//        ///             FileMetadata: <br/>
-//        ///             <list type="bullet">
-//        ///                 <item>
-//        ///                     FileMetadata: <br/>
-//        ///                         <list type="bullet">
-//        ///                             FileMeta columns... <br/>
-//        ///                         </list>
-//        ///                 </item>
-//        ///                 <item>
-//        ///                     FileType: <br/>
-//        ///                     <list type="bullet">
-//        ///                         ID, Name <br/>
-//        ///                     </list>
-//        ///                 </item>
-//        ///             </list>
-//        ///         </item>
-//        ///         <item>
-//        ///             Path: <br/>
-//        ///                 ID, Path <br/>
-//        ///         </item>
-//        ///         </list>
-//        /// </returns>
-//        public dynamic GetFileMetadata(int fileID)
-//        {
-//            var results = db.Table<FileMetadata>().Where(t => t.ID == fileID).ToList()
-//                            .Join(db.Table<FileType>().ToList(), 
-//                                    file => file.FileTypeID, 
-//                                    filetype => filetype.ID, 
-//                                    (file, filetype) => new {
-//                                        FileMetadata = file,
-//                                        FileType = filetype
-//                                    })
-//                            .ToList()
-//                            .Join(db.Table<FilePath>().ToList(), 
-//                                    a => a.FileMetadata.PathID, 
-//                                    path => path.ID,
-//                                    (a, path) => new { 
-//                                        FileMetadata = a,
-//                                        Path = path
-//                                    })
-//                            .ToList();
 
-//            if (results.Count == 0) {
-//                logger.LogInformation("No file found with ID of " + fileID);
-//                return null;
-//            }
-
-//            return results[0];
-//        }
-
-//        /// <summary>
-//        ///     Gets all metadata for all files.
-//        /// </summary>
-//        /// <returns>
-//        /// Dynamic type with the following format: <br/>
-//        ///         <list type="bullet">
-//        ///         <item>
-//        ///             FileMetadata: <br/>
-//        ///             <list type="bullet">
-//        ///                 <item>
-//        ///                     FileMetadata: <br/>
-//        ///                         <list type="bullet">
-//        ///                             FileMeta columns... <br/>
-//        ///                         </list>
-//        ///                 </item>
-//        ///                 <item>
-//        ///                     FileType: <br/>
-//        ///                     <list type="bullet">
-//        ///                         ID, Name <br/>
-//        ///                     </list>
-//        ///                 </item>
-//        ///             </list>
-//        ///         </item>
-//        ///         <item>
-//        ///             Path: <br/>
-//        ///                 ID, Path <br/>
-//        ///         </item>
-//        ///         </list>
-//        /// </returns>
-//        public List<dynamic> GetAllFileMetadata()
-//        {
-//            var results = db.Table<FileMetadata>()
-//                            .Join(db.Table<FileType>(),
-//                                    file => file.FileTypeID,
-//                                    filetype => filetype.ID,
-//                                    (file, filetype) => new {
-//                                        FileMetadata = file,
-//                                        FileType = filetype
-//                                    })
-//                            .Join(db.Table<FilePath>(),
-//                                    a => a.FileMetadata.PathID,
-//                                    path => path.ID,
-//                                    (a, path) => new {
-//                                        FileMetadata = a,
-//                                        Path = path
-//                                    })
-//                            .ToList<dynamic>();
-
-//            if (results.Count == 0) {
-//                logger.LogInformation("No files found");
-//                return null;
-//            }
-
-//            return results;
-//        }
 
 //        /// <summary>
 //        ///     Applies standard match or equality filters to file metadata search.
