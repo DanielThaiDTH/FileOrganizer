@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 
-#nullable enable
 
 namespace SymLinkMaker.Test
 {
@@ -31,8 +30,8 @@ namespace SymLinkMaker.Test
             LogLevel logLevel, 
             EventId eventId, 
             TState state, 
-            Exception? exception, 
-            Func<TState, Exception?, string> formatter)
+            Exception exception, 
+            Func<TState, Exception, string> formatter)
         {
             if (!IsEnabled(logLevel)) return;
 
@@ -63,7 +62,8 @@ namespace SymLinkMaker.Test
 
             string timeStr = DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
 
-            logFile.Write(Encoding.UTF8.GetBytes($"{levelStr} [{timeStr}]: {log}\n"));
+            byte[] bytes = Encoding.UTF8.GetBytes($"{levelStr} [{timeStr}]: {log}\n");
+            logFile.Write(bytes, 0, bytes.Length);
         }
 
         public bool IsEnabled(LogLevel level)
@@ -71,60 +71,60 @@ namespace SymLinkMaker.Test
             return level >= this.level && level != LogLevel.None;
         }
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
+        public IDisposable BeginScope<TState>(TState state) { return null; }
 
-        public void LogDebug(string? msg, params object?[] args)
+        public void LogDebug(string msg, params object[] args)
         {
             Log(
                 LogLevel.Debug, 
                 new EventId(0), 
                 string.Format("DEBUG: " + msg, args), 
                 null, 
-                (string s, Exception? ex) => { return s; }
+                (string s, Exception ex) => { return s; }
             );
         }
 
-        public void LogTrace(string? msg, params object?[] args)
+        public void LogTrace(string msg, params object[] args)
         {
             Log(
                 LogLevel.Trace, 
                 new EventId(0),
                 string.Format("TRACE: " + msg, args),
                 null,
-                (string s, Exception? ex) => { return s; }
+                (string s, Exception ex) => { return s; }
             );
         }
 
-        public void LogInformation(string? msg, params object?[] args)
+        public void LogInformation(string msg, params object[] args)
         {
             Log(
                 LogLevel.Information, 
                 new EventId(0),
                 string.Format("INFO: " + msg, args),
                 null,
-                (string s, Exception? ex) => { return s; }
+                (string s, Exception ex) => { return s; }
             );
         }
 
-        void Warning(string? message, params object?[] args)
+        void Warning(string message, params object[] args)
         {
             Log(
                 LogLevel.Warning, 
                 new EventId(0),
                 string.Format("WARNING: " + message, args),
                 null,
-                (string s, Exception? ex) => { return s; }
+                (string s, Exception ex) => { return s; }
             );
         }
 
-        public void LogError(string? msg, params object?[] args)
+        public void LogError(string msg, params object[] args)
         {
             Log(
                 LogLevel.Error, 
                 new EventId(0),
                 string.Format("ERROR: " + msg, args),
                 null,
-                (string s, Exception? ex) => { return s; }
+                (string s, Exception ex) => { return s; }
             );
         }
 
