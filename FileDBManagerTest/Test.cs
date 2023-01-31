@@ -16,9 +16,10 @@ namespace FileDBManager.Test
 {
     public static class TestLoader
     {
+        public static string testConfigPath = @"..\..\TestData.xml";
         public static string GetNodeValue(string nodeName)
         {
-            var xml = new XPathDocument(@"..\..\..\TestData.xml");
+            var xml = new XPathDocument(testConfigPath);
             var XMLNav = xml.CreateNavigator();
             var nodeList = XMLNav.Select("//" + nodeName);
             foreach (XPathNavigator n in nodeList) {
@@ -46,6 +47,7 @@ namespace FileDBManager.Test
                 .WriteTo.Debug()
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
+            Log.Information(Path.GetFullPath(TestLoader.GetNodeValue("TestDB")));
             db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), logger);
         }
 
@@ -76,6 +78,21 @@ namespace FileDBManager.Test
         public void AddFileForNewFileReturnsTrue()
         {
             Assert.True(fix.db.AddFile(@"C:\Temp\file1.txt", "text", "aaa", "testfile"));
+        }
+
+        [Fact]
+        public void AddFileHandlesSingleQuotes()
+        {
+            Assert.True(fix.db.AddFile(@"C:\Temp\file'.txt", "text", "aaa", "testfile"));
+            List<GetFileMetadataType> results = fix.db.GetAllFileMetadata();
+            Assert.True(results.Exists(r => r.Filename == "file'.txt"));
+        }
+
+        [Fact]
+        public void AddFileCannotAddDuplicateFilepath()
+        {
+            fix.db.AddFile(@"C:\Temp\dup.txt", "text", "aaa", "testfile");
+            Assert.False(fix.db.AddFile(@"C:\Temp\dup.txt", "log", "nnn", "dupfile"));
         }
 
         [Fact]

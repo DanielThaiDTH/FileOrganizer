@@ -74,6 +74,7 @@ namespace FileDBManager
             logger.LogInformation($"QUERY: \n{query}");
             var com = new SQLiteCommand(query, db);
             count = com.ExecuteNonQuery();
+            com.Dispose();
             logger.LogInformation($"Affecting {count} row(s).");
         }
 
@@ -90,7 +91,9 @@ namespace FileDBManager
         {
             bool result;
             string queryString = createQueryString("INSERT INTO FileTypes (Name) VALUES (?)", filetype);
-            int num = new SQLiteCommand(queryString, db).ExecuteNonQuery();
+            var com = new SQLiteCommand(queryString, db);
+            int num = com.ExecuteNonQuery();
+            com.Dispose();
 
             if (num == 0) {
                 logger.LogInformation(filetype + " already exists in FileType table");
@@ -115,25 +118,31 @@ namespace FileDBManager
             }
 
             queryString = createQueryString("SELECT ID FROM FilePaths WHERE Path = ?", path);
-            var com = new SQLiteCommand(queryString, db).ExecuteReader();
-            com.Read();
-            int pathID = com.GetInt32(0);
+            com = new SQLiteCommand(queryString, db);
+            var reader = com.ExecuteReader();
+            reader.Read();
+            int pathID = reader.GetInt32(0);
+            reader.Close();
+            com.Dispose();
             logger.LogDebug($"Found ID {pathID} for {path}");
             queryString = createQueryString("SELECT ID FROM FileTypes WHERE Name = ?",
                             filetype.ToLowerInvariant());
-            com = new SQLiteCommand(queryString, db).ExecuteReader();
-            com.Read();
-            int typeID = com.GetInt32(0);
+            com = new SQLiteCommand(queryString, db);
+            reader = com.ExecuteReader();
+            reader.Read();
+            int typeID = reader.GetInt32(0);
             logger.LogDebug($"Found ID {typeID} for {filetype}");
-            com.Close();
+            reader.Close();
+            com.Dispose();
 
             queryString = createQueryString("INSERT INTO Files " +
                             "(Filename, PathID, FileTypeID, Altname, Hash) VALUES (?,?,?,?,?)",
                             filename, pathID, typeID, altname, hash);
-            result = new SQLiteCommand(queryString, db).ExecuteNonQuery() == 1;
+            com = new SQLiteCommand(queryString, db);
+            result = com.ExecuteNonQuery() == 1;
             logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
 
-            com.Close();
+            com.Dispose();
 
             return result;
         }
