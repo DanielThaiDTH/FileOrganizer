@@ -11,6 +11,7 @@ using Serilog.Extensions.Logging;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using SQLiteConsole;
+using FileDBManager.Entities;
 
 namespace FileDBManager.Test
 {
@@ -92,7 +93,11 @@ namespace FileDBManager.Test
         public void AddFileCannotAddDuplicateFilepath()
         {
             fix.db.AddFile(@"C:\Temp\dup.txt", "text", "aaa", "testfile");
+            List<GetFileMetadataType> results = fix.db.GetAllFileMetadata();
+            int oldCount = results.Count;
             Assert.False(fix.db.AddFile(@"C:\Temp\dup.txt", "log", "nnn", "dupfile"));
+            results = fix.db.GetAllFileMetadata();
+            Assert.Equal(oldCount, results.Count);
         }
 
         [Fact]
@@ -124,6 +129,27 @@ namespace FileDBManager.Test
             foreach (var res in results) {
                 res.Equals(fix.db.GetFileMetadata(res.ID));
             }
+        }
+
+        [Fact]
+        public void GetFileMetadataFilteredWithFilenameFilterReturnsCorrectResults()
+        {
+            fix.db.AddFile(@"C:\Temp\file_test1", "image", "testHash", "alt.bmp");
+            fix.db.AddFile(@"C:\Temp\file_test2", "audio", "testHash2", "alt.mp3");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFilenameFilter("file_test1", true);
+            List<GetFileMetadataType> results = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Single(results);
+            Assert.Equal("file_test1", results[0].Filename);
+            Assert.Equal("alt.bmp", results[0].Altname);
+            Assert.Equal(@"C:\Temp", results[0].Path);
+            Assert.Equal("image", results[0].FileType);
+            filter.Reset().SetFilenameFilter("file_test", false);
+            results = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Equal(2, results.Count);
+            filter.Reset().SetFilenameFilter("cannot_be_found", false);
+            results = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Empty(results);
         }
 
         [Fact]

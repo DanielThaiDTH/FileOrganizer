@@ -110,6 +110,27 @@ namespace FileDBManager.Entities
             hashExact = true;
         }
 
+        public FileSearchFilter Reset()
+        {
+            _ID = int.MinValue;
+            pathID = int.MinValue;
+            path = null;
+            pathExact = true;
+            fullname = null;
+            fullnameExact = true;
+            filename = null;
+            filenameExact = true;
+            altname = null;
+            altnameExact = true;
+            filetypeID = int.MinValue;
+            fileType = null;
+            fileTypeExact = true;
+            hash = null;
+            hashExact = true;
+
+            return this;
+        }
+
         public FileSearchFilter SetIDFilter(int id)
         {
             _ID = id;

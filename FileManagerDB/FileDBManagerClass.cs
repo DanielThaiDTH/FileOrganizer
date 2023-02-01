@@ -45,7 +45,15 @@ namespace FileDBManager
             int count = 0;
             filledQuery += queryParts[0];
             foreach (object arg in args) {
-                string fixArg = "'" + arg.ToString().Replace("'", "''") + "'";
+                string fixArg;
+                if (arg.GetType() == typeof(int) || 
+                    arg.GetType() == typeof(float) || 
+                    arg.GetType() == typeof(long) ||
+                    arg.GetType() == typeof(double)) {
+                    fixArg = arg.ToString();
+                } else {
+                    fixArg = "'" + arg.ToString().Replace("'", "''") + "'";
+                }
                 filledQuery += fixArg + queryParts[count + 1];
                 count++;
             }
@@ -75,7 +83,6 @@ namespace FileDBManager
             var com = new SQLiteCommand(query, db);
             count = com.ExecuteNonQuery();
             com.Dispose();
-            logger.LogInformation($"Affecting {count} row(s).");
         }
 
         /// <summary>
@@ -268,6 +275,154 @@ namespace FileDBManager
             return results;
         }
 
+        /// <summary>
+        ///     Applies standard match or equality filters to file metadata search.
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns>
+        /// Dynamic type with the following format: <br/>
+        ///         <list type="bullet">
+        ///         <item>
+        ///             FileMetadata: <br/>
+        ///             <list type="bullet">
+        ///                 <item>
+        ///                     FileMetadata: <br/>
+        ///                         <list type="bullet">
+        ///                             FileMeta columns... <br/>
+        ///                         </list>
+        ///                 </item>
+        ///                 <item>
+        ///                     FileType: <br/>
+        ///                     <list type="bullet">
+        ///                         ID, Name <br/>
+        ///                     </list>
+        ///                 </item>
+        ///             </list>
+        ///         </item>
+        ///         <item>
+        ///             Path: <br/>
+        ///                 ID, Path <br/>
+        ///         </item>
+        ///         </list>
+        /// </returns>
+        public List<GetFileMetadataType> GetFileMetadataFiltered(FileSearchFilter filter)
+        {
+            string queryStringPart1 = "SELECT * FROM Files ";
+            string queryStringPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
+            string queryStringPart3 = "JOIN FilePaths ON Files.PathID = FilePaths.ID ";
+
+            List<string> wheres = new List<string>();
+            List<object> whereValues = new List<object>();
+            logger.LogInformation("Querying with file metadata with filters.");
+
+            if (filter.UsingID) {
+                wheres.Add("ID = ? ");
+                whereValues.Add(filter.ID);
+            }
+            if (filter.UsingPathID) {
+                wheres.Add("PathID = ? ");
+                whereValues.Add(filter.PathID);
+            }
+            if (filter.UsingFilename) {
+                if (filter.FilenameFilterExact) {
+                    wheres.Add("Filename = ?");
+                    whereValues.Add(filter.Filename);
+                } else {
+                    wheres.Add("Filename LIKE ?");
+                    whereValues.Add("%" + filter.Filename + "%");
+                }
+            }
+            if (filter.UsingFullname) {
+                if (filter.FullnameFilterExact) {
+                    wheres.Add("Path = ? AND Filename = ?");
+                    int splitIdx = filter.Fullname.LastIndexOf('\\');
+                    string pathFilter = filter.Fullname.Substring(0, splitIdx);
+                    string filenameFilter = filter.Fullname.Substring(splitIdx + 1);
+                    whereValues.Add(pathFilter);
+                    whereValues.Add(filenameFilter);
+                } else {
+                    wheres.Add("Path LIKE ? AND Filename LIKE ?");
+                    whereValues.Add("%" + filter.Fullname + "%");
+                }
+            }
+            if (filter.UsingAltname) {
+                if (filter.AltnameFilterExact) {
+                    wheres.Add("Altname = ?");
+                    whereValues.Add(filter.Altname);
+                } else {
+                    wheres.Add("Altname LIKE ?");
+                    whereValues.Add("%" + filter.Altname + "%");
+                }
+            }
+            if (filter.UsingFileTypeID) {
+                wheres.Add("FileTypeID = ?");
+                whereValues.Add(filter.FileTypeID);
+            }
+            if (filter.UsingHash) {
+                if (filter.hashFilterExact) {
+                    wheres.Add("Hash = ?");
+                    whereValues.Add(filter.Hash);
+                } else {
+                    wheres.Add("Hash = ?");
+                    whereValues.Add("%" + filter.Hash + "%");
+                }
+            }
+            if (filter.UsingPath) {
+                if (filter.PathFilterExact) {
+                    wheres.Add("Path = ?");
+                    whereValues.Add(filter.Path);
+                } else {
+                    wheres.Add("Path LIKE ?");
+                    whereValues.Add("%" + filter.Path + "%");
+                }
+            }
+            if (filter.UsingFileType) {
+                if (filter.FileTypeFilterExact) {
+                    wheres.Add("Name = ?");
+                    whereValues.Add(filter.FileType);
+                } else {
+                    wheres.Add("Name LIKE ?");
+                    whereValues.Add("%" + filter.FileType + "%");
+                }
+            }
+
+            string query = queryStringPart1 + queryStringPart2 + queryStringPart3;
+            for (int i = 0; i < wheres.Count; i++) {
+                if (i == 0) {
+                    query += "WHERE ";
+                } else {
+                    query += " AND ";
+                }
+
+                query += wheres[i];
+            }
+
+            query = createQueryString(query, whereValues.ToArray());
+            logger.LogDebug("Using filtered query: " + query);
+
+            var com = new SQLiteCommand(query, db);
+            var read = com.ExecuteReader();
+            var results = new List<GetFileMetadataType>();
+            while (read.HasRows && read.Read()) {
+                results.Add(new GetFileMetadataType()
+                {
+                    ID = read.GetInt32(read.GetOrdinal("ID")),
+                    PathID = read.GetInt32(read.GetOrdinal("PathID")),
+                    Path = read.GetString(read.GetOrdinal("Path")),
+                    Filename = read.GetString(read.GetOrdinal("Filename")),
+                    Altname = read.GetString(read.GetOrdinal("Altname")),
+                    FileTypeID = read.GetInt32(read.GetOrdinal("FileTypeID")),
+                    FileType = read.GetString(read.GetOrdinal("Name")),
+                    Hash = read.GetString(read.GetOrdinal("Hash"))
+                });
+            }
+            read.Close();
+            com.Dispose();
+            logger.LogInformation($"Returning {results.Count} result(s)");
+
+            return results;
+        }
+
         public void CloseConnection()
         {
             db.Close();
@@ -280,118 +435,6 @@ namespace FileDBManager
 //    public class FileDBManagerClass
 //    {
 //        /* File Section */
-
-
-
-//        /// <summary>
-//        ///     Applies standard match or equality filters to file metadata search.
-//        /// </summary>
-//        /// <param name="filter"></param>
-//        /// <returns>
-//        /// Dynamic type with the following format: <br/>
-//        ///         <list type="bullet">
-//        ///         <item>
-//        ///             FileMetadata: <br/>
-//        ///             <list type="bullet">
-//        ///                 <item>
-//        ///                     FileMetadata: <br/>
-//        ///                         <list type="bullet">
-//        ///                             FileMeta columns... <br/>
-//        ///                         </list>
-//        ///                 </item>
-//        ///                 <item>
-//        ///                     FileType: <br/>
-//        ///                     <list type="bullet">
-//        ///                         ID, Name <br/>
-//        ///                     </list>
-//        ///                 </item>
-//        ///             </list>
-//        ///         </item>
-//        ///         <item>
-//        ///             Path: <br/>
-//        ///                 ID, Path <br/>
-//        ///         </item>
-//        ///         </list>
-//        /// </returns>
-//        public List<dynamic> GetFileMetadataFiltered(FileSearchFilter filter)
-//        {
-//            var result = db.Table<FileMetadata>();
-//            if (filter.UsingID) {
-//                result = result.Where(t => t.ID == filter.ID);
-//            }
-//            if (filter.UsingPathID) {
-//                result = result.Where(t => t.PathID == filter.PathID);
-//            }
-//            if (filter.UsingFilename) {
-//                if (filter.FilenameFilterExact) {
-//                    result = result.Where(t => t.Filename == filter.Filename);
-//                } else {
-//                    result = result.Where(t => t.Filename.Contains(filter.Filename));
-//                }
-//            }
-//            if (filter.UsingFullname) {
-//                if (filter.FullnameFilterExact) {
-//                    result = result.Where(t => t.Fullname == filter.Fullname);
-//                } else {
-//                    result = result.Where(t => t.Fullname.Contains(filter.Fullname));
-//                }
-//            }
-//            if (filter.UsingAltname) {
-//                if (filter.AltnameFilterExact) {
-//                    result = result.Where(t => t.AltName == filter.Altname);
-//                } else {
-//                    result = result.Where(t => t.AltName.Contains(filter.Altname));
-//                }
-//            }
-//            if (filter.UsingFileTypeID) {
-//                result = result.Where(t => t.FileTypeID == filter.FileTypeID);
-//            }
-//            if (filter.UsingHash) {
-//                if (filter.hashFilterExact) {
-//                    result = result.Where(t => t.Hash == filter.Hash);
-//                } else {
-//                    result = result.Where(t => t.Hash.Contains(filter.Hash));
-//                }
-//            }
-
-//            Func<FilePath, bool> PathFunc = (FilePath t) => 
-//            {
-//                if (!filter.UsingPath) return true;
-//                if (filter.PathFilterExact) {
-//                    return t.PathString == filter.Path;
-//                } else {
-//                    return t.PathString.Contains(filter.Path);
-//                }
-//            };
-
-//            Func<FileType, bool> TypeFunc = (FileType t) =>
-//            {
-//                if (!filter.UsingFileType) return true;
-//                if (filter.FileTypeFilterExact) {
-//                    return t.Name == filter.FileType;
-//                } else {
-//                    return t.Name.Contains(filter.FileType);
-//                }
-//            };
-
-//            var resultA = result.Join(db.Table<FileType>().Where(TypeFunc),
-//                                    file => file.FileTypeID,
-//                                    filetype => filetype.ID,
-//                                    (file, filetype) => new
-//                                    {
-//                                        FileMetadata = file,
-//                                        FileType = filetype
-//                                    })
-//                                .Join(db.Table<FilePath>().Where(PathFunc),
-//                                    a => a.FileMetadata.PathID,
-//                                    path => path.ID,
-//                                    (a, path) => new {
-//                                        FileMetadata = a,
-//                                        Path = path
-//                                    });
-
-//            return resultA.ToList<dynamic>();
-//        }
 
 //        /// <summary>
 //        ///     Deletes a file and all dependendent entities.
