@@ -78,12 +78,14 @@ namespace FileDBManager.Test
         [Fact]
         public void AddFileForNewFileReturnsTrue()
         {
+            Log.Information("TEST: AddFileForNewFileReturnsTrue");
             Assert.True(fix.db.AddFile(@"C:\Temp\file1.txt", "text", "aaa", "testfile"));
         }
 
         [Fact]
         public void AddFileHandlesSingleQuotes()
         {
+            Log.Information("TEST: AddFileHandlesSingleQuotes");
             Assert.True(fix.db.AddFile(@"C:\Temp\file'.txt", "text", "aaa", "testfile"));
             List<GetFileMetadataType> results = fix.db.GetAllFileMetadata();
             Assert.True(results.Exists(r => r.Filename == "file'.txt"));
@@ -92,6 +94,7 @@ namespace FileDBManager.Test
         [Fact]
         public void AddFileCannotAddDuplicateFilepath()
         {
+            Log.Information("TEST: AddFileCannotAddDuplicateFilepath");
             fix.db.AddFile(@"C:\Temp\dup.txt", "text", "aaa", "testfile");
             List<GetFileMetadataType> results = fix.db.GetAllFileMetadata();
             int oldCount = results.Count;
@@ -103,6 +106,7 @@ namespace FileDBManager.Test
         [Fact]
         public void GetAllFileMetadataReturnsAddedFiles()
         {
+            Log.Information("TEST: GetAllFileMetadataReturnsAddedFiles");
             fix.db.AddFile(@"C:\Temp\file2.bmp", "image", "bbb", "testfile");
             fix.db.AddFile(@"C:\Temp\file3.mp3", "audio", "ccc", "testfile");
             List<GetFileMetadataType> results = fix.db.GetAllFileMetadata();
@@ -125,6 +129,7 @@ namespace FileDBManager.Test
         [Fact]
         public void GetFileMetadataReturnsCorrectDataWithID()
         {
+            Log.Information("TEST: GetFileMetadataReturnsCorrectDataWithID");
             List<GetFileMetadataType> results = fix.db.GetAllFileMetadata();
             foreach (var res in results) {
                 res.Equals(fix.db.GetFileMetadata(res.ID));
@@ -132,8 +137,9 @@ namespace FileDBManager.Test
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithFilenameFilterReturnsCorrectResults()
+        public void GetFileMetadataFilteredWithFilenamesReturnsCorrectResults()
         {
+            Log.Information("TEST: GetFileMetadataFilteredWithFilenamesReturnsCorrectResults");
             fix.db.AddFile(@"C:\Temp\file_test1", "image", "testHash", "alt.bmp");
             fix.db.AddFile(@"C:\Temp\file_test2", "audio", "testHash2", "alt.mp3");
             FileSearchFilter filter = new FileSearchFilter();
@@ -153,9 +159,90 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void GetFileMetadataFilteredWithAltnamesReturnsCorrectResults()
+        {
+            Log.Information("TEST: GetFileMetadataFilteredWithAltnamesReturnsCorrectResults");
+            fix.db.AddFile(@"C:\Temp\alt_test1", "text", "aaa", "altname1");
+            fix.db.AddFile(@"C:\Temp\alt_test2", "text", "aaa", "altname2");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetAltnameFilter("altname1", true);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetAltnameFilter("altname", false);
+            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            filter.Reset().SetAltnameFilter("cannot_be_found", false);
+            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void GetFileMetadataFilteredWithPathReturnsCorrectResults()
+        {
+            Log.Information("TEST: GetFileMetadataFilteredWithPathReturnsCorrectResults");
+            fix.db.AddFile(@"Z:\pathA\pathB\file", "text", "aaa", "testfile");
+            fix.db.AddFile(@"Z:\pathA\pathC\file", "text", "aaa", "testfile");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetPathFilter(@"Z:\pathA\pathB", true);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetPathFilter("Z:\\pathA\\path", false);
+            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            filter.Reset().SetPathFilter("cannot_be_found", false);
+            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void GetFileMetadataFilteredWithHashReturnsCorrectResults()
+        {
+            Log.Information("TEST: GetFileMetadataFilteredWithHashReturnsCorrectResults");
+            fix.db.AddFile(@"C:\Temp\hash_test_file1", "text", "000", "");
+            fix.db.AddFile(@"C:\Temp\hash_test_file2", "text", "100", "");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetHashFilter("000", true);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetHashFilter("00", false);
+            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            filter.Reset().SetHashFilter("cannot_be_found", false);
+            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void GetFileMetadataWithFileTypeReturnsCorrectResults()
+        {
+            Log.Information("TEST: GetFileMetadataWithFileTypeReturnsCorrectResults");
+            fix.db.AddFile(@"C:\Temp\type_file1", "type1", "aaa", "");
+            fix.db.AddFile(@"C:\Temp\type_file2", "type2", "aaa", "");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFileTypeFilter("type1", true);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetFileTypeFilter("type", false);
+            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            filter.Reset().SetFileTypeFilter("cannot_be_found", false);
+            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void GetFileMetadataWithAllFiltersWorks()
+        {
+            Log.Information("TEST: GetFileMetadataWithAllFiltersWorks");
+            fix.db.AddFile(@"S:\Temp\unique_file", "text", "a1a", "unique_alt");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFilenameFilter("unique_file", true);
+            var info = fix.db.GetFileMetadataFiltered(filter)[0];
+            filter.Reset()
+                .SetIDFilter(info.ID)
+                .SetPathIDFilter(info.PathID)
+                .SetFileTypeIDFilter(info.FileTypeID)
+                .SetFullnameFilter(@"S:\Temp\unique_file", true)
+                .SetFilenameFilter("unique_file", true)
+                .SetAltnameFilter("unique_alt", true)
+                .SetHashFilter("a1a", true)
+                .SetFileTypeFilter("text", true)
+                .SetPathFilter(@"S:\Temp", true);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
         public void NetTest()
         {
-            fix.db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), fix.logger);
+            //fix.db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), fix.logger);
         }
     }
 }

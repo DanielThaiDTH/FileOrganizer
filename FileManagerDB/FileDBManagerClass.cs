@@ -145,6 +145,7 @@ namespace FileDBManager
             queryString = createQueryString("INSERT INTO Files " +
                             "(Filename, PathID, FileTypeID, Altname, Hash) VALUES (?,?,?,?,?)",
                             filename, pathID, typeID, altname, hash);
+            logger.LogDebug("Insert Query: " + queryString);
             com = new SQLiteCommand(queryString, db);
             result = com.ExecuteNonQuery() == 1;
             logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
@@ -186,9 +187,11 @@ namespace FileDBManager
         /// </returns>
         public dynamic GetFileMetadata(int fileID)
         {
-            string queryString = $"SELECT * FROM Files WHERE ID = {fileID} " 
+            string queryString = "SELECT * FROM Files " 
                             + "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID "
-                            + "JOIN FilePaths ON Files.PathID = FilePaths.ID";
+                            + "JOIN FilePaths ON Files.PathID = FilePaths.ID "
+                            + $" WHERE Files.ID = {fileID}";
+            logger.LogDebug("Query: " + queryString);
             var com = new SQLiteCommand(queryString, db).ExecuteReader();
             List<dynamic> results = new List<dynamic>(); 
             if (com.Read()) {
@@ -210,6 +213,7 @@ namespace FileDBManager
                 logger.LogInformation("No file found with ID of " + fileID);
                 return null;
             }
+            logger.LogInformation("File found with ID of " + fileID);
 
             return results[0];
         }
@@ -316,7 +320,7 @@ namespace FileDBManager
             logger.LogInformation("Querying with file metadata with filters.");
 
             if (filter.UsingID) {
-                wheres.Add("ID = ? ");
+                wheres.Add("Files.ID = ? ");
                 whereValues.Add(filter.ID);
             }
             if (filter.UsingPathID) {
@@ -363,7 +367,7 @@ namespace FileDBManager
                     wheres.Add("Hash = ?");
                     whereValues.Add(filter.Hash);
                 } else {
-                    wheres.Add("Hash = ?");
+                    wheres.Add("Hash LIKE ?");
                     whereValues.Add("%" + filter.Hash + "%");
                 }
             }
