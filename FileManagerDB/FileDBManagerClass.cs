@@ -427,6 +427,33 @@ namespace FileDBManager
             return results;
         }
 
+        /// <summary>
+        ///     Deletes a file and all dependendent entities.
+        /// </summary>
+        /// <param name="id">The file ID</param>
+        /// <returns>Result of deletion</returns>
+        public bool DeleteFileMetadata(int id)
+        {
+            bool result;
+
+            logger.LogInformation("Delete file metadata with id of " + id);
+            string query = $"DELETE FROM Files WHERE ID = {id}";
+            logger.LogDebug("Delete Query: " + query);
+
+            var com = new SQLiteCommand(query, db);
+            result = com.ExecuteNonQuery() == 1;
+
+            if (result) {
+                //db.Execute("DELETE FROM FileCollectionAssociations WHERE FileID = ?", id);
+                //db.Execute("DELETE FROM FileTagAssociations WHERE FileID = ?", id);
+                logger.LogInformation("File metadata and dependencies removed");
+            } else {
+                logger.LogWarning("Could not delete file metadata with id of " + id);
+            }
+
+            return result;
+        }
+
         public void CloseConnection()
         {
             db.Close();
@@ -439,29 +466,6 @@ namespace FileDBManager
 //    public class FileDBManagerClass
 //    {
 //        /* File Section */
-
-//        /// <summary>
-//        ///     Deletes a file and all dependendent entities.
-//        /// </summary>
-//        /// <param name="id">The file ID</param>
-//        /// <returns>Result of deletion</returns>
-//        public bool DeleteFileMetadata(int id)
-//        {
-//            bool result;
-
-//            logger.LogInformation("Delete file metadata with id of " + id);
-//            result = db.Delete<FileMetadata>(id) == 1;
-
-//            if (result) {
-//                db.Execute("DELETE FROM FileCollectionAssociations WHERE FileID = ?", id);
-//                db.Execute("DELETE FROM FileTagAssociations WHERE FileID = ?", id);
-//                logger.LogInformation("File metadata and dependencies removed");
-//            } else {
-//                logger.LogWarning("Could not delete file metadata with id of " + id);
-//            }
-
-//            return result;
-//        }
 
 //        /// <summary>
 //        ///     Updates a file's metadata. The info object must 
