@@ -338,14 +338,14 @@ namespace FileDBManager
             }
             if (filter.UsingFullname) {
                 if (filter.FullnameFilterExact) {
-                    wheres.Add("Path = ? AND Filename = ?");
-                    int splitIdx = filter.Fullname.LastIndexOf('\\');
-                    string pathFilter = filter.Fullname.Substring(0, splitIdx);
-                    string filenameFilter = filter.Fullname.Substring(splitIdx + 1);
-                    whereValues.Add(pathFilter);
-                    whereValues.Add(filenameFilter);
+                    wheres.Add("Path || '\\' || Filename = ?");
+                    //int splitIdx = filter.Fullname.LastIndexOf('\\');
+                    //string pathFilter = filter.Fullname.Substring(0, splitIdx);
+                    //string filenameFilter = filter.Fullname.Substring(splitIdx + 1);
+                    whereValues.Add(filter.Fullname);
+                    //whereValues.Add(filenameFilter);
                 } else {
-                    wheres.Add("Path LIKE ? AND Filename LIKE ?");
+                    wheres.Add("Path || '\\' || Filename LIKE ?");
                     whereValues.Add("%" + filter.Fullname + "%");
                 }
             }
@@ -442,6 +442,7 @@ namespace FileDBManager
 
             var com = new SQLiteCommand(query, db);
             result = com.ExecuteNonQuery() == 1;
+            com.Dispose();
 
             if (result) {
                 //db.Execute("DELETE FROM FileCollectionAssociations WHERE FileID = ?", id);

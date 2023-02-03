@@ -219,6 +219,16 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void GetFileMetadataWithNonExactFullnameFilterWorks()
+        {
+            Log.Information("TEST: GetFileMetadataWithNonExactFullnameFilterWorks");
+            fix.db.AddFile(@"S:\Temp\unique_file_inexact", "text", "a1a", "unique_alt");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFullnameFilter(@"\unique_file_in", false);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
         public void GetFileMetadataWithAllFiltersWorks()
         {
             Log.Information("TEST: GetFileMetadataWithAllFiltersWorks");
@@ -237,6 +247,28 @@ namespace FileDBManager.Test
                 .SetFileTypeFilter("text", true)
                 .SetPathFilter(@"S:\Temp", true);
             Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void DeleteFileMetadataRemovesFile()
+        {
+            Log.Information("TEST: DeleteFileMetadataRemovesFile");
+            fix.db.AddFile(@"C:\Temp\delete_file", "bin", "aaa");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFilenameFilter("delete_file", true);
+            var info = fix.db.GetFileMetadataFiltered(filter)[0];
+            var count = fix.db.GetAllFileMetadata().Count;
+            Assert.True(fix.db.DeleteFileMetadata(info.ID));
+            Assert.Equal(count - 1, fix.db.GetAllFileMetadata().Count);
+        }
+
+        [Fact]
+        public void DeleteFileMetadataWithUnusedIDDoesNothing()
+        {
+            Log.Information("TEST: DeleteFileMetadataRemovesFile");
+            var count = fix.db.GetAllFileMetadata().Count;
+            Assert.False(fix.db.DeleteFileMetadata(-1));
+            Assert.Equal(count, fix.db.GetAllFileMetadata().Count);
         }
 
         [Fact]
