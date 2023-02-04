@@ -63,6 +63,84 @@ namespace FileDBManager
             return filledQuery;
         }
 
+        private int ExecuteNonQuery(string query)
+        {
+            var com = new SQLiteCommand(query, db);
+            int result = com.ExecuteNonQuery();
+            com.Dispose();
+            return result;
+        }
+
+        private void BuildWhereArrays(FileSearchFilter filter, ref List<string> wheres, ref List<object> whereValues)
+        {
+            if (filter.UsingID) {
+                wheres.Add("Files.ID = ? ");
+                whereValues.Add(filter.ID);
+            }
+            if (filter.UsingPathID) {
+                wheres.Add("PathID = ? ");
+                whereValues.Add(filter.PathID);
+            }
+            if (filter.UsingFilename) {
+                if (filter.FilenameFilterExact) {
+                    wheres.Add("Filename = ?");
+                    whereValues.Add(filter.Filename);
+                } else {
+                    wheres.Add("Filename LIKE ?");
+                    whereValues.Add("%" + filter.Filename + "%");
+                }
+            }
+            if (filter.UsingFullname) {
+                if (filter.FullnameFilterExact) {
+                    wheres.Add("Path || '\\' || Filename = ?");
+                    whereValues.Add(filter.Fullname);
+                } else {
+                    wheres.Add("Path || '\\' || Filename LIKE ?");
+                    whereValues.Add("%" + filter.Fullname + "%");
+                }
+            }
+            if (filter.UsingAltname) {
+                if (filter.AltnameFilterExact) {
+                    wheres.Add("Altname = ?");
+                    whereValues.Add(filter.Altname);
+                } else {
+                    wheres.Add("Altname LIKE ?");
+                    whereValues.Add("%" + filter.Altname + "%");
+                }
+            }
+            if (filter.UsingFileTypeID) {
+                wheres.Add("FileTypeID = ?");
+                whereValues.Add(filter.FileTypeID);
+            }
+            if (filter.UsingHash) {
+                if (filter.hashFilterExact) {
+                    wheres.Add("Hash = ?");
+                    whereValues.Add(filter.Hash);
+                } else {
+                    wheres.Add("Hash LIKE ?");
+                    whereValues.Add("%" + filter.Hash + "%");
+                }
+            }
+            if (filter.UsingPath) {
+                if (filter.PathFilterExact) {
+                    wheres.Add("Path = ?");
+                    whereValues.Add(filter.Path);
+                } else {
+                    wheres.Add("Path LIKE ?");
+                    whereValues.Add("%" + filter.Path + "%");
+                }
+            }
+            if (filter.UsingFileType) {
+                if (filter.FileTypeFilterExact) {
+                    wheres.Add("Name = ?");
+                    whereValues.Add(filter.FileType);
+                } else {
+                    wheres.Add("Name LIKE ?");
+                    whereValues.Add("%" + filter.FileType + "%");
+                }
+            }
+        }
+
         private void CreateTable(string name, Dictionary<string, string> cols, string constraint = null)
         {
             string query = "CREATE TABLE IF NOT EXISTS " + name + "\n (";
@@ -80,9 +158,7 @@ namespace FileDBManager
             }
             query += ")";
             logger.LogInformation($"QUERY: \n{query}");
-            var com = new SQLiteCommand(query, db);
-            count = com.ExecuteNonQuery();
-            com.Dispose();
+            ExecuteNonQuery(query);
         }
 
         /// <summary>
@@ -98,9 +174,7 @@ namespace FileDBManager
         {
             bool result;
             string queryString = createQueryString("INSERT INTO FileTypes (Name) VALUES (?)", filetype);
-            var com = new SQLiteCommand(queryString, db);
-            int num = com.ExecuteNonQuery();
-            com.Dispose();
+            int num = ExecuteNonQuery(queryString);
 
             if (num == 0) {
                 logger.LogInformation(filetype + " already exists in FileType table");
@@ -117,7 +191,7 @@ namespace FileDBManager
             }
 
             queryString = createQueryString("INSERT INTO FilePaths (Path) VALUES (?)", path);
-            num = new SQLiteCommand(queryString, db).ExecuteNonQuery();
+            num = ExecuteNonQuery(queryString);
             if (num == 0) {
                 logger.LogInformation(path + " already exists in FilePath table");
             } else {
@@ -125,7 +199,7 @@ namespace FileDBManager
             }
 
             queryString = createQueryString("SELECT ID FROM FilePaths WHERE Path = ?", path);
-            com = new SQLiteCommand(queryString, db);
+            var com = new SQLiteCommand(queryString, db);
             var reader = com.ExecuteReader();
             reader.Read();
             int pathID = reader.GetInt32(0);
@@ -146,11 +220,8 @@ namespace FileDBManager
                             "(Filename, PathID, FileTypeID, Altname, Hash) VALUES (?,?,?,?,?)",
                             filename, pathID, typeID, altname, hash);
             logger.LogDebug("Insert Query: " + queryString);
-            com = new SQLiteCommand(queryString, db);
-            result = com.ExecuteNonQuery() == 1;
+            result = ExecuteNonQuery(queryString) == 1;
             logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
-
-            com.Dispose();
 
             return result;
         }
@@ -319,76 +390,7 @@ namespace FileDBManager
             List<object> whereValues = new List<object>();
             logger.LogInformation("Querying with file metadata with filters.");
 
-            if (filter.UsingID) {
-                wheres.Add("Files.ID = ? ");
-                whereValues.Add(filter.ID);
-            }
-            if (filter.UsingPathID) {
-                wheres.Add("PathID = ? ");
-                whereValues.Add(filter.PathID);
-            }
-            if (filter.UsingFilename) {
-                if (filter.FilenameFilterExact) {
-                    wheres.Add("Filename = ?");
-                    whereValues.Add(filter.Filename);
-                } else {
-                    wheres.Add("Filename LIKE ?");
-                    whereValues.Add("%" + filter.Filename + "%");
-                }
-            }
-            if (filter.UsingFullname) {
-                if (filter.FullnameFilterExact) {
-                    wheres.Add("Path || '\\' || Filename = ?");
-                    //int splitIdx = filter.Fullname.LastIndexOf('\\');
-                    //string pathFilter = filter.Fullname.Substring(0, splitIdx);
-                    //string filenameFilter = filter.Fullname.Substring(splitIdx + 1);
-                    whereValues.Add(filter.Fullname);
-                    //whereValues.Add(filenameFilter);
-                } else {
-                    wheres.Add("Path || '\\' || Filename LIKE ?");
-                    whereValues.Add("%" + filter.Fullname + "%");
-                }
-            }
-            if (filter.UsingAltname) {
-                if (filter.AltnameFilterExact) {
-                    wheres.Add("Altname = ?");
-                    whereValues.Add(filter.Altname);
-                } else {
-                    wheres.Add("Altname LIKE ?");
-                    whereValues.Add("%" + filter.Altname + "%");
-                }
-            }
-            if (filter.UsingFileTypeID) {
-                wheres.Add("FileTypeID = ?");
-                whereValues.Add(filter.FileTypeID);
-            }
-            if (filter.UsingHash) {
-                if (filter.hashFilterExact) {
-                    wheres.Add("Hash = ?");
-                    whereValues.Add(filter.Hash);
-                } else {
-                    wheres.Add("Hash LIKE ?");
-                    whereValues.Add("%" + filter.Hash + "%");
-                }
-            }
-            if (filter.UsingPath) {
-                if (filter.PathFilterExact) {
-                    wheres.Add("Path = ?");
-                    whereValues.Add(filter.Path);
-                } else {
-                    wheres.Add("Path LIKE ?");
-                    whereValues.Add("%" + filter.Path + "%");
-                }
-            }
-            if (filter.UsingFileType) {
-                if (filter.FileTypeFilterExact) {
-                    wheres.Add("Name = ?");
-                    whereValues.Add(filter.FileType);
-                } else {
-                    wheres.Add("Name LIKE ?");
-                    whereValues.Add("%" + filter.FileType + "%");
-                }
-            }
+            BuildWhereArrays(filter, ref wheres, ref whereValues);
 
             string query = queryStringPart1 + queryStringPart2 + queryStringPart3;
             for (int i = 0; i < wheres.Count; i++) {
@@ -440,9 +442,7 @@ namespace FileDBManager
             string query = $"DELETE FROM Files WHERE ID = {id}";
             logger.LogDebug("Delete Query: " + query);
 
-            var com = new SQLiteCommand(query, db);
-            result = com.ExecuteNonQuery() == 1;
-            com.Dispose();
+            result = ExecuteNonQuery(query) == 1;
 
             if (result) {
                 //db.Execute("DELETE FROM FileCollectionAssociations WHERE FileID = ?", id);
@@ -450,6 +450,113 @@ namespace FileDBManager
                 logger.LogInformation("File metadata and dependencies removed");
             } else {
                 logger.LogWarning("Could not delete file metadata with id of " + id);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Updates a file's metadata. The info object must 
+        ///     have the file ID.
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns>Status of update</returns>
+        public bool UpdateFileMetadata(FileSearchFilter newInfo, FileSearchFilter filter)
+        {
+            List<string> cols = new List<string>();
+            List<object> vals = new List<object>();
+            List<string> wheres = new List<string>();
+            List<object> whereValues = new List<object>();
+            string query;
+
+            if (newInfo.IsEmpty || filter.IsEmpty) {
+                if (filter.IsEmpty) logger.LogInformation("Filter is empty");
+                if (newInfo.IsEmpty) logger.LogInformation("Update information is empty");
+                return false;
+            }
+
+            if (newInfo.UsingPath) {
+                query = createQueryString("INSERT OR IGNORE INTO Filepaths (Path) Values (?)", newInfo.Path);
+                ExecuteNonQuery(query);
+                query = createQueryString("SELECT ID FROM Filepaths WHERE Path = ?", newInfo.Path);
+                var com = new SQLiteCommand(query, db);
+                var read = com.ExecuteReader();
+                int results = -1;
+                if (read.HasRows) {
+                    read.Read();
+                    results = read.GetInt32(0);
+                    read.Close();
+                    com.Dispose();
+                } else {
+                    read.Close();
+                    com.Dispose();
+                    throw new InvalidDataException("Path could not be found or inserted");
+                }
+                cols.Add("PathID");
+                vals.Add(results);
+            }
+
+            if (newInfo.UsingFileType) {
+                query = createQueryString("INSERT OR IGNORE INTO Filetypes (Name) Values (?)", newInfo.FileType);
+                ExecuteNonQuery(query);
+                query = createQueryString("SELECT ID FROM FileTypes WHERE Name = ?", newInfo.FileType);
+                var com = new SQLiteCommand(query, db);
+                var read = com.ExecuteReader();
+                int results;
+                if (read.HasRows) {
+                    read.Read();
+                    results = read.GetInt32(0);
+                    read.Close();
+                    com.Dispose();
+                } else {
+                    read.Close();
+                    com.Dispose();
+                    throw new InvalidDataException("Path could not be found or inserted");
+                }
+                cols.Add("FileTypeID");
+                vals.Add(results);
+            }
+            if (newInfo.UsingFilename) {
+                cols.Add("Filename");
+                vals.Add(newInfo.Filename);
+            }
+            if (newInfo.UsingAltname) {
+                cols.Add("Altname");
+                vals.Add(newInfo.Altname);
+            }
+            if (newInfo.UsingHash) {
+                cols.Add("hash");
+                vals.Add(newInfo.Hash);
+            }
+
+            string assignmentstr = "";
+            for (int i = 0; i < cols.Count; i++) {
+                assignmentstr += cols[i] + " = ?";
+                if (i + 1 < cols.Count) {
+                    assignmentstr += ", ";
+                }
+            }
+
+            BuildWhereArrays(filter, ref wheres, ref whereValues);
+            query = createQueryString($"UPDATE Files SET {assignmentstr} ", vals.ToArray());
+
+            for (int i = 0; i < wheres.Count; i++) {
+                if (i == 0) {
+                    query += "WHERE ";
+                } else {
+                    query += " AND ";
+                }
+
+                query += wheres[i];
+            }
+
+            query = createQueryString(query, whereValues.ToArray());
+            bool result = ExecuteNonQuery(query) == 1;
+
+            if (result) {
+                logger.LogInformation("Updated file metadata with the following data: \n" + newInfo);
+            } else {
+                logger.LogWarning("Could not update with the following information: \n" + newInfo);
             }
 
             return result;
@@ -467,72 +574,6 @@ namespace FileDBManager
 //    public class FileDBManagerClass
 //    {
 //        /* File Section */
-
-//        /// <summary>
-//        ///     Updates a file's metadata. The info object must 
-//        ///     have the file id.
-//        /// </summary>
-//        /// <param name="info"></param>
-//        /// <returns>Status of update</returns>
-//        public bool UpdateFileMetadata(FileMetadataUpdateObj info)
-//        {
-//            if (info.ID < 0) {
-//                logger.LogWarning("No or negative ID provided");
-//                return false;
-//            }
-
-//            List<string> cols = new List<string>();
-//            List<object> vals = new List<object>();
-//            if (info.Path != null) {
-//                db.Execute("INSERT OR IGNORE INTO FilePaths (Path) VALUES (?)", info.Path);
-//                var results = db.ExecuteScalar<int>("SELECT ID FROM FilePaths WHERE Path = ?", info.Path);
-//                cols.Add("PathID");
-//                vals.Add(results);
-//            } 
-//            if (info.FileType != null) {
-//                db.Execute("INSERT OR IGNORE INTO FileTypes (Name) VALUES (?)", info.FileType);
-//                var results = db.ExecuteScalar<int>("SELECT ID FROM FileTypes WHERE Name = ?", info.FileType);
-//                cols.Add("FileTypeID");
-//                vals.Add(results);
-//            }
-//            if (info.Filename != null) {
-//                cols.Add("Filename");
-//                vals.Add(info.Filename);
-//            }
-//            if (info.Altname != null) {
-//                cols.Add("Altname");
-//                vals.Add(info.Altname);
-//            }
-//            if (info.Hash != null) {
-//                cols.Add("Hash");
-//                vals.Add(info.Hash);
-//            }
-
-//            string assignmentStr = "";
-//            for (int i = 0; i < cols.Count; i++) {
-//                assignmentStr += cols[i] + " = ?";
-//                if (i + 1 < cols.Count) {
-//                    assignmentStr += ", ";
-//                }
-//            }
-
-//            vals.Add(info.ID);
-
-//            bool result = db.Execute($"UPDATE Files SET {assignmentStr} WHERE ID = ?", vals.ToArray()) == 1;
-
-//            if (result) {
-//                var fileResult = db.Table<FileMetadata>().Where(t => t.ID == info.ID)
-//                                    .Join(db.Table<FilePath>(), fm => fm.PathID, p => p.ID, (fm, p) => new { FileMetadata = fm, Path = p.PathString })
-//                                    .ToList()[0];
-//                string fullname = fileResult.Path + "\\" + fileResult.FileMetadata.Filename;
-//                db.Execute($"UPDATE Files SET Fullname = ? WHERE ID = ?", fullname, info.ID);
-//                logger.LogInformation("Updated file metadata with the following data: \n" + info.ToString());
-//            } else {
-//                logger.LogWarning("Could not update with the following information: \n" + info.ToString());
-//            }
-
-//            return result;
-//        }
 
 //        /* End File Section */
 

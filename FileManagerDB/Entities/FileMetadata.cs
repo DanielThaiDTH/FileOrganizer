@@ -81,6 +81,12 @@ namespace FileDBManager.Entities
         public bool UsingFileTypeID { get { return filetypeID >= 0; } }
         public bool UsingFileType {  get { return fileType != null; } }
         public bool UsingHash { get { return hash != null; } }
+        public bool IsEmpty { get 
+            {
+                return !(UsingID || UsingPathID || UsingPath || UsingFullname 
+                    || UsingFilename || UsingAltname || UsingFileTypeID 
+                    || UsingFileType || UsingHash);
+            } }
 
         public int ID { get { return _ID; } }
         public int PathID { get { return pathID; } }
@@ -143,28 +149,28 @@ namespace FileDBManager.Entities
             return this;
         }
 
-        public FileSearchFilter SetPathFilter(string path, bool exact)
+        public FileSearchFilter SetPathFilter(string path, bool exact = true)
         {
             this.path = path;
             pathExact = exact;
             return this;
         }
 
-        public FileSearchFilter SetFullnameFilter(string name, bool exact)
+        public FileSearchFilter SetFullnameFilter(string name, bool exact = true)
         {
             fullname = name;
             fullnameExact = exact;
             return this;
         }
 
-        public FileSearchFilter SetFilenameFilter(string name, bool exact)
+        public FileSearchFilter SetFilenameFilter(string name, bool exact = true)
         {
             filename = name;
             filenameExact = exact;
             return this;
         }
 
-        public FileSearchFilter SetAltnameFilter(string name, bool exact)
+        public FileSearchFilter SetAltnameFilter(string name, bool exact = true)
         {
             altname = name;
             altnameExact = exact;
@@ -177,43 +183,40 @@ namespace FileDBManager.Entities
             return this;
         }
 
-        public FileSearchFilter SetFileTypeFilter(string filetype, bool exact)
+        public FileSearchFilter SetFileTypeFilter(string filetype, bool exact = true)
         {
             fileType = filetype;
             fileTypeExact = exact;
             return this;
         }
 
-        public FileSearchFilter SetHashFilter(string hash, bool exact)
+        public FileSearchFilter SetHashFilter(string hash, bool exact = true)
         {
             this.hash = hash;
             hashExact = exact;
             return this;
         }
-    }
-
-    public class FileMetadataUpdateObj
-    {
-        public int ID { get; set; } = int.MinValue;
-        public string Path { get; set; } = null;
-        public string Filename { get; set; } = null;
-        public string Altname { get; set; } = null;
-        public string FileType { get; set; } = null;
-        public string Hash { get; set; } = null;
 
         public override string ToString()
         {
-            string str = "ID: " + ID.ToString();
+            string str = "ID: ";
+            if (UsingID) str += ID.ToString();
             str += "\nPath: ";
-            if (Path != null) str += Path;
+            if (UsingPath) str += Path;
+            str += "\nPathID: ";
+            if (UsingPathID) str += PathID.ToString();
             str += "\nFilename: ";
-            if (Filename != null) str += Filename;
+            if (UsingFilename) str += Filename;
             str += "\nAltname: ";
-            if (Altname != null) str += Altname;
+            if (UsingAltname) str += Altname;
+            str += "\nFullname";
+            if (UsingFullname) str += Fullname;
             str += "\nFileType: ";
-            if (FileType != null) str += FileType;
+            if (UsingFileType) str += FileType;
+            str += "\nFileTypeID";
+            if (UsingFileTypeID) str += FileTypeID.ToString();
             str += "\nHash: ";
-            if (Hash != null) str += Hash;
+            if (UsingHash) str += Hash;
 
             return str;
         }
