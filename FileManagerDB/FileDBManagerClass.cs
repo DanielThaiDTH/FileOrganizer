@@ -161,6 +161,8 @@ namespace FileDBManager
             ExecuteNonQuery(query);
         }
 
+        /* File Section */
+
         /// <summary>
         ///     Adds filemeta data to the database. Be consistent with casing in
         ///     the filepath and hash, otherwise duplicate entries may occur.
@@ -562,6 +564,129 @@ namespace FileDBManager
             return result;
         }
 
+        /* End File Section */
+
+        /* Tag Section */
+
+        /// <summary>
+        ///     Adds a tag category to the DB
+        /// </summary>
+        /// <param name="tagCategory"></param>
+        /// <returns>Add tag category status. Will return false if it already exists.</returns>
+        public bool AddTagCategory(string tagCategory)
+        {
+            bool result = false;
+
+            if (tagCategory != null && tagCategory.Length > 0) {
+                tagCategory = tagCategory.ToLowerInvariant();
+                string query = createQueryString("INSERT INTO TagCategories (Name) VALUES (?)", tagCategory);
+                int added = ExecuteNonQuery(query);
+                if (added == 0) logger.LogInformation("Added new tag category: " + tagCategory);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Adds a tag. Can also add an optional category to the tag.
+        /// </summary>
+        /// <param name="tag"></param>
+        /// <param name="tagCategory"></param>
+        /// <returns>Status of adding new tag. Will return if it already exists</returns>
+        public bool AddTag(string tag, string tagCategory = "")
+        {
+            bool result;
+
+            if (tag is null || tag.Length == 0) {
+                logger.LogInformation("Failure adding tag, no tag name provided");
+                return false;
+            }
+
+            if (tagCategory is null) {
+                logger.LogInformation("Failure adding tag, tag category was null");
+                return false;
+            }
+
+            AddTagCategory(tagCategory);
+
+            string query = createQueryString("SELECT ID FROM TagCategories WHERE Name = ?", tagCategory);
+            var com = new SQLiteCommand(query, db);
+            var read = com.ExecuteReader();
+            int categoryID;
+            if (read.Read()) {
+                categoryID = read.GetInt32(0);
+                read.Close();
+                com.Dispose();
+            } else {
+                read.Close();
+                com.Dispose();
+                throw new InvalidDataException("Error accessing tag category table");
+            }
+            
+            logger.LogDebug($"Found ID {categoryID} for {tagCategory}");
+
+            query = createQueryString("INSERT OR IGNORE INTO Tags (Name, CategoryID) VALUES (?, ?)",
+                    tag.ToLowerInvariant(),
+                    categoryID
+                );
+            result = ExecuteNonQuery(query) == 1;
+            logger.LogInformation(tag + " was" + (result ? " " : " not ") + "added to Tags table");
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Adds a tag to a file. Can optionally add a tag category to the tag.
+        /// </summary>
+        /// <param name="fileID"></param>
+        /// <param name="tag"></param>
+        /// <param name="tagCategory"></param>
+        /// <returns>Add tag status. Will return false if it already exists.</returns>
+        public bool AddTagToFile(int fileID, string tag, string tagCategory = "")
+        {
+            bool result;
+
+            string query = createQueryString("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
+            var com = new SQLiteCommand(query, db);
+            var read = com.ExecuteReader();
+            read.Read();
+            result = read.GetInt32(0) == 1;
+            read.Close();
+            com.Dispose();
+            if (!result) {
+                logger.LogWarning(fileID + " does not exist in DB, cannot add tag");
+                return result;
+            }
+
+            AddTag(tag, tagCategory);
+
+            query = createQueryString("SELECT ID FROM Tags WHERE Name = ?", tag.ToLowerInvariant());
+            com = new SQLiteCommand(query, db);
+            read = com.ExecuteReader();
+            read.Read();
+            int tagID = read.GetInt32(0);
+            read.Close();
+            com.Dispose();
+
+            query = createQueryString("SELECT COUNT(*) FROM FileTagAssociations " +
+                "WHERE FileID = ? AND TagID = ?", fileID, tagID);
+            com = new SQLiteCommand(query, db);
+            read = com.ExecuteReader();
+            read.Read();
+            result = read.GetInt32(0) == 0;
+            read.Close();
+            com.Dispose();
+
+            if (result) {
+                query = createQueryString("INSERT OR IGNORE INTO FileTagAssociations (FileID, TagID) VALUES (?, ?)",
+                    fileID, tagID);
+                result = ExecuteNonQuery(query) == 1;
+                if (result) logger.LogInformation($"Tag {tag.ToLowerInvariant()} added to file #{fileID}");
+            }
+
+            return result;
+        }
+
         public void CloseConnection()
         {
             db.Close();
@@ -573,95 +698,7 @@ namespace FileDBManager
 //{
 //    public class FileDBManagerClass
 //    {
-//        /* File Section */
 
-//        /* End File Section */
-
-//        /* Tag Section */
-
-//        /// <summary>
-//        ///     Adds a tag to a file. Can optionally add a tag category to the tag.
-//        /// </summary>
-//        /// <param name="fileID"></param>
-//        /// <param name="tag"></param>
-//        /// <param name="tagCategory"></param>
-//        /// <returns>Add tag status. Will return false if it already exists.</returns>
-//        public bool AddTagToFile(int fileID, string tag, string tagCategory = "")
-//        {
-//            bool result;
-
-//            result = db.ExecuteScalar<int>("SELECT COUNT(*) FROM \"Files\" WHERE \"ID\" = ?", fileID) == 1;
-//            if (!result) {
-//                logger.LogWarning(fileID + " does not exist in DB, cannot add tag");
-//                return result;
-//            }
-
-//            AddTag(tag, tagCategory);
-
-//            int tagID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"Tags\" WHERE \"Name\" = ?", tag.ToLowerInvariant());
-//            result = db.ExecuteScalar<int>("SELECT COUNT(*) FROM \"FileTagAssociations\" " +
-//                "WHERE \"FileID\" = ? AND \"TagID\" = ?", fileID, tagID) == 0;
-
-//            if (result) {
-//                var association = new FileTagAssociation
-//                {
-//                    FileID = fileID,
-//                    TagID = tagID
-//                };
-//                result = db.Insert(association) == 1;
-//                if (result) logger.LogInformation($"Tag {tag.ToLowerInvariant()} added to file #{fileID}");
-//            }
-
-//            return result;
-//        }
-
-//        /// <summary>
-//        ///     Adds a tag category to the DB
-//        /// </summary>
-//        /// <param name="tagCategory"></param>
-//        /// <returns>Add tag category status. Will return false if it already exists.</returns>
-//        public bool AddTagCategory(string tagCategory)
-//        {
-//            bool result = false;
-
-//            if (tagCategory.Length > 0) {
-//                tagCategory = tagCategory.ToLowerInvariant();
-//                var category = new TagCategory
-//                {
-//                    Name = tagCategory
-//                };
-//                int added = db.Insert(category);
-//                if (added == 0) logger.LogInformation("Added new tag category: " + tagCategory);
-//            }
-
-//            return result;
-//        }
-
-//        /// <summary>
-//        ///     Adds a tag. Can also add an optional category to the tag.
-//        /// </summary>
-//        /// <param name="tag"></param>
-//        /// <param name="tagCategory"></param>
-//        /// <returns>Status of adding new tag. Will return if it already exists</returns>
-//        public bool AddTag(string tag, string tagCategory = "")
-//        {
-//            bool result;
-
-//            AddTagCategory(tagCategory);
-
-//            int categoryID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"TagCategories\" WHERE \"Name\" = ?", tagCategory);
-//            logger.LogDebug($"Found ID {categoryID} for {tagCategory}");
-
-//            var tagObj = new Tag
-//            {
-//                Name = tag.ToLowerInvariant(),
-//                CategoryID = categoryID
-//            };
-//            result = db.Insert(tagObj) == 1;
-//            logger.LogInformation(tag + " was" + (result ? " " : " not ") + "added to Tags table");
-
-//            return result;
-//        }
 
 //        /* End Tag Section */
 
