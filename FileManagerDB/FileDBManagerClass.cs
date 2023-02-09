@@ -580,9 +580,46 @@ namespace FileDBManager
             if (tagCategory != null && tagCategory.Length > 0) {
                 tagCategory = tagCategory.ToLowerInvariant();
                 string query = createQueryString("INSERT INTO TagCategories (Name) VALUES (?)", tagCategory);
+                logger.LogDebug("Using query: " + query);
                 int added = ExecuteNonQuery(query);
-                if (added == 0) logger.LogInformation("Added new tag category: " + tagCategory);
+                if (added == 1) {
+                    logger.LogInformation("Added new tag category: " + tagCategory);
+                    result = true;
+                } else {
+                    logger.LogInformation(tagCategory + " already exists, not adding");
+                }
             }
+
+            return result;
+        }
+
+        public List<GetTagCategoryType> GetAllTagCategories()
+        {
+            List<GetTagCategoryType> categories = new List<GetTagCategoryType>();
+
+            string query = "SELECT * FROM TagCategories";
+            var com = new SQLiteCommand(query, db);
+            var read = com.ExecuteReader();
+            while (read.HasRows && read.Read()) {
+                categories.Add(new GetTagCategoryType()
+                {
+                    ID = read.GetInt32(read.GetOrdinal("ID")),
+                    Name = read.GetString(read.GetOrdinal("Name"))
+                });
+            }
+
+            logger.LogInformation($"Found {categories.Count} tag categories");
+            return categories;
+        }
+
+        public bool DeleteTagCategory(int id)
+        {
+            bool result;
+
+            string query = createQueryString("DELETE FROM TagCategories WHERE ID = ?", id);
+            logger.LogInformation("Deleting tag category with ID of " + id);
+
+            result = ExecuteNonQuery(query) == 1;
 
             return result;
         }
@@ -609,26 +646,35 @@ namespace FileDBManager
 
             AddTagCategory(tagCategory);
 
-            string query = createQueryString("SELECT ID FROM TagCategories WHERE Name = ?", tagCategory);
+            string query = createQueryString("SELECT ID FROM TagCategories WHERE Name = ?", tagCategory.ToLowerInvariant());
+            logger.LogDebug("Searching tag category using: " + query);
             var com = new SQLiteCommand(query, db);
-            var read = com.ExecuteReader();
-            int categoryID;
-            if (read.Read()) {
-                categoryID = read.GetInt32(0);
-                read.Close();
-                com.Dispose();
-            } else {
-                read.Close();
-                com.Dispose();
-                throw new InvalidDataException("Error accessing tag category table");
+            int categoryID = -1;
+            if (tagCategory.Length > 0) {
+                var read = com.ExecuteReader();
+                if (read.HasRows && read.Read()) {
+                    categoryID = read.GetInt32(0);
+                    read.Close();
+                } else {
+                    read.Close();
+                    com.Dispose();
+                    logger.LogWarning("Failed to get ID for " + tagCategory);
+                    throw new InvalidDataException("Error accessing tag category table");
+                }
             }
-            
-            logger.LogDebug($"Found ID {categoryID} for {tagCategory}");
+            com.Dispose();
 
-            query = createQueryString("INSERT OR IGNORE INTO Tags (Name, CategoryID) VALUES (?, ?)",
-                    tag.ToLowerInvariant(),
-                    categoryID
-                );
+            logger.LogDebug($"Found ID {categoryID} for {tagCategory}");
+            if (categoryID > -1) {
+                query = createQueryString("INSERT OR IGNORE INTO Tags (Name, CategoryID) VALUES (?, ?)",
+                        tag,
+                        categoryID
+                    );
+            } else {
+                query = createQueryString("INSERT OR IGNORE INTO Tags (Name, CategoryID) VALUES (?, NULL)",
+                        tag
+                    );
+            }
             result = ExecuteNonQuery(query) == 1;
             logger.LogInformation(tag + " was" + (result ? " " : " not ") + "added to Tags table");
 
@@ -647,6 +693,7 @@ namespace FileDBManager
             bool result;
 
             string query = createQueryString("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
+            logger.LogDebug("Querying file existence using: " + query);
             var com = new SQLiteCommand(query, db);
             var read = com.ExecuteReader();
             read.Read();
@@ -661,6 +708,7 @@ namespace FileDBManager
             AddTag(tag, tagCategory);
 
             query = createQueryString("SELECT ID FROM Tags WHERE Name = ?", tag.ToLowerInvariant());
+            logger.LogDebug("Querying tag id using: " + query);
             com = new SQLiteCommand(query, db);
             read = com.ExecuteReader();
             read.Read();
@@ -670,6 +718,7 @@ namespace FileDBManager
 
             query = createQueryString("SELECT COUNT(*) FROM FileTagAssociations " +
                 "WHERE FileID = ? AND TagID = ?", fileID, tagID);
+            logger.LogDebug("Checking file tag association existence using: " + query);
             com = new SQLiteCommand(query, db);
             read = com.ExecuteReader();
             read.Read();
@@ -686,6 +735,54 @@ namespace FileDBManager
 
             return result;
         }
+
+        /// <summary>
+        ///     Gets all tags. If no tag category, the category ID will be -1 and the 
+        ///     category column will be null
+        /// </summary>
+        /// <returns>Has the following columns [ID, Name, CategoryID, Category]</returns>
+        public List<GetTagType> GetAllTags()
+        {
+            List<GetTagType> tags = new List<GetTagType>();
+            logger.LogInformation("Getting all tags");
+
+            string query = "SELECT * FROM Tags LEFT JOIN TagCategories ON CategoryID = TagCategories.ID";
+            logger.LogDebug("Using query: " + query);
+            var com = new SQLiteCommand(query, db);
+            var read = com.ExecuteReader();
+            while (read.HasRows && read.Read()) {
+                var newTag = new GetTagType()
+                {
+                    ID = read.GetInt32(read.GetOrdinal("ID")),
+                    Name = read.GetString(read.GetOrdinal("Name"))
+                };
+                
+                if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
+                    newTag.CategoryID = -1;
+                    newTag.Category = null;
+                    logger.LogDebug("No catagory for tag " + newTag.Name);
+                } else {
+                    newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
+                    newTag.Category = read.GetString(4);
+                }
+                tags.Add(newTag);
+            }
+            read.Close();
+            com.Dispose();
+            logger.LogInformation($"Found {tags.Count} tags");
+
+            return tags;
+        }
+
+
+        //public List<GetTagType> GetAllTagsForFile(int fileID)
+        //{
+        //    bool result;
+
+
+
+        //    return result;
+        //}
 
         public void CloseConnection()
         {

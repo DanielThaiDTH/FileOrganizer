@@ -30,4 +30,5 @@ namespace FileDBManager.Entities
         //[Column("CategoryID")]
         public int CategoryID { get; set; }
     }
+
 }

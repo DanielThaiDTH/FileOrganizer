@@ -322,6 +322,58 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void AddTagCategoryWorksAndReturnsTrue()
+        {
+            Log.Information("TEST: AddTagCategoryWorksAndReturnsTrue");
+            int count = fix.db.GetAllTagCategories().Count;
+            Assert.True(fix.db.AddTagCategory("Category1"));
+            Assert.Equal(count + 1, fix.db.GetAllTagCategories().Count);
+        }
+
+        [Fact]
+        public void AddTagCategoryWithDuplicateFails()
+        {
+            Log.Information("TEST: AddTagCategoryWithDuplicateFails");
+            fix.db.AddTagCategory("Duplicate1");
+            Assert.False(fix.db.AddTagCategory("Duplicate1"));
+        }
+
+        [Fact]
+        public void AddTagWorksAndReturnsTrue()
+        {
+            Log.Information("TEST: AddTagWorksAndReturnsTrue");
+            int count = fix.db.GetAllTags().Count;
+            Assert.True(fix.db.AddTag("Tag1"));
+            Assert.True(fix.db.AddTag("Tag2", "Tag2NewCategory"));
+            fix.db.AddTagCategory("Tag3Category");
+            Assert.True(fix.db.AddTag("Tag3", "Tag3Category"));
+            Assert.Equal(count + 3, fix.db.GetAllTags().Count);
+        }
+
+        [Fact]
+        public void AddTagWithDuplicateFails()
+        {
+            Log.Information("TEST: AddTagWithDuplicateFails");
+            fix.db.AddTag("Duplicate");
+            Assert.False(fix.db.AddTag("Duplicate"));
+        }
+
+        [Fact]
+        public void AddingTagsAndTagCategoriesPersistsInDB()
+        {
+            Log.Information("TEST: AddingTagsAndTagCategoriesPersistsInDB");
+            fix.db.AddTag("TagR1");
+            fix.db.AddTag("TagR2", "persist_category");
+            fix.db.AddTag("TagR3", "persist_category");
+            fix.db.AddTag("TagR4", "persist_category2");
+            var tags = fix.db.GetAllTags();
+            Assert.Contains(tags, (t) => t.Name == "TagR1");
+            Assert.Contains(tags, (t) => t.Name == "TagR2" && t.Category == "persist_category");
+            Assert.Contains(tags, (t) => t.Name == "TagR3" && t.Category == "persist_category");
+            Assert.Contains(tags, (t) => t.Name == "TagR4" && t.Category == "persist_category2");
+        }
+
+        [Fact]
         public void NetTest()
         {
             //fix.db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), fix.logger);

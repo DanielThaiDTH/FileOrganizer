@@ -31,5 +31,58 @@ namespace FileDBManager
         {
             return base.Equals(obj as GetFileMetadataType);
         }
+
+        public override int GetHashCode()
+        {
+            return ID;
+        }
+    }
+
+    public class GetTagType : IEquatable<GetTagType>
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public int CategoryID { get; set; }
+        public string Category { get; set; }
+
+        public bool Equals(GetTagType other)
+        {
+            if (other == null) return false;
+
+            return Name == other.Name && ID == other.ID;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj as GetTagType);
+        }
+
+        public override int GetHashCode()
+        {
+            return ID;
+        }
+    }
+
+    public class GetTagCategoryType : IEquatable<GetTagCategoryType>
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+
+        public bool Equals(GetTagCategoryType other)
+        {
+            if (other == null) return false;
+
+            return ID == other.ID && Name == other.Name;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj as GetTagCategoryType);
+        }
+
+        public override int GetHashCode()
+        {
+            return ID;
+        }
     }
 }
