@@ -13,10 +13,10 @@ namespace FileDBManager.Entities
         public static Dictionary<string, string> Columns
             = new Dictionary<string, string>(){
                 { "ID", "INTEGER PRIMARY KEY" },
-                { "PathID", "INTEGER REFERENCES FilePaths (ID)" },
+                { "PathID", "INTEGER REFERENCES FilePaths (ID) ON DELETE RESTRICT" },
                 { "Filename", "TEXT" },
                 { "Altname", "TEXT" },
-                { "FileTypeID", "INTEGER REFERENCES FileTypes (ID)" },
+                { "FileTypeID", "INTEGER REFERENCES FileTypes (ID) ON DELETE RESTRICT" },
                 { "Hash", "TEXT" }
             };
         public static string Constraint = "UNIQUE (PathID, Filename) ON CONFLICT IGNORE";

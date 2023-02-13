@@ -355,7 +355,9 @@ namespace FileDBManager.Test
         {
             Log.Information("TEST: AddTagWithDuplicateFails");
             fix.db.AddTag("Duplicate");
+            int count = fix.db.GetAllTags().Count;
             Assert.False(fix.db.AddTag("Duplicate"));
+            Assert.Equal(count, fix.db.GetAllTags().Count);
         }
 
         [Fact]
@@ -371,6 +373,140 @@ namespace FileDBManager.Test
             Assert.Contains(tags, (t) => t.Name == "TagR2" && t.Category == "persist_category");
             Assert.Contains(tags, (t) => t.Name == "TagR3" && t.Category == "persist_category");
             Assert.Contains(tags, (t) => t.Name == "TagR4" && t.Category == "persist_category2");
+        }
+
+        [Fact]
+        public void CanAddAndGetTagsForSpecificFiles()
+        {
+            Log.Information("TEST: CanAddAndGetTagsForSpecificFiles");
+            fix.db.AddFile(@"A:\tagged_file1", "bin", "aaa");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFullnameFilter(@"A:\tagged_file1");
+            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            Assert.True(fix.db.AddTagToFile(id, "file_tag1"));
+            var fileTags = fix.db.GetTagsForFile(id);
+            Assert.Single(fileTags);
+            Assert.Contains(fileTags, t => t.Name == "file_tag1");
+        }
+
+        [Fact]
+        public void AddAndGetTagsWorksWithTagCategories()
+        {
+            Log.Information("TEST: AddAndGetTagsWorksWithTagCategories");
+            fix.db.AddFile(@"A:\tagged_file2", "text", "fff");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFullnameFilter(@"A:\tagged_file2");
+            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            Assert.True(fix.db.AddTagToFile(id, "file_tag_w_cat", "tag_cat1"));
+            var fileTags = fix.db.GetTagsForFile(id);
+            Assert.Single(fileTags);
+            Assert.Contains(fileTags, t => t.Name == "file_tag_w_cat" && t.Category == "tag_cat1");
+        }
+
+        [Fact]
+        public void AddTagToFileWithTagReuseUsesExistingTag()
+        {
+            Log.Information("TEST: AddTagToFileWithTagReuseUsesExistingTag");
+            fix.db.AddTag("existing_tag");
+            int count = fix.db.GetAllTags().Count;
+            fix.db.AddFile(@"A:\tagged_file3", "text", "ccc");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFullnameFilter(@"A:\tagged_file3");
+            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            fix.db.AddTagToFile(id, "existing_tag");
+            var fileTags = fix.db.GetTagsForFile(id);
+            Assert.Contains(fileTags, t => t.Name == "existing_tag");
+            Assert.Equal(count, fix.db.GetAllTags().Count);
+        }
+
+        [Fact]
+        public void AddTagToFileAgainWithSameTagReturnsFalse()
+        {
+            Log.Information("TEST: AddTagToFileAgainWithSameTagReturnsFalse");
+            fix.db.AddFile(@"A:\file_tag_reuse", "text", "123");
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFullnameFilter(@"A:\file_tag_reuse");
+            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            fix.db.AddTagToFile(id, "reuse_tag");
+            Assert.False(fix.db.AddTagToFile(id, "reuse_tag"));
+        }
+
+        [Fact]
+        public void AddTagCategoriesWithDuplicateFails()
+        {
+            Log.Information("TEST: AddTagCategoriesWithDuplicateFails");
+            fix.db.AddTagCategory("duplicate");
+            int count = fix.db.GetAllTagCategories().Count;
+            Assert.False(fix.db.AddTagCategory("duplicate"));
+            Assert.Equal(count, fix.db.GetAllTagCategories().Count);
+        }
+
+        [Fact]
+        public void DeleteTagCategoryRemovesAndReturnsTrue()
+        {
+            Log.Information("TEST: DeleteTagCategoryRemovesAndReturnsTrue");
+            fix.db.AddTagCategory("delete");
+            int id = fix.db.GetAllTagCategories().Find(tc => tc.Name == "delete").ID;
+            int count = fix.db.GetAllTagCategories().Count;
+            Assert.True(fix.db.DeleteTagCategory(id));
+            Assert.Equal(count - 1, fix.db.GetAllTagCategories().Count);
+
+        }
+
+        [Fact]
+        public void DeleteTagCategoryNonExistentReturnsFalse()
+        {
+            Log.Information("TEST: DeleteTagCategoryNonExistentReturnsFalse");
+            int count = fix.db.GetAllTagCategories().Count;
+            Assert.False(fix.db.DeleteTagCategory(-1));
+            Assert.Equal(count, fix.db.GetAllTagCategories().Count);
+        }
+
+        [Fact]
+        public void RemovingTagCategoryRemovesFromTag()
+        {
+            Log.Information("TEST: RemovingTagCategoryRemovesFromTag");
+            fix.db.AddTag("tag_w_cat_rem", "rem_category");
+            int catID = fix.db.GetAllTagCategories().Find(tc => tc.Name == "rem_category").ID;
+            int tagID = fix.db.GetAllTags().Find(t => t.Name == "tag_w_cat_rem").ID;
+            fix.db.DeleteTagCategory(catID);
+            var tag = fix.db.GetAllTags().Find(t => t.Name == "tag_w_cat_rem");
+            Assert.Null(tag.Category);
+            Assert.Equal(-1, tag.CategoryID);
+        }
+
+        [Fact]
+        public void DeleteTagRemovesAndReturnsTrue()
+        {
+            Log.Information("TEST: DeleteTagRemovesAndReturnsTrue");
+            fix.db.AddTag("to_rem");
+            var tags = fix.db.GetAllTags();
+            int id = tags.Find(t => t.Name == "to_rem").ID;
+            Assert.True(fix.db.DeleteTag(id));
+            Assert.Equal(tags.Count - 1, fix.db.GetAllTags().Count);
+        }
+
+        [Fact]
+        public void DeleteTagWithDuplicateFails()
+        {
+            Log.Information("TEST: DeleteTagWithDuplicateFails");
+            Assert.False(fix.db.DeleteTag(-1));
+        }
+
+        [Fact]
+        public void DeleteTagRemovesTagFromFile()
+        {
+            Log.Information("TEST: DeleteTagRemovesTagFromFile");
+            fix.db.AddFile(@"A:\tagged_file4", "text", "aaa");
+            int id = fix.db.GetFileMetadataFiltered(
+                new FileSearchFilter()
+                .SetFullnameFilter(@"A:\tagged_file4"))[0].ID;
+            fix.db.AddTagToFile(id, "to_be_rem");
+            int tagID = fix.db.GetAllTags().Find(t => t.Name == "to_be_rem").ID;
+            var old_tags = fix.db.GetTagsForFile(id);
+            fix.db.DeleteTag(tagID);
+            Assert.Empty(fix.db.GetTagsForFile(id));
+            Assert.Equal(old_tags.Count - 1, fix.db.GetTagsForFile(id).Count);
         }
 
         [Fact]

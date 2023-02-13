@@ -32,6 +32,7 @@ namespace FileDBManager
             CreateTable(FileCollectionAssociation.TableName, 
                 FileCollectionAssociation.Columns, 
                 FileCollectionAssociation.Constraint);
+            ExecuteNonQuery("PRAGMA foreign_keys=ON");
         }
 
         private string createQueryString(string query, params object[] args)
@@ -612,6 +613,12 @@ namespace FileDBManager
             return categories;
         }
 
+        /// <summary>
+        ///     Removes a tag category. Will set the category column value to null 
+        ///     for previously associated tags.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public bool DeleteTagCategory(int id)
         {
             bool result;
@@ -623,6 +630,7 @@ namespace FileDBManager
 
             return result;
         }
+
 
         /// <summary>
         ///     Adds a tag. Can also add an optional category to the tag.
@@ -687,7 +695,7 @@ namespace FileDBManager
         /// <param name="fileID"></param>
         /// <param name="tag"></param>
         /// <param name="tagCategory"></param>
-        /// <returns>Add tag status. Will return false if it already exists.</returns>
+        /// <returns>Add tag status. Will return false if it's already attached to the file.</returns>
         public bool AddTagToFile(int fileID, string tag, string tagCategory = "")
         {
             bool result;
@@ -774,15 +782,104 @@ namespace FileDBManager
             return tags;
         }
 
+        public List<GetTagType> GetTagsForFile(int fileID)
+        {
+            List<GetTagType> fileTags = new List<GetTagType>();
 
-        //public List<GetTagType> GetAllTagsForFile(int fileID)
-        //{
-        //    bool result;
+            string query = createQueryString("SELECT * FROM FileTagAssociations JOIN Tags " +
+                "ON FileTagAssociations.TagID = Tags.ID " +
+                "LEFT JOIN TagCategories ON CategoryID = TagCategories.ID " +
+                "WHERE FileTagAssociations.FileID = ?", fileID);
+
+            var com = new SQLiteCommand(query, db);
+            var read = com.ExecuteReader();
+
+            while (read.HasRows && read.Read()) {
+                var newTag = new GetTagType()
+                {
+                    ID = read.GetInt32(read.GetOrdinal("TagID")),
+                    Name = read.GetString(read.GetOrdinal("Name"))
+                };
+
+                if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
+                    newTag.CategoryID = -1;
+                    newTag.Category = null;
+                    logger.LogDebug("No catagory for tag " + newTag.Name);
+                } else {
+                    newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
+                    newTag.Category = read.GetString(6);
+                }
+                fileTags.Add(newTag);
+            }
+
+            logger.LogInformation($"Found {fileTags.Count} tags for file {fileID}");
+            return fileTags;
+        }
+
+        /// <summary>
+        ///     Deletes a tag. Will also remove that tag from all
+        ///     files that have it.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool DeleteTag(int id)
+        {
+            bool result;
+
+            string query = createQueryString("DELETE FROM Tags WHERE ID = ?", id);
+            logger.LogInformation("Deleting tag with ID of " + id);
+
+            result = ExecuteNonQuery(query) == 1;
+
+            return result;
+        }
+
+        /* End Tag Section */
+
+        /* Collection Section */
+        /// <summary>
+        ///     Adds a file collection. Items will be ordered in the provided sequence.
+        ///     If a collection with the same name already exists, add will fail.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="fileSequence"></param>
+        /// <returns>Status of adding the new collection.</returns>
+        public bool AddCollection(string name, IEnumerable<int> fileSequence)
+        {
+            bool result;
+
+            if (name.Length == 0) return false;
+
+            var collection = new FileCollection
+            {
+                Name = name
+            };
+            result = db.Insert(collection) == 1;
+            logger.LogInformation(name + " was" + (result ? " " : " not ") + "added to Collections table");
+
+            if (result) {
+                int collectionID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"Collections\" WHERE \"Name\" = ?", name);
+                logger.LogDebug($"Found ID {collectionID} for {name}");
+
+                int index = 0;
+
+                foreach (int fileID in fileSequence) {
+                    var fileCollectionAssociation = new FileCollectionAssociation
+                    {
+                        CollectionID = collectionID,
+                        FileID = fileID,
+                        Position = index
+                    };
+                    bool insertResult = db.Insert(fileCollectionAssociation) == 1;
+                    logger.LogInformation($"File {fileID} in collection {name} was" + (result ? " " : " not ")
+                        + "added to FileCollectionAssociations table");
+                    result = result && insertResult;
+                }
+            }
 
 
-
-        //    return result;
-        //}
+            return result;
+        }
 
         public void CloseConnection()
         {
@@ -796,54 +893,9 @@ namespace FileDBManager
 //    public class FileDBManagerClass
 //    {
 
-
-//        /* End Tag Section */
-
 //        /* Collection Section*/
 
-//        /// <summary>
-//        ///     Adds a file collection. Items will be ordered in the provided sequence.
-//        ///     If a collection with the same name already exists, add will fail.
-//        /// </summary>
-//        /// <param name="name"></param>
-//        /// <param name="fileSequence"></param>
-//        /// <returns>Status of adding the new collection.</returns>
-//        public bool AddCollection(string name, IEnumerable<int> fileSequence)
-//        {
-//            bool result;
-
-//            if (name.Length == 0) return false;
-
-//            var collection = new FileCollection
-//            {
-//                Name = name
-//            };
-//            result = db.Insert(collection) == 1;
-//            logger.LogInformation(name + " was" + (result ? " " : " not ") + "added to Collections table");
-
-//            if (result) {
-//                int collectionID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"Collections\" WHERE \"Name\" = ?", name);
-//                logger.LogDebug($"Found ID {collectionID} for {name}");
-                
-//                int index = 0;
-                
-//                foreach (int fileID in fileSequence) {
-//                    var fileCollectionAssociation = new FileCollectionAssociation
-//                    {
-//                        CollectionID = collectionID,
-//                        FileID = fileID,
-//                        Position = index
-//                    };
-//                    bool insertResult = db.Insert(fileCollectionAssociation) == 1;
-//                    logger.LogInformation($"File {fileID} in collection {name} was" + (result ? " " : " not ") 
-//                        + "added to FileCollectionAssociations table");
-//                    result = result && insertResult;
-//                }
-//            }
-            
-
-//            return result;
-//        }
+//        
 
 //        /// <summary>
 //        ///     Adds a file to a collection. Can only add to the end of the collection.
