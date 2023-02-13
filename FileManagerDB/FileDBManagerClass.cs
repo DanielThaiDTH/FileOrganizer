@@ -848,35 +848,46 @@ namespace FileDBManager
         {
             bool result;
 
-            if (name.Length == 0) return false;
+            if (string.IsNullOrEmpty(name)) {
+                logger.LogWarning("Collection name is empty or null");
+                return false;
+            }
 
-            var collection = new FileCollection
-            {
-                Name = name
-            };
-            result = db.Insert(collection) == 1;
+            var transaction = db.BeginTransaction();
+            string query = createQueryString("INSERT INTO Collections (Name) VALUES (?)", name);
+            logger.LogDebug("Creating collection with query: " + query);
+            result = ExecuteNonQuery(query) == 1;
             logger.LogInformation(name + " was" + (result ? " " : " not ") + "added to Collections table");
 
             if (result) {
-                int collectionID = db.ExecuteScalar<int>("SELECT \"ID\" FROM \"Collections\" WHERE \"Name\" = ?", name);
+                query = createQueryString("SELECT ID FROM Collections WHERE Name = ?", name);
+                var com = new SQLiteCommand(query, db);
+                var read = com.ExecuteReader();
+                int collectionID = read.GetInt32(0);
+                read.Close();
+                com.Dispose();
                 logger.LogDebug($"Found ID {collectionID} for {name}");
 
                 int index = 0;
 
                 foreach (int fileID in fileSequence) {
-                    var fileCollectionAssociation = new FileCollectionAssociation
-                    {
-                        CollectionID = collectionID,
-                        FileID = fileID,
-                        Position = index
-                    };
-                    bool insertResult = db.Insert(fileCollectionAssociation) == 1;
-                    logger.LogInformation($"File {fileID} in collection {name} was" + (result ? " " : " not ")
+                    query = createQueryString("INSERT INTO FileCollectionAssociations (CollectionID,FileID,Position) " +
+                        "VALUES (?,?,?)", collectionID, fileID, index);
+                    bool insertResult = ExecuteNonQuery(query) == 1;
+                    logger.LogInformation($"File {fileID} in collection {name} was" + (insertResult ? " " : " not ")
                         + "added to FileCollectionAssociations table");
                     result = result && insertResult;
+                    if (!result) logger.LogWarning($"Failure adding file {fileID} to collection {name}");
                 }
             }
 
+            if (result) {
+                transaction.Commit();
+            } else {
+                transaction.Rollback();
+                logger.LogWarning("Failed adding files to collection, rolling back");
+            }
+            transaction.Dispose();
 
             return result;
         }
