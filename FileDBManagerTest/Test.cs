@@ -555,12 +555,19 @@ namespace FileDBManager.Test
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             List<int> unusedIDs = new List<int>() { 1000, 2000 };
+            List<int> negIDs = new List<int>() { -1, 0 };
             Action act = () => { fix.db.AddCollection("bad_collection", unusedIDs); };
-            try {
+            Assert.Throws<SQLiteException>(act);
+            act = () => { fix.db.AddCollection("bad_collection2", negIDs); };
+            Assert.Throws<SQLiteException>(act);
+        }
 
-            } catch (SQLiteException ex) {
-
-            } 
+        [Fact]
+        public void AddCollectionDuplicateNamesReturnsFalse()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("duplicate");
+            Assert.False(fix.db.AddCollection("duplicate"));
         }
 
         [Fact]
