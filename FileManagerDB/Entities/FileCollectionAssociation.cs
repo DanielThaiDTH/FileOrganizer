@@ -14,7 +14,7 @@ namespace FileDBManager.Entities
             = new Dictionary<string, string>()
             {
                 { "CollectionID", "INTEGER REFERENCES Collections (ID) ON DELETE CASCADE" },
-                { "FileID", "INTEGER REFERENCES Tags (ID) ON DELETE CASCADE" },
+                { "FileID", "INTEGER REFERENCES Files (ID) ON DELETE CASCADE" },
                 { "Position", "INTEGER UNIQUE ON CONFLICT IGNORE" }
             };
         public static string Constraint = "PRIMARY KEY (CollectionID, FileID)";

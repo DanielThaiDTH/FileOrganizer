@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Xml.XPath;
 using Xunit;
 using Serilog;
@@ -12,6 +13,8 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using SQLiteConsole;
 using FileDBManager.Entities;
+using System.Data;
+using System.Data.SQLite;
 
 namespace FileDBManager.Test
 {
@@ -507,6 +510,57 @@ namespace FileDBManager.Test
             fix.db.DeleteTag(tagID);
             Assert.Empty(fix.db.GetTagsForFile(id));
             Assert.Equal(old_tags.Count - 1, fix.db.GetTagsForFile(id).Count);
+        }
+
+        [Fact]
+        public void AddCollectionWithNewNameReturnsTrue()
+        {
+            Log.Information("TEST: AddCollectionWithNewNameReturnsTrue");
+            Assert.True(fix.db.AddCollection("new_collection", new List<int>()));
+            Assert.True(fix.db.AddCollection("new_collection_null"));
+        }
+
+        [Fact]
+        public void GetFileCollectionWorksWithEmptyCollection()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("empty");
+            var collection = fix.db.GetFileCollection("empty");
+            Assert.Equal("empty", collection.Name);
+            Assert.Empty(collection.Files);
+        }
+
+        [Fact]
+        public void AddCollectionWorksWithFiles()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"F:\collection_file1", "text", "aaa");
+            fix.db.AddFile(@"F:\collection_file2", "text", "aaa");
+            fix.db.AddFile(@"F:\collection_file3", "text", "aaa");
+            var filter = new FileSearchFilter();
+            List<int> ids = new List<int>();
+            ids.Add(fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("collection_file1"))[0].ID);
+            ids.Add(fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("collection_file2"))[0].ID);
+            ids.Add(fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("collection_file3"))[0].ID);
+            Assert.True(fix.db.AddCollection("collection_w_files", ids));
+            var collection = fix.db.GetFileCollection("collection_w_files");
+            Assert.Equal("collection_w_files", collection.Name);
+            var collectionFiles = collection.Files.ConvertAll(f => f.FileID);
+            Assert.Subset(new HashSet<int>(ids), new HashSet<int>(collectionFiles));
+            Assert.Equal(ids.Count, collectionFiles.Count);
+        }
+
+        [Fact]
+        public void AddCollectionWithNonExistentFilesThrowsSQLiteException()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            List<int> unusedIDs = new List<int>() { 1000, 2000 };
+            Action act = () => { fix.db.AddCollection("bad_collection", unusedIDs); };
+            try {
+
+            } catch (SQLiteException ex) {
+
+            } 
         }
 
         [Fact]

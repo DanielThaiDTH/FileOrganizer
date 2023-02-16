@@ -85,4 +85,18 @@ namespace FileDBManager
             return ID;
         }
     }
+
+    public class GetFileCollectionAssociationType
+    {
+        public int CollectionID { get; set; }
+        public int FileID { get; set; }
+        public int Position { get; set; }
+    }
+
+    public class GetCollectionType
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public List<GetFileCollectionAssociationType> Files { get; set; }
+    }
 }
