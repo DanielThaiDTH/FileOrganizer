@@ -700,9 +700,9 @@ namespace FileDBManager
         {
             bool result;
 
-            string query = createStatementString("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
-            logger.LogDebug("Querying file existence using: " + query);
-            var com = new SQLiteCommand(query, db);
+            string statement = createStatementString("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
+            logger.LogDebug("Querying file existence using: " + statement);
+            var com = new SQLiteCommand(statement, db);
             var read = com.ExecuteReader();
             read.Read();
             result = read.GetInt32(0) == 1;
@@ -715,19 +715,19 @@ namespace FileDBManager
 
             AddTag(tag, tagCategory);
 
-            query = createStatementString("SELECT ID FROM Tags WHERE Name = ?", tag.ToLowerInvariant());
-            logger.LogDebug("Querying tag id using: " + query);
-            com = new SQLiteCommand(query, db);
+            statement = createStatementString("SELECT ID FROM Tags WHERE Name = ?", tag.ToLowerInvariant());
+            logger.LogDebug("Querying tag id using: " + statement);
+            com = new SQLiteCommand(statement, db);
             read = com.ExecuteReader();
             read.Read();
             int tagID = read.GetInt32(0);
             read.Close();
             com.Dispose();
 
-            query = createStatementString("SELECT COUNT(*) FROM FileTagAssociations " +
+            statement = createStatementString("SELECT COUNT(*) FROM FileTagAssociations " +
                 "WHERE FileID = ? AND TagID = ?", fileID, tagID);
-            logger.LogDebug("Checking file tag association existence using: " + query);
-            com = new SQLiteCommand(query, db);
+            logger.LogDebug("Checking file tag association existence using: " + statement);
+            com = new SQLiteCommand(statement, db);
             read = com.ExecuteReader();
             read.Read();
             result = read.GetInt32(0) == 0;
@@ -735,9 +735,9 @@ namespace FileDBManager
             com.Dispose();
 
             if (result) {
-                query = createStatementString("INSERT OR IGNORE INTO FileTagAssociations (FileID, TagID) VALUES (?, ?)",
+                statement = createStatementString("INSERT OR IGNORE INTO FileTagAssociations (FileID, TagID) VALUES (?, ?)",
                     fileID, tagID);
-                result = ExecuteNonQuery(query) == 1;
+                result = ExecuteNonQuery(statement) == 1;
                 if (result) logger.LogInformation($"Tag {tag.ToLowerInvariant()} added to file #{fileID}");
             }
 
@@ -933,8 +933,8 @@ namespace FileDBManager
         {
             bool result;
             
-            string query = createStatementString("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
-            var com = new SQLiteCommand(query, db);
+            string statement = createStatementString("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
+            var com = new SQLiteCommand(statement, db);
             var read = com.ExecuteReader();
             int files = 0;
             if (read.HasRows && read.Read()) {
@@ -948,8 +948,8 @@ namespace FileDBManager
                 return false;
             }
 
-            query = createStatementString("SELECT COUNT(*) FROM Collections WHERE ID = ?", collectionID);
-            com = new SQLiteCommand(query, db);
+            statement = createStatementString("SELECT COUNT(*) FROM Collections WHERE ID = ?", collectionID);
+            com = new SQLiteCommand(statement, db);
             read = com.ExecuteReader();
             int collections = 0;
             if (read.HasRows && read.Read()) {
@@ -962,9 +962,9 @@ namespace FileDBManager
                 return false;
             }
 
-            query = createStatementString("SELECT MAX(Position) FROM FileCollectionAssociations " +
+            statement = createStatementString("SELECT MAX(Position) FROM FileCollectionAssociations " +
                 "WHERE CollectionID = ?", collectionID);
-            com = new SQLiteCommand(query, db);
+            com = new SQLiteCommand(statement, db);
             read = com.ExecuteReader();
             int maxPosition = -1;
 
@@ -986,13 +986,13 @@ namespace FileDBManager
             } else if (insertIndex <= maxPosition && insertIndex > 0) {
                 var transaction = db.BeginTransaction();
                 result = true;
-                for (int i = maxPosition; i >= insertIndex; i--) {
-                    query = createStatementString("UPDATE FileCollectionAssociations SET Position = ? " +
-                        "WHERE Position = ?", i + 1, i);
-                    bool moveResult = ExecuteNonQuery(query) == 1;
-                    result = result && moveResult;
-                    if (!result) break;
+                
+                for (int i = maxPosition; i >= insertIndex && result; i--) {
+                    statement = createStatementString("UPDATE FileCollectionAssociations SET Position = ? " +
+                        "WHERE Position = ? AND CollectionID = ?", i + 1, i, collectionID);
+                    result = ExecuteNonQuery(statement) == 1;
                 }
+
                 if (result) {
                     transaction.Commit();
                     transaction.Dispose();
@@ -1010,17 +1010,89 @@ namespace FileDBManager
                 return false;
             }
 
-            query = createStatementString("INSERT INTO FileCollectionAssociations (FileID, CollectionID, Position) " +
+            statement = createStatementString("INSERT INTO FileCollectionAssociations (FileID, CollectionID, Position) " +
                 "VALUES (?,?,?)", fileID, collectionID, idx);
-            logger.LogDebug("Inserting with query: " + query);
+            logger.LogDebug("Inserting with query: " + statement);
             try {
-                result = ExecuteNonQuery(query) == 1;
+                result = ExecuteNonQuery(statement) == 1;
             } catch (SQLiteException ex) {
                 logger.LogWarning(ex, "File add failure due to SQLite error");
                 result = false;
             }
             logger.LogInformation($"File {fileID} in collection {collectionID} was" + (result ? " " : " not ")
                         + "added to FileCollectionAssociations table");
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Deletes and reorganizes files in a collection 
+        ///     (i.e. positions will shift accordingly if deleted file is not at the end)
+        /// </summary>
+        /// <param name="collectionID"></param>
+        /// <param name="fileID"></param>
+        /// <returns></returns>
+        public bool DeleteFileInCollection(int collectionID, int fileID)
+        {
+            bool result;
+
+            int position;
+            string statement = createStatementString("SELECT Position FROM FileCollectionAssociations " +
+                "WHERE CollectionID = ? AND FileID = ?", collectionID, fileID);
+            var com = new SQLiteCommand(statement, db);
+            var read = com.ExecuteReader();
+            if (read.HasRows && read.Read()) {
+                position = read.GetInt32(0);
+                read.Close();
+                com.Dispose();
+            } else {
+                read.Close();
+                com.Dispose();
+                logger.LogInformation($"No file {fileID} in collection {collectionID} to delete");
+                return false;
+            }
+
+            int maxPosition;
+            statement = createStatementString("SELECT MAX(Position) FROM FileCollectionAssociations " +
+                "WHERE CollectionID = ?", collectionID);
+            com = new SQLiteCommand(statement, db);
+            read = com.ExecuteReader();
+            if (read.HasRows && read.Read()) {
+                maxPosition = read.GetInt32(0);
+                read.Close();
+                com.Dispose();
+            } else {
+                read.Close();
+                com.Dispose();
+                logger.LogWarning("Could not find a max position");
+                return false;
+            }
+
+            statement = createStatementString("DELETE FROM FileCollectionAssociations " +
+                "WHERE CollectionID = ? AND FileID = ?", collectionID, fileID);
+            logger.LogDebug("Deleting with statement: " + statement);
+            result = ExecuteNonQuery(statement) == 1;
+
+            if (result) {
+                var transaction = db.BeginTransaction();
+
+                for (int i = position+1; i <= maxPosition && result; i++) {
+                    statement = createStatementString("UPDATE FileCollectionAssociations SET Position = ? " +
+                        "WHERE Position = ? AND CollectionID = ?", i-1, i, collectionID);
+                    result = ExecuteNonQuery(statement) == 1;
+                }
+
+                if (result) {
+                    transaction.Commit();
+                    transaction.Dispose();
+                } else {
+                    transaction.Rollback();
+                    transaction.Dispose();
+                }
+            }
+
+            logger.LogInformation($"File {fileID} was" + (result ? " " : " not ")
+                        + $" removed from collection {collectionID}");
 
             return result;
         }
@@ -1090,6 +1162,42 @@ namespace FileDBManager
                 com.Dispose();
                 return null;
             }
+        }
+
+        public bool UpdateCollectionName(int id, string newName)
+        {
+            string statement = createStatementString("UPDATE Collections SET Name=? WHERE ID = ?", newName, id);
+            logger.LogDebug("Updating collection name with statement: " + statement);
+            bool result = ExecuteNonQuery(statement) == 1;
+
+            logger.LogInformation($"Collection {id} was" + (result ? " " : " not ")
+                        + "renamed to " + newName);
+
+            return result;
+        }
+
+        public bool UpdateCollectionName(string name, string newName)
+        {
+            bool result;
+            string statement = createStatementString("SELECT ID FROM Collections WHERE Name = ?", name);
+            var com = new SQLiteCommand(statement, db);
+            var read = com.ExecuteReader();
+            if (read.HasRows && read.Read()) {
+                int id = read.GetInt32(0);
+                read.Close();
+                com.Dispose();
+                result = UpdateCollectionName(id, newName);
+            } else {
+                read.Close();
+                com.Dispose();
+                logger.LogWarning("No collection with name of " + name);
+                result = false;
+            }
+
+            logger.LogInformation($"Collection {name} was" + (result ? " " : " not ")
+                        + "renamed to " + newName);
+
+            return result;
         }
 
         /* End Collection Section */

@@ -46,7 +46,7 @@ namespace FileDBManager.Test
             string path = Path.Combine("logs", "log.log");
             if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                //.MinimumLevel.Debug()
                 .WriteTo.File(path,  rollingInterval: RollingInterval.Day)
                 .WriteTo.Debug()
                 .CreateLogger();
@@ -637,6 +637,67 @@ namespace FileDBManager.Test
             fix.db.AddCollection("bad_add");
             Assert.False(fix.db.AddFileToCollection(fix.db.GetFileCollection("bad_add").ID, -1));
             Assert.Empty(fix.db.GetFileCollection("bad_add").Files);
+        }
+
+        [Fact]
+        public void DeleteFileInCollectionWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"C:\Collection\collection_file_rem", "text", "aaa");
+            int fileID = fix.db.GetFileMetadataFiltered(
+                new FileSearchFilter()
+                .SetFullnameFilter(@"C:\Collection\collection_file_rem"))[0].ID;
+            fix.db.AddCollection("collection_w_deleted", new List<int>() { fileID });
+            int id = fix.db.GetFileCollection("collection_w_deleted").ID;
+            Assert.True(fix.db.DeleteFileInCollection(id, fileID));
+            Assert.Empty(fix.db.GetFileCollection("collection_w_deleted").Files);
+        }
+
+        [Fact]
+        public void DeleteFileInCollectionReordersFiles()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"C:\Collection\reorder1", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\reorder2", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\reorder3", "text", "aaa");
+            var filter = new FileSearchFilter();
+            int fileID1 = fix.db.GetFileMetadataFiltered(
+                filter.SetFullnameFilter(@"C:\Collection\reorder1"))[0].ID;
+            int fileID2 = fix.db.GetFileMetadataFiltered(
+                filter.SetFullnameFilter(@"C:\Collection\reorder2"))[0].ID;
+            int fileID3 = fix.db.GetFileMetadataFiltered(
+                filter.SetFullnameFilter(@"C:\Collection\reorder3"))[0].ID;
+            fix.db.AddCollection("collection_delete_reorder", new List<int>() { fileID1, fileID2, fileID3 });
+            int id = fix.db.GetFileCollection("collection_delete_reorder").ID;
+            Assert.True(fix.db.DeleteFileInCollection(id, fileID1));
+            var collection = fix.db.GetFileCollection("collection_delete_reorder");
+            Assert.Equal(1, collection.Files[0].Position);
+            Assert.Equal(fileID2, collection.Files[0].FileID);
+            Assert.Equal(2, collection.Files[1].Position);
+            Assert.Equal(fileID3, collection.Files[1].FileID);
+        }
+
+        [Fact]
+        public void UpdateCollectionNameWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("old_name");
+            int id = fix.db.GetFileCollection("old_name").ID;
+            Assert.True(fix.db.UpdateCollectionName("old_name", "new_name"));
+            Assert.NotNull(fix.db.GetFileCollection("new_name"));
+            Assert.Null(fix.db.GetFileCollection("old_name"));
+            Assert.Equal("new_name", fix.db.GetFileCollection(id).Name);
+            Assert.True(fix.db.UpdateCollectionName(id, "new_name2"));
+            Assert.NotNull(fix.db.GetFileCollection("new_name2"));
+        }
+
+        [Fact]
+        public void UpdateCollectionNameWithUsedNameFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("used_name");
+            fix.db.AddCollection("temp");
+            Assert.False(fix.db.UpdateCollectionName("temp", "used_name"));
         }
 
         [Fact]
