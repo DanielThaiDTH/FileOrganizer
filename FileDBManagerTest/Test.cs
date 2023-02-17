@@ -46,7 +46,7 @@ namespace FileDBManager.Test
             string path = Path.Combine("logs", "log.log");
             if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
             Log.Logger = new LoggerConfiguration()
-                //.MinimumLevel.Debug()
+                .MinimumLevel.Debug()
                 .WriteTo.File(path,  rollingInterval: RollingInterval.Day)
                 .WriteTo.Debug()
                 .CreateLogger();
@@ -568,6 +568,75 @@ namespace FileDBManager.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             fix.db.AddCollection("duplicate");
             Assert.False(fix.db.AddCollection("duplicate"));
+        }
+
+        [Fact]
+        public void AddCollectionWithBadIDInFileListThrows()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            Assert.Throws<SQLiteException>(() => fix.db.AddCollection("bad_list", new List<int>() { 1, 2, -1 }));
+            Assert.Null(fix.db.GetFileCollection("bad_list"));
+        }
+
+        [Fact]
+        public void AddFilesToCollectionAddsToEnd()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("file_collection1");
+            fix.db.AddFile(@"C:\Collection\file1", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\file2", "text", "aaa");
+            int id = fix.db.GetFileCollection("file_collection1").ID;
+            FileSearchFilter filter = new FileSearchFilter();
+            int fileID1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file1"))[0].ID;
+            int fileID2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file2"))[0].ID;
+            Assert.True(fix.db.AddFileToCollection(id, fileID1));
+            Assert.True(fix.db.AddFileToCollection(id, fileID2));
+            var collection = fix.db.GetFileCollection(id);
+            Assert.Equal(2, collection.Files.Count);
+            Assert.Equal(fileID1, collection.Files[0].FileID);
+            Assert.Equal(fileID2, collection.Files[1].FileID);
+            Assert.Equal(1, collection.Files[0].Position);
+            Assert.Equal(2, collection.Files[1].Position);
+        }
+
+        [Fact]
+        public void AddFilesToCollectionWorksInNonEndPositions()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("file_collection2");
+            fix.db.AddFile(@"C:\Collection\file3", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\file4", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\file5", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\file6", "text", "aaa");
+            int id = fix.db.GetFileCollection("file_collection2").ID;
+            FileSearchFilter filter = new FileSearchFilter();
+            int fileID1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file3"))[0].ID;
+            int fileID2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file4"))[0].ID;
+            int fileID3 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file5"))[0].ID;
+            int fileID4 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file6"))[0].ID;
+            Assert.True(fix.db.AddFileToCollection(id, fileID2));
+            Assert.True(fix.db.AddFileToCollection(id, fileID4));
+            Assert.True(fix.db.AddFileToCollection(id, fileID1, 1));
+            Assert.True(fix.db.AddFileToCollection(id, fileID3, 3));
+            var collection = fix.db.GetFileCollection(id);
+            Assert.Equal(4, collection.Files.Count);
+            Assert.Equal(fileID1, collection.Files[0].FileID);
+            Assert.Equal(fileID2, collection.Files[1].FileID);
+            Assert.Equal(fileID3, collection.Files[2].FileID);
+            Assert.Equal(fileID4, collection.Files[3].FileID);
+            Assert.Equal(1, collection.Files[0].Position);
+            Assert.Equal(2, collection.Files[1].Position);
+            Assert.Equal(3, collection.Files[2].Position);
+            Assert.Equal(4, collection.Files[3].Position);
+        }
+
+        [Fact]
+        public void AddFilesToCollectionWithBadIDsFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("bad_add");
+            Assert.False(fix.db.AddFileToCollection(fix.db.GetFileCollection("bad_add").ID, -1));
+            Assert.Empty(fix.db.GetFileCollection("bad_add").Files);
         }
 
         [Fact]

@@ -15,9 +15,11 @@ namespace FileDBManager.Entities
             {
                 { "CollectionID", "INTEGER REFERENCES Collections (ID) ON DELETE CASCADE" },
                 { "FileID", "INTEGER REFERENCES Files (ID) ON DELETE CASCADE" },
-                { "Position", "INTEGER UNIQUE ON CONFLICT IGNORE" }
+                { "Position", "INTEGER" }
             };
-        public static string Constraint = "PRIMARY KEY (CollectionID, FileID)";
+        public static string Constraint = 
+            "PRIMARY KEY (CollectionID, FileID), " +
+            "UNIQUE (CollectionID, Position) ON CONFLICT IGNORE";
 
         //[PrimaryKey]
         //[Column("CollectionID")]

@@ -884,11 +884,24 @@ namespace FileDBManager
                     statment = createStatementString("INSERT INTO FileCollectionAssociations (CollectionID,FileID,Position) " +
                         "VALUES (?,?,?)", collectionID, fileID, index + 1);
                     logger.LogDebug("Creating collection with query: " + statment);
-                    bool insertResult = ExecuteNonQuery(statment) == 1;
+                    bool insertResult = false;
+                    
+                    try {
+                        insertResult = ExecuteNonQuery(statment) == 1;
+                    } catch (SQLiteException ex) {
+                        logger.LogWarning(ex, "Failed to insert file to collection");
+                        transaction.Rollback();
+                        transaction.Dispose();
+                        throw ex;
+                    }
+
                     logger.LogInformation($"File {fileID} in collection {name} was" + (insertResult ? " " : " not ")
                         + "added to FileCollectionAssociations table");
                     result = result && insertResult;
-                    if (!result) logger.LogWarning($"Failure adding file {fileID} to collection {name}");
+                    if (!result) {
+                        logger.LogWarning($"Failure adding file {fileID} to collection {name}");
+                        break;
+                    }
                     index++;
                 }
             }
@@ -928,8 +941,10 @@ namespace FileDBManager
                 files = read.GetInt32(0);
             }
             read.Close();
+            com.Dispose();
             if (files == 0) {
-                logger.LogWarning("File with ID of" + fileID + " was not found, could not add to collection");
+                logger.LogWarning($"File with ID of {fileID} was not found, " +
+                    $"could not add to collection {collectionID}");
                 return false;
             }
 
@@ -943,41 +958,45 @@ namespace FileDBManager
             read.Close();
             com.Dispose();
             if (collections == 0) {
-                logger.LogWarning("Collection with ID of" + fileID + " was not found, could not add to collection");
+                logger.LogWarning("Collection with ID of " + collectionID + " was not found, could not add to collection");
                 return false;
             }
 
             query = createStatementString("SELECT MAX(Position) FROM FileCollectionAssociations " +
-                "WHERE FileID = ? AND CollectionID = ?", fileID, collectionID);
+                "WHERE CollectionID = ?", collectionID);
             com = new SQLiteCommand(query, db);
             read = com.ExecuteReader();
-            int positionList = -1;
+            int maxPosition = -1;
 
-            if (read.HasRows && read.Read()) {
-                positionList = read.GetInt32(0);
+            if (read.HasRows && read.Read() && !DBNull.Value.Equals(read.GetValue(0))) {
+                maxPosition = read.GetInt32(0);
             }
+            read.Close();
+            com.Dispose();
 
             int idx = 0;
-            if (insertIndex == -1) {
-                if (positionList > 0) {
-                    idx += positionList + 1;
+            if (insertIndex == -1 || insertIndex > maxPosition) {
+                if (maxPosition > 0) {
+                    idx += maxPosition + 1;
                 } else {
-                    logger.LogWarning($"Could not find position for file {fileID} in collection {collectionID}");
-                    return false;
+                    //logger.LogWarning($"Could not find position for file {fileID} in collection {collectionID}");
+                    //return false;
+                    idx = 1;
                 }
-            } else if (insertIndex <= positionList && insertIndex > 0) {
+            } else if (insertIndex <= maxPosition && insertIndex > 0) {
                 var transaction = db.BeginTransaction();
                 result = true;
-                for (int i = positionList; i >= insertIndex; i--) {
+                for (int i = maxPosition; i >= insertIndex; i--) {
                     query = createStatementString("UPDATE FileCollectionAssociations SET Position = ? " +
                         "WHERE Position = ?", i + 1, i);
                     bool moveResult = ExecuteNonQuery(query) == 1;
                     result = result && moveResult;
+                    if (!result) break;
                 }
                 if (result) {
                     transaction.Commit();
                     transaction.Dispose();
-                    logger.LogDebug($"Moved {positionList - insertIndex + 1} file positions " +
+                    logger.LogDebug($"Moved {maxPosition - insertIndex + 1} file positions " +
                         $"in collection {collectionID}");
                     idx = insertIndex;
                 } else {
@@ -987,14 +1006,19 @@ namespace FileDBManager
                     return result;
                 }
             } else {
-                logger.LogWarning($"Unusable colltion position of {insertIndex} was given");
+                logger.LogWarning($"Unusable collection position of {insertIndex} was given");
                 return false;
             }
 
             query = createStatementString("INSERT INTO FileCollectionAssociations (FileID, CollectionID, Position) " +
                 "VALUES (?,?,?)", fileID, collectionID, idx);
             logger.LogDebug("Inserting with query: " + query);
-            result = ExecuteNonQuery(query) == 1;
+            try {
+                result = ExecuteNonQuery(query) == 1;
+            } catch (SQLiteException ex) {
+                logger.LogWarning(ex, "File add failure due to SQLite error");
+                result = false;
+            }
             logger.LogInformation($"File {fileID} in collection {collectionID} was" + (result ? " " : " not ")
                         + "added to FileCollectionAssociations table");
 
@@ -1018,6 +1042,7 @@ namespace FileDBManager
             if (read.HasRows && read.Read()) {
                 collection = new GetCollectionType();
                 collection.Name = read.GetString(0);
+                collection.ID = id;
             } else {
                 logger.LogWarning("Could not find collection with ID of " + id);
                 read.Close();
