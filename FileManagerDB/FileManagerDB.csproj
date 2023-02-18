@@ -148,6 +148,7 @@
     <Compile Include="Entities\Tag.cs" />
     <Compile Include="Entities\TagCategory.cs" />
     <Compile Include="FileDBManagerClass.cs" />
+    <Compile Include="FileDBManagerCollections.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -701,9 +701,31 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void DeleteCollectionWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("deleted_collection");
+            fix.db.AddCollection("deleted_collection2");
+            Assert.True(fix.db.DeleteCollection("deleted_collection"));
+            int id = fix.db.GetFileCollection("deleted_collection2").ID;
+            Assert.True(fix.db.DeleteCollection(id));
+            Assert.Null(fix.db.GetFileCollection("deleted_collection"));
+            Assert.Null(fix.db.GetFileCollection(id));
+        }
+
+        [Fact]
+        public void DeleteCollectionOnNonexistentCollectionFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            Assert.False(fix.db.DeleteCollection("not_found"));
+            Assert.False(fix.db.DeleteCollection(1000));
+        }
+
+        [Fact]
         public void NetTest()
         {
             //fix.db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), fix.logger);
+            new FileDBHelper().TestFunc();
         }
     }
 }
