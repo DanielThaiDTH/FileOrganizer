@@ -725,7 +725,6 @@ namespace FileDBManager.Test
         public void NetTest()
         {
             //fix.db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), fix.logger);
-            new FileDBHelper().TestFunc();
         }
     }
 }
