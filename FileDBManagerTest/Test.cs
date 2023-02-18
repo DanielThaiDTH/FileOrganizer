@@ -479,6 +479,30 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void UpdateTagCategoryNameWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTagCategory("old_name");
+            var categories = fix.db.GetAllTagCategories();
+            int id = categories.Find(tc => tc.Name == "old_name").ID;
+            Assert.True(fix.db.UpdateTagCategoryName(id, "new_name"));
+            categories = fix.db.GetAllTagCategories();
+            Assert.True(categories.Exists(tc => tc.Name == "new_name"));
+            Assert.False(categories.Exists(tc => tc.Name == "old_name"));
+        }
+
+        [Fact]
+        public void UpdateTagCategoryNameWithUsedNameFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTagCategory("used_name");
+            fix.db.AddTagCategory("to_be_renamed");
+            var categories = fix.db.GetAllTagCategories();
+            int id = categories.Find(tc => tc.Name == "to_be_renamed").ID;
+            Assert.False(fix.db.UpdateTagCategoryName(id, "used_name"));
+        }
+
+        [Fact]
         public void DeleteTagRemovesAndReturnsTrue()
         {
             Log.Information("TEST: DeleteTagRemovesAndReturnsTrue");
@@ -510,6 +534,20 @@ namespace FileDBManager.Test
             fix.db.DeleteTag(tagID);
             Assert.Empty(fix.db.GetTagsForFile(id));
             Assert.Equal(old_tags.Count - 1, fix.db.GetTagsForFile(id).Count);
+        }
+
+        [Fact]
+        public void UpdateTagCategoryChangesCategory()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTagCategory("tc1");
+            fix.db.AddTagCategory("tc2");
+            fix.db.AddTag("changedCategory", "tc1");
+            int tcID = fix.db.GetAllTagCategories().Find(tc => tc.Name == "tc2").ID;
+            Assert.True(fix.db.UpdateTagCategory("changedCategory", tcID));
+            var tag = fix.db.GetAllTags().Find(t => t.Name == "changedCategory");
+            Assert.Equal(tcID, tag.CategoryID);
+            Assert.Equal("tc2", tag.Category);
         }
 
         [Fact]

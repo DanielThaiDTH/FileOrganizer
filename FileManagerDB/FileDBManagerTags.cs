@@ -75,6 +75,18 @@ namespace FileDBManager
             return result;
         }
 
+        public bool UpdateTagCategoryName(int id, string newName)
+        {
+            bool result;
+
+            string statement = createStatement("UPDATE TagCategories SET Name = ? WHERE ID = ?", newName, id);
+            result = ExecuteNonQuery(statement) == 1;
+
+            logger.LogInformation($"Tag category {id} was {(result ? "" : "not")} renamed to {newName}");
+
+            return result;
+        }
+
 
         /// <summary>
         ///     Adds a tag. Can also add an optional category to the tag.
