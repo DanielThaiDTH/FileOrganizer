@@ -178,7 +178,7 @@ namespace FileDBManager
         /// <param name="hash"></param>
         /// <param name="altname"></param>
         /// <returns></returns>
-        public bool AddFile(string filepath, string filetype, string hash, string altname = "")
+        public bool AddFile(string filepath, string filetype, string hash, string altname = "", long size = 0)
         {
             bool result;
             string statement = createStatement("INSERT INTO FileTypes (Name) VALUES (?)", filetype);

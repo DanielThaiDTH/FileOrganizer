@@ -19,8 +19,8 @@ namespace FileDBManager.Entities
                 { "FileTypeID", "INTEGER REFERENCES FileTypes (ID) ON DELETE RESTRICT" },
                 { "Hash", "TEXT" },
                 { "Size", "INTEGER DEFAULT 0" },
-                { "Created", "INTEGER DEFAULT 0" },
-                { "Modified", "INTEGER DEFAULT 0" }
+                //{ "Created", "INTEGER DEFAULT 0" },
+                //{ "Modified", "INTEGER DEFAULT 0" }
             };
         public static string Constraint = "UNIQUE (PathID, Filename) ON CONFLICT IGNORE";
 
@@ -49,8 +49,8 @@ namespace FileDBManager.Entities
         //[Column("Hash")]
         public string Hash { get; set; }
         public long Size { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
+        //public DateTime Created { get; set; }
+        //public DateTime Modified { get; set; }
     }
 
     /// <summary>
