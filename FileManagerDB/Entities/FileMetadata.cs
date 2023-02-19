@@ -17,7 +17,10 @@ namespace FileDBManager.Entities
                 { "Filename", "TEXT" },
                 { "Altname", "TEXT" },
                 { "FileTypeID", "INTEGER REFERENCES FileTypes (ID) ON DELETE RESTRICT" },
-                { "Hash", "TEXT" }
+                { "Hash", "TEXT" },
+                { "Size", "INTEGER DEFAULT 0" },
+                { "Created", "INTEGER DEFAULT 0" },
+                { "Modified", "INTEGER DEFAULT 0" }
             };
         public static string Constraint = "UNIQUE (PathID, Filename) ON CONFLICT IGNORE";
 
@@ -45,9 +48,15 @@ namespace FileDBManager.Entities
 
         //[Column("Hash")]
         public string Hash { get; set; }
+        public long Size { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Modified { get; set; }
     }
 
-    public class FileSearchFilter
+    /// <summary>
+    ///     A search filter for seraching files.
+    /// </summary>
+    public class FileSearchFilter : ICloneable
     {
         int _ID;
         int pathID;
@@ -64,6 +73,12 @@ namespace FileDBManager.Entities
         bool fileTypeExact;
         string hash;
         bool hashExact;
+        long size;
+        bool usingSizeFilter;
+        bool isSizeLesser;
+        DateTime created;
+        DateTime modified;
+        Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter;
 
         public bool PathFilterExact { get { return pathExact; } }
         public bool FullnameFilterExact { get { return fullnameExact; } }
@@ -81,11 +96,15 @@ namespace FileDBManager.Entities
         public bool UsingFileTypeID { get { return filetypeID >= 0; } }
         public bool UsingFileType {  get { return fileType != null; } }
         public bool UsingHash { get { return hash != null; } }
+        public bool UsingSizeFilter { get { return usingSizeFilter; } }
+        public bool IsSizeLesser { get { return isSizeLesser; } }
+        public bool UsingCustomFilter { get { return customFilter != null; } }
         public bool IsEmpty { get 
             {
                 return !(UsingID || UsingPathID || UsingPath || UsingFullname 
                     || UsingFilename || UsingAltname || UsingFileTypeID 
-                    || UsingFileType || UsingHash);
+                    || UsingFileType || UsingHash || UsingCustomFilter
+                    || UsingSizeFilter);
             } }
 
         public int ID { get { return _ID; } }
@@ -97,6 +116,10 @@ namespace FileDBManager.Entities
         public int FileTypeID { get { return filetypeID; } }
         public string FileType { get { return fileType; } }
         public string Hash { get { return hash; } }
+        public long Size { get { return size; } }
+        public DateTime Created { get { return created; } }
+        public DateTime Modfied { get { return modified; } }
+        public Func<List<GetFileMetadataType>, List<GetFileMetadataType>> CustomFilter { get { return customFilter; } }
 
         public FileSearchFilter() {
             _ID = int.MinValue;
@@ -114,6 +137,11 @@ namespace FileDBManager.Entities
             fileTypeExact = true;
             hash = null;
             hashExact = true;
+            size = 0;
+            usingSizeFilter = false;
+            isSizeLesser = true;
+
+            customFilter = null;
         }
 
         public FileSearchFilter Reset()
@@ -133,6 +161,11 @@ namespace FileDBManager.Entities
             fileTypeExact = true;
             hash = null;
             hashExact = true;
+            size = 0;
+            usingSizeFilter = false;
+            isSizeLesser = true;
+
+            customFilter = null;
 
             return this;
         }
@@ -197,6 +230,34 @@ namespace FileDBManager.Entities
             return this;
         }
 
+        /// <summary>
+        ///     Only supports simple greater/lesser or equal than to size. 
+        ///     For more compelx queries, use a custome filter.
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name=""></param>
+        /// <returns></returns>
+        public FileSearchFilter SetSizeFilter(long size, bool isLesserThan)
+        {
+            this.size = size;
+            isSizeLesser = isLesserThan;
+            usingSizeFilter = true;
+            return this;
+        }
+
+        /// <summary>
+        ///     Sets a client defined filter that filters lists of file metadata result types.
+        ///     The filter must use attributes that are part of the file metadata.
+        ///     The custom filter is applied after the filtered SQL query is applied.
+        /// </summary>
+        /// <param name="customFilter"></param>
+        /// <returns></returns>
+        public FileSearchFilter SetCustom(Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter)
+        {
+            this.customFilter = customFilter;
+            return this;
+        }
+
         public override string ToString()
         {
             string str = "ID: ";
@@ -218,7 +279,31 @@ namespace FileDBManager.Entities
             str += "\nHash: ";
             if (UsingHash) str += Hash;
 
+            if (UsingCustomFilter) str += "\nUsing custom filter";
+
             return str;
+        }
+
+        public object Clone()
+        {
+            FileSearchFilter newFilter = new FileSearchFilter();
+            newFilter.path = path;
+            newFilter.pathExact = pathExact;
+            newFilter.pathID = pathID;
+            newFilter.hash = hash;
+            newFilter.hashExact = hashExact;
+            newFilter.altname = altname;
+            newFilter.altnameExact = altnameExact;
+            newFilter.filename = filename;
+            newFilter.filenameExact = filenameExact;
+            newFilter.fullname = fullname;
+            newFilter.fullnameExact = fullnameExact;
+            newFilter.filetypeID = filetypeID;
+            newFilter.fileType = fileType;
+            newFilter.fileTypeExact = fileTypeExact;
+            newFilter.customFilter = customFilter;
+
+            return newFilter;
         }
     }
 }

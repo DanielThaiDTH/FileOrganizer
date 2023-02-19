@@ -140,6 +140,11 @@ namespace FileDBManager
                     whereValues.Add("%" + filter.FileType + "%");
                 }
             }
+            if (filter.UsingSizeFilter) {
+                string comp = filter.IsSizeLesser ? "<=" : ">=";
+                wheres.Add("Size " + comp + " ?");
+                whereValues.Add(filter.Size);
+            }
         }
 
         private void CreateTable(string name, Dictionary<string, string> cols, string constraint = null)
@@ -385,9 +390,9 @@ namespace FileDBManager
         /// </returns>
         public List<GetFileMetadataType> GetFileMetadataFiltered(FileSearchFilter filter)
         {
-            string queryStringPart1 = "SELECT * FROM Files ";
-            string queryStringPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
-            string queryStringPart3 = "JOIN FilePaths ON Files.PathID = FilePaths.ID ";
+            string statementPart1 = "SELECT * FROM Files ";
+            string statementPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
+            string statementPart3 = "JOIN FilePaths ON Files.PathID = FilePaths.ID ";
 
             List<string> wheres = new List<string>();
             List<object> whereValues = new List<object>();
@@ -395,21 +400,21 @@ namespace FileDBManager
 
             BuildWhereArrays(filter, ref wheres, ref whereValues);
 
-            string query = queryStringPart1 + queryStringPart2 + queryStringPart3;
+            string statement = statementPart1 + statementPart2 + statementPart3;
             for (int i = 0; i < wheres.Count; i++) {
                 if (i == 0) {
-                    query += "WHERE ";
+                    statement += "WHERE ";
                 } else {
-                    query += " AND ";
+                    statement += " AND ";
                 }
 
-                query += wheres[i];
+                statement += wheres[i];
             }
 
-            query = createStatement(query, whereValues.ToArray());
-            logger.LogDebug("Using filtered query: " + query);
+            statement = createStatement(statement, whereValues.ToArray());
+            logger.LogDebug("Using filtered query: " + statement);
 
-            var com = new SQLiteCommand(query, db);
+            var com = new SQLiteCommand(statement, db);
             var read = com.ExecuteReader();
             var results = new List<GetFileMetadataType>();
             while (read.HasRows && read.Read()) {
@@ -427,6 +432,14 @@ namespace FileDBManager
             }
             read.Close();
             com.Dispose();
+
+            if (filter.UsingCustomFilter) {
+                logger.LogInformation("Applying custom filter");
+                int oldCount = results.Count;
+                results = filter.CustomFilter(results);
+                logger.LogInformation($"Results reduced from {oldCount} to {results.Count}");
+            }
+
             logger.LogInformation($"Returning {results.Count} result(s)");
 
             return results;

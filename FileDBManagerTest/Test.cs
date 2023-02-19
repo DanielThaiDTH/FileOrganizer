@@ -253,6 +253,41 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void FileSearchFilterUsingCustomFilterCorrectValue()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            FileSearchFilter filter = new FileSearchFilter();
+            Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter = (results) =>
+            {
+                return results;
+            };
+            Assert.False(filter.UsingCustomFilter);
+            filter.SetCustom(customFilter);
+            Assert.True(filter.UsingCustomFilter);
+        }
+
+        [Fact]
+        public void GetFileMetadataWithCustomFilterWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            FileSearchFilter filter = new FileSearchFilter();
+            Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter = (r) =>
+            {
+                var newResults = r.FindAll(f => f.Filename.StartsWith("match"));
+                return newResults;
+            };
+            filter.SetCustom(customFilter);
+            fix.db.AddFile(@"F:\matched\matched_file", "text", "aaa");
+            fix.db.AddFile(@"F:\other\matching", "text", "aaa");
+            fix.db.AddFile(@"F:\match\unmatched", "text", "aaa");
+            var results = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Equal(2, results.Count);
+            Assert.Contains(results, f => f.Filename == "matched_file");
+            Assert.Contains(results, f => f.Filename == "matching");
+            Assert.DoesNotContain(results, f => f.Filename == "unmatched");
+        }
+
+        [Fact]
         public void DeleteFileMetadataRemovesFile()
         {
             Log.Information("TEST: DeleteFileMetadataRemovesFile");
