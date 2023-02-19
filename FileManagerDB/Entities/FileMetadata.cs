@@ -49,9 +49,15 @@ namespace FileDBManager.Entities
         //[Column("Hash")]
         public string Hash { get; set; }
         public long Size { get; set; }
-        //public DateTime Created { get; set; }
+        public DateTime Created { get; set; }
         //public DateTime Modified { get; set; }
     }
+
+    public class DateTimeOptional
+    {
+        public DateTime Date { get; set; }
+    }
+        
 
     /// <summary>
     ///     A search filter for seraching files.
@@ -77,7 +83,6 @@ namespace FileDBManager.Entities
         bool usingSizeFilter;
         bool isSizeLesser;
         DateTime created;
-        DateTime modified;
         Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter;
 
         public bool PathFilterExact { get { return pathExact; } }
@@ -118,7 +123,6 @@ namespace FileDBManager.Entities
         public string Hash { get { return hash; } }
         public long Size { get { return size; } }
         public DateTime Created { get { return created; } }
-        public DateTime Modfied { get { return modified; } }
         public Func<List<GetFileMetadataType>, List<GetFileMetadataType>> CustomFilter { get { return customFilter; } }
 
         public FileSearchFilter() {

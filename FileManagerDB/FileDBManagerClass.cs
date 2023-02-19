@@ -178,7 +178,8 @@ namespace FileDBManager
         /// <param name="hash"></param>
         /// <param name="altname"></param>
         /// <returns></returns>
-        public bool AddFile(string filepath, string filetype, string hash, string altname = "", long size = 0)
+        public bool AddFile(string filepath, string filetype, string hash, string altname = "", 
+            long size = 0, DateTimeOptional created = null)
         {
             bool result;
             string statement = createStatement("INSERT INTO FileTypes (Name) VALUES (?)", filetype);
@@ -193,6 +194,14 @@ namespace FileDBManager
             int idx = filepath.LastIndexOf('\\');
             string path = filepath.Substring(0, idx);
             string filename = filepath.Substring(idx + 1);
+            long createdTime = 0;
+            if (created != null) {
+                long unixEpoch = 11644473600;
+                long ticksPerSec = 10000000;
+
+                createdTime = (created.Date.Ticks / ticksPerSec) - unixEpoch;
+            }
+
             if (!Path.IsPathRooted(path)) {
                 logger.LogWarning(path + " is not a proper full path");
                 return false;
@@ -224,9 +233,16 @@ namespace FileDBManager
             reader.Close();
             com.Dispose();
 
-            statement = createStatement("INSERT INTO Files " +
-                            "(Filename, PathID, FileTypeID, Altname, Hash) VALUES (?,?,?,?,?)",
-                            filename, pathID, typeID, altname, hash);
+            if (created is null) { 
+                statement = createStatement("INSERT INTO Files " +
+                                "(Filename, PathID, FileTypeID, Altname, Hash, Size) VALUES (?,?,?,?,?,?)",
+                                filename, pathID, typeID, altname, hash, size);
+            } else {
+                statement = createStatement("INSERT INTO Files " +
+                                "(Filename, PathID, FileTypeID, Altname, Hash, Size, Created) VALUES " +
+                                "(?,?,?,?,?,?,?)",
+                                filename, pathID, typeID, altname, hash, size, createdTime);
+            }
             logger.LogDebug("Insert Query: " + statement);
             result = ExecuteNonQuery(statement) == 1;
             logger.LogInformation($"{filepath} was" + (result ? " " : " not ") + "added to Files table");
