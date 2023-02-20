@@ -232,10 +232,62 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void FileWithCreatedDatePersistsCorrectly()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            DateTime fileTime = DateTime.Now;
+            fix.db.AddFile(@"C:\Time\timed_file", "bin", "aaa", "", 10, new DateTimeOptional(fileTime));
+            var file = fix.db.GetFileMetadataFiltered(new FileSearchFilter().SetFilenameFilter("timed_file"))[0];
+            DateTime roundedTime = DateTimeOptional.RoundToUnixPrecision(fileTime);
+            Assert.Equal(roundedTime, file.Created);
+        }
+
+        [Fact]
+        public void CustomFileFilterWorksWithDates()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            DateTime fileTime = DateTime.Now.AddDays(-10);
+            fix.db.AddFile(@"C:\Time\timed_file_old", "bin", "aaa", "", 10, new DateTimeOptional(fileTime));
+            Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter = (res) =>
+            {
+                return res.FindAll(f =>
+                {
+                    DateTime now = DateTime.Now;
+                    DateTime pastLimit = new DateTime(2000, 1, 1);
+                    return f.Created < now && f.Created > pastLimit;
+                });
+            };
+            var filter = new FileSearchFilter().SetCustom(customFilter);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void UnicodeFilenamesWork()
+        {
+            Assert.True(fix.db.AddFile(@"U:\画家\天風かや", "jpg", "aaa", "香風かや"));
+            var filter = new FileSearchFilter();
+            filter.SetFilenameFilter("天風かや");
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetFilenameFilter("風か", false);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetAltnameFilter("香風かや", false);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetPathFilter(@"U:\画家");
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetPathFilter("画", false);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetFullnameFilter(@"U:\画家\天風かや");
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            filter.Reset().SetFullnameFilter(@"家\天風か", false);
+            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Equal("天風かや", fix.db.GetFileMetadataFiltered(filter)[0].Filename);
+        }
+
+        [Fact]
         public void GetFileMetadataWithAllFiltersWorks()
         {
             Log.Information("TEST: GetFileMetadataWithAllFiltersWorks");
-            fix.db.AddFile(@"S:\Temp\unique_file", "text", "a1a", "unique_alt");
+            fix.db.AddFile(@"S:\Temp\unique_file", "text", "a1a", "unique_alt", 100);
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("unique_file", true);
             var info = fix.db.GetFileMetadataFiltered(filter)[0];
@@ -248,7 +300,8 @@ namespace FileDBManager.Test
                 .SetAltnameFilter("unique_alt", true)
                 .SetHashFilter("a1a", true)
                 .SetFileTypeFilter("text", true)
-                .SetPathFilter(@"S:\Temp", true);
+                .SetPathFilter(@"S:\Temp", true)
+                .SetSizeFilter(1000, true);
             Assert.Single(fix.db.GetFileMetadataFiltered(filter));
         }
 

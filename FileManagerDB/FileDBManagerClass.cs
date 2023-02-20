@@ -196,10 +196,7 @@ namespace FileDBManager
             string filename = filepath.Substring(idx + 1);
             long createdTime = 0;
             if (created != null) {
-                long unixEpoch = 11644473600;
-                long ticksPerSec = 10000000;
-
-                createdTime = (created.Date.Ticks / ticksPerSec) - unixEpoch;
+                createdTime = DateTimeOptional.ToUnixTime(created);
             }
 
             if (!Path.IsPathRooted(path)) {
@@ -289,6 +286,13 @@ namespace FileDBManager
             logger.LogDebug("Query: " + statement);
             var com = new SQLiteCommand(statement, db).ExecuteReader();
             List<dynamic> results = new List<dynamic>();
+
+            Func<long, DateTime> convertDT = (unixTime) =>
+            {
+                logger.LogDebug("Converting Unix time " + unixTime);
+                return DateTimeOptional.FromUnixTime(unixTime);
+            };
+
             if (com.Read()) {
                 results.Add(new {
                     ID = fileID,
@@ -298,7 +302,9 @@ namespace FileDBManager
                     Altname = com.GetString(com.GetOrdinal("Altname")),
                     FileTypeID = com.GetInt32(com.GetOrdinal("FileTypeID")),
                     FileType = com.GetString(com.GetOrdinal("Name")),
-                    Hash = com.GetString(com.GetOrdinal("Hash"))
+                    Hash = com.GetString(com.GetOrdinal("Hash")),
+                    Size = com.GetInt64(com.GetOrdinal("Size")),
+                    Created = convertDT(com.GetInt64(com.GetOrdinal("Created")))
                 });
             }
 
@@ -349,6 +355,11 @@ namespace FileDBManager
                             + "JOIN FilePaths ON Files.PathID = FilePaths.ID";
             var com = new SQLiteCommand(statement, db).ExecuteReader();
             List<GetFileMetadataType> results = new List<GetFileMetadataType>();
+            Func<long, DateTime> convertDT = (unixTime) =>
+            {
+                logger.LogDebug("Converting Unix time " + unixTime);
+                return DateTimeOptional.FromUnixTime(unixTime);
+            };
             while (com.HasRows && com.Read()) {
                 results.Add(new GetFileMetadataType()
                 {
@@ -359,7 +370,9 @@ namespace FileDBManager
                     Altname = com.GetString(com.GetOrdinal("Altname")),
                     FileTypeID = com.GetInt32(com.GetOrdinal("FileTypeID")),
                     FileType = com.GetString(com.GetOrdinal("Name")),
-                    Hash = com.GetString(com.GetOrdinal("Hash"))
+                    Hash = com.GetString(com.GetOrdinal("Hash")),
+                    Size = com.GetInt64(com.GetOrdinal("Size")),
+                    Created = convertDT(com.GetInt64(com.GetOrdinal("Created")))
                 });
             }
 
@@ -433,6 +446,11 @@ namespace FileDBManager
             var com = new SQLiteCommand(statement, db);
             var read = com.ExecuteReader();
             var results = new List<GetFileMetadataType>();
+            Func<long, DateTime> convertDT = (unixTime) =>
+            {
+                logger.LogDebug("Converting Unix time " + unixTime);
+                return DateTimeOptional.FromUnixTime(unixTime);
+            };
             while (read.HasRows && read.Read()) {
                 results.Add(new GetFileMetadataType()
                 {
@@ -443,7 +461,9 @@ namespace FileDBManager
                     Altname = read.GetString(read.GetOrdinal("Altname")),
                     FileTypeID = read.GetInt32(read.GetOrdinal("FileTypeID")),
                     FileType = read.GetString(read.GetOrdinal("Name")),
-                    Hash = read.GetString(read.GetOrdinal("Hash"))
+                    Hash = read.GetString(read.GetOrdinal("Hash")),
+                    Size = read.GetInt64(read.GetOrdinal("Size")),
+                    Created = convertDT(read.GetInt64(read.GetOrdinal("Created")))
                 });
             }
             read.Close();
@@ -557,8 +577,12 @@ namespace FileDBManager
                 vals.Add(newInfo.Altname);
             }
             if (newInfo.UsingHash) {
-                cols.Add("hash");
+                cols.Add("Hash");
                 vals.Add(newInfo.Hash);
+            }
+            if (newInfo.UsingSizeFilter) {
+                cols.Add("Size");
+                vals.Add(newInfo.Size);
             }
 
             string assignmentstr = "";

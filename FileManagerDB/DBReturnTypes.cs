@@ -16,6 +16,8 @@ namespace FileDBManager
         public int FileTypeID { get; set; }
         public string FileType { get; set; }
         public string Hash { get; set; }
+        public long Size { get; set; }
+        public DateTime Created { get; set; }
 
         public bool Equals(GetFileMetadataType other)
         {
@@ -24,7 +26,7 @@ namespace FileDBManager
             return ID == other.ID && PathID == other.PathID
                 && Path == other.Path && Filename == other.Filename 
                 && Altname == other.Altname && FileTypeID == other.FileTypeID
-                && Hash == other.Hash;
+                && Hash == other.Hash && Size == other.Size && Created == other.Created;
         }
 
         public override bool Equals(object obj)

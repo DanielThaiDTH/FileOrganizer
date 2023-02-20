@@ -19,7 +19,7 @@ namespace FileDBManager.Entities
                 { "FileTypeID", "INTEGER REFERENCES FileTypes (ID) ON DELETE RESTRICT" },
                 { "Hash", "TEXT" },
                 { "Size", "INTEGER DEFAULT 0" },
-                //{ "Created", "INTEGER DEFAULT 0" },
+                { "Created", "INTEGER DEFAULT 0" },
                 //{ "Modified", "INTEGER DEFAULT 0" }
             };
         public static string Constraint = "UNIQUE (PathID, Filename) ON CONFLICT IGNORE";
@@ -53,9 +53,46 @@ namespace FileDBManager.Entities
         //public DateTime Modified { get; set; }
     }
 
+    /// <summary>
+    ///     Helper methods for handling dates, wrapper for null Datetime equivalents.
+    /// </summary>
     public class DateTimeOptional
     {
+        public static readonly long unixEpoch = 116444736000000000; //already reduced
+        public static readonly long ticksPerSec = 10000000;
+        
+        public DateTimeOptional(DateTime date)
+        {
+            Date = date;
+        }
+
+        public static long ToUnixTime(DateTime dt)
+        {
+            return (dt.Date.ToFileTime() - unixEpoch) / ticksPerSec;
+        }
+
+        public static long ToUnixTime(DateTimeOptional dto)
+        {
+            return ToUnixTime(dto.Date);
+        }
+
+        public static DateTime FromUnixTime(long unixTime)
+        {
+            long windowsTime = (unixTime * ticksPerSec) + unixEpoch;
+            var dt = DateTime.FromFileTime(windowsTime);
+
+            return dt;
+        }
+
+        public static DateTime RoundToUnixPrecision(DateTime dt)
+        {
+            var roundedDt = FromUnixTime(ToUnixTime(dt));
+
+            return roundedDt;
+        }
+
         public DateTime Date { get; set; }
+
     }
         
 
