@@ -117,9 +117,12 @@ namespace FileDBManager.Entities
         string hash;
         bool hashExact;
         long size;
-        bool usingSizeFilter;
+        bool usingSize;
         bool isSizeLesser;
         DateTime created;
+        List<int> tagIDs;
+        List<string> tagNames;
+        bool tagFilterAnd;
         Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter;
 
         public bool PathFilterExact { get { return pathExact; } }
@@ -138,15 +141,16 @@ namespace FileDBManager.Entities
         public bool UsingFileTypeID { get { return filetypeID >= 0; } }
         public bool UsingFileType {  get { return fileType != null; } }
         public bool UsingHash { get { return hash != null; } }
-        public bool UsingSizeFilter { get { return usingSizeFilter; } }
+        public bool UsingSize { get { return usingSize; } }
         public bool IsSizeLesser { get { return isSizeLesser; } }
+        public bool UsingTags { get { return !(tagIDs is null && tagNames is null);  } }
         public bool UsingCustomFilter { get { return customFilter != null; } }
         public bool IsEmpty { get 
             {
                 return !(UsingID || UsingPathID || UsingPath || UsingFullname 
                     || UsingFilename || UsingAltname || UsingFileTypeID 
                     || UsingFileType || UsingHash || UsingCustomFilter
-                    || UsingSizeFilter);
+                    || UsingSize);
             } }
 
         public int ID { get { return _ID; } }
@@ -160,29 +164,13 @@ namespace FileDBManager.Entities
         public string Hash { get { return hash; } }
         public long Size { get { return size; } }
         public DateTime Created { get { return created; } }
+        public List<int> TagIDs { get { return tagIDs; } }
+        public List<string> TagNames { get { return tagNames; } }
+        public bool UsingTagAnd { get { return tagFilterAnd; } }
         public Func<List<GetFileMetadataType>, List<GetFileMetadataType>> CustomFilter { get { return customFilter; } }
 
         public FileSearchFilter() {
-            _ID = int.MinValue;
-            pathID = int.MinValue;
-            path = null;
-            pathExact = true;
-            fullname = null;
-            fullnameExact = true;
-            filename = null;
-            filenameExact = true;
-            altname = null;
-            altnameExact = true;
-            filetypeID = int.MinValue;
-            fileType = null;
-            fileTypeExact = true;
-            hash = null;
-            hashExact = true;
-            size = 0;
-            usingSizeFilter = false;
-            isSizeLesser = true;
-
-            customFilter = null;
+            Reset();
         }
 
         public FileSearchFilter Reset()
@@ -203,8 +191,11 @@ namespace FileDBManager.Entities
             hash = null;
             hashExact = true;
             size = 0;
-            usingSizeFilter = false;
+            usingSize = false;
             isSizeLesser = true;
+            tagIDs = null;
+            tagNames = null;
+            tagFilterAnd = false;
 
             customFilter = null;
 
@@ -282,7 +273,37 @@ namespace FileDBManager.Entities
         {
             this.size = size;
             isSizeLesser = isLesserThan;
-            usingSizeFilter = true;
+            usingSize = true;
+            return this;
+        }
+
+        /// <summary>
+        ///     Filters by tag ids. Second parameters is to set if the 
+        ///     filter will be for files including all the given tags or just one.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="usingAnd"></param>
+        /// <returns></returns>
+        public FileSearchFilter SetTagFilter(List<int> ids, bool usingAnd=false)
+        {
+            tagNames = null;
+            tagFilterAnd = usingAnd;
+            tagIDs = ids;
+            return this;
+        }
+
+        /// <summary>
+        ///     Filters by tag ids. Second parameters is to set if the 
+        ///     filter will be for files including all the given tags or just one.
+        /// </summary>
+        /// <param name="tagNames"></param>
+        /// <param name="usingAnd"></param>
+        /// <returns></returns>
+        public FileSearchFilter SetTagFilter(List<string> tagNames, bool usingAnd=false)
+        {
+            tagIDs = null;
+            tagFilterAnd = usingAnd;
+            this.tagNames = tagNames;
             return this;
         }
 

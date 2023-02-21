@@ -140,7 +140,7 @@ namespace FileDBManager
                     whereValues.Add("%" + filter.FileType + "%");
                 }
             }
-            if (filter.UsingSizeFilter) {
+            if (filter.UsingSize) {
                 string comp = filter.IsSizeLesser ? "<=" : ">=";
                 wheres.Add("Size " + comp + " ?");
                 whereValues.Add(filter.Size);
@@ -440,6 +440,29 @@ namespace FileDBManager
                 statement += wheres[i];
             }
 
+            if (filter.UsingTags && filter.TagIDs != null) {
+                statement += " AND (";
+                for (int i = 0; i < filter.TagIDs.Count; i++) {
+                    statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
+                    whereValues.Add(filter.TagIDs[i]);
+                    if (i+1 < filter.TagIDs.Count) {
+                        statement += filter.UsingTagAnd ? " AND " : " OR ";
+                    }
+                }
+                statement += ")";
+            } else if (filter.UsingTags && filter.TagNames != null) {
+                statement += " AND (";
+                for (int i = 0; i < filter.TagNames.Count; i++) {
+                    statement += "? IN (SELECT Tags.Name FROM " +
+                        "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                    whereValues.Add(filter.TagNames[i]);
+                    if (i + 1 < filter.TagNames.Count) {
+                        statement += filter.UsingTagAnd ? " AND " : " OR ";
+                    }
+                }
+                statement += ")";
+            }
+
             statement = createStatement(statement, whereValues.ToArray());
             logger.LogDebug("Using filtered query: " + statement);
 
@@ -580,7 +603,7 @@ namespace FileDBManager
                 cols.Add("Hash");
                 vals.Add(newInfo.Hash);
             }
-            if (newInfo.UsingSizeFilter) {
+            if (newInfo.UsingSize) {
                 cols.Add("Size");
                 vals.Add(newInfo.Size);
             }

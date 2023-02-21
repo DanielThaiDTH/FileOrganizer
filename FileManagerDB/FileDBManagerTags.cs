@@ -238,6 +238,11 @@ namespace FileDBManager
             return tags;
         }
 
+        /// <summary>
+        ///     Returns all tags a given file has.
+        /// </summary>
+        /// <param name="fileID"></param>
+        /// <returns></returns>
         public List<GetTagType> GetTagsForFile(int fileID)
         {
             List<GetTagType> fileTags = new List<GetTagType>();
