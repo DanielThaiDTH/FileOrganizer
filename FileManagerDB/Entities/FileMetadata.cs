@@ -123,6 +123,9 @@ namespace FileDBManager.Entities
         List<int> tagIDs;
         List<string> tagNames;
         bool tagFilterAnd;
+        List<int> excludeTagIDs;
+        List<string> excludeTagNames;
+        bool excludeTagFilterAnd;
         Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter;
 
         public bool PathFilterExact { get { return pathExact; } }
@@ -143,7 +146,17 @@ namespace FileDBManager.Entities
         public bool UsingHash { get { return hash != null; } }
         public bool UsingSize { get { return usingSize; } }
         public bool IsSizeLesser { get { return isSizeLesser; } }
-        public bool UsingTags { get { return !(tagIDs is null && tagNames is null);  } }
+        public bool UsingTags { get { 
+                return !((tagIDs is null || tagIDs.Count == 0) && (tagNames is null || tagNames.Count == 0));
+            } }
+        public bool UsingExcludeTags
+        {
+            get
+            {
+                return !((excludeTagIDs is null || excludeTagIDs.Count == 0) 
+                    && (excludeTagNames is null || excludeTagNames.Count == 0));
+            }
+        }
         public bool UsingCustomFilter { get { return customFilter != null; } }
         public bool IsEmpty { get 
             {
@@ -167,6 +180,9 @@ namespace FileDBManager.Entities
         public List<int> TagIDs { get { return tagIDs; } }
         public List<string> TagNames { get { return tagNames; } }
         public bool UsingTagAnd { get { return tagFilterAnd; } }
+        public List<int> ExcludeTagIDs { get { return excludeTagIDs; } }
+        public List<string> ExcludeTagNames { get { return excludeTagNames; } }
+        public bool UsingExcludeTagAnd { get { return excludeTagFilterAnd; } }
         public Func<List<GetFileMetadataType>, List<GetFileMetadataType>> CustomFilter { get { return customFilter; } }
 
         public FileSearchFilter() {
@@ -196,6 +212,9 @@ namespace FileDBManager.Entities
             tagIDs = null;
             tagNames = null;
             tagFilterAnd = false;
+            excludeTagIDs = null;
+            excludeTagNames = null;
+            excludeTagFilterAnd = false;
 
             customFilter = null;
 
@@ -304,6 +323,36 @@ namespace FileDBManager.Entities
             tagIDs = null;
             tagFilterAnd = usingAnd;
             this.tagNames = tagNames;
+            return this;
+        }
+
+        /// <summary>
+        ///     Filters by tags a file does not have. Second parameter is to set if the 
+        ///     filter will be for files including all the given tags or just one.
+        /// </summary>
+        /// <param name="tagNames"></param>
+        /// <param name="usingAnd"></param>
+        /// <returns></returns>
+        public FileSearchFilter SetExcludeTagFilter(List<string> tagNames, bool usingAnd = false)
+        {
+            excludeTagIDs = null;
+            excludeTagFilterAnd = usingAnd;
+            excludeTagNames = tagNames;
+            return this;
+        }
+
+        /// <summary>
+        ///     Filters by tag ids not used by a file. Second parameter is to set if the 
+        ///     filter will be for files including all the given tags or just one.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <param name="usingAnd"></param>
+        /// <returns></returns>
+        public FileSearchFilter SetExcludeTagFilter(List<int> ids, bool usingAnd = false)
+        {
+            excludeTagNames = null;
+            excludeTagFilterAnd = usingAnd;
+            excludeTagIDs = ids;
             return this;
         }
 

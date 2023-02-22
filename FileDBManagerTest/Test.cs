@@ -46,7 +46,7 @@ namespace FileDBManager.Test
             string path = Path.Combine("logs", "log.log");
             if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                //.MinimumLevel.Debug()
                 .WriteTo.File(path,  rollingInterval: RollingInterval.Day)
                 .WriteTo.Debug()
                 .CreateLogger();
@@ -293,6 +293,41 @@ namespace FileDBManager.Test
             Assert.Contains(result, (t) => t.Filename == "tagged_file4");
             Assert.Contains(result, (t) => t.Filename == "tagged_file6");
             Assert.Equal(2, result.Count);
+        }
+
+        [Fact]
+        public void GetFileMetadataFilteredWithEmptyTagListHasNoEffect()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var filter = new FileSearchFilter();
+            var baseResults = fix.db.GetAllFileMetadata();
+            var results1 = fix.db.GetFileMetadataFiltered(filter.SetTagFilter(new List<int>()));
+            var results2 = fix.db.GetFileMetadataFiltered(filter.SetTagFilter(new List<string>()));
+            Assert.Equal(baseResults.Count, results1.Count);
+            Assert.Equal(baseResults.Count, results2.Count);
+        }
+
+        [Fact]
+        public void GetFileMetadataFilteredWithExcludeTagsWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"C:\Tag\unfound_tags", "text", "aaa");
+            var filter = new FileSearchFilter().SetFilenameFilter("unfound_tags");
+            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            fix.db.AddTagToFile(id, "exclude_tag1");
+            fix.db.AddTag("exclude_tag2");
+            filter.Reset().SetExcludeTagFilter(new List<string>(){ "exclude_tag1" });
+            var result = fix.db.GetFileMetadataFiltered(filter);
+            Assert.DoesNotContain(result, (f) => f.Filename == "unfound_tags");
+            filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" });
+            result = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Contains(result, (f) => f.Filename == "unfound_tags");
+            filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" }, true);
+            result = fix.db.GetFileMetadataFiltered(filter);
+            Assert.DoesNotContain(result, (f) => f.Filename == "unfound_tags");
+            filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag2" });
+            result = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Contains(result, (f) => f.Filename == "unfound_tags");
         }
 
         [Fact]
@@ -561,6 +596,7 @@ namespace FileDBManager.Test
             Assert.Single(fileTags);
             Assert.Contains(fileTags, t => t.Name == "file_tag1");
         }
+
 
         [Fact]
         public void AddAndGetTagsWorksWithTagCategories()
