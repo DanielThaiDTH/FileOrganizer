@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManagerDB", "FileManage
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileDBManagerTest", "FileDBManagerTest\FileDBManagerTest.csproj", "{2C9E641D-F184-4786-839C-6FCD6E115AEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLiteConsole", "SQLiteConsole\SQLiteConsole.csproj", "{062CA087-8FBE-4795-86A2-92FE6DA8A28E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,14 +47,6 @@ Global
 		{2C9E641D-F184-4786-839C-6FCD6E115AEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C9E641D-F184-4786-839C-6FCD6E115AEC}.Release|x64.ActiveCfg = Release|x64
 		{2C9E641D-F184-4786-839C-6FCD6E115AEC}.Release|x64.Build.0 = Release|x64
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Debug|x64.Build.0 = Debug|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Release|x64.ActiveCfg = Release|Any CPU
-		{062CA087-8FBE-4795-86A2-92FE6DA8A28E}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

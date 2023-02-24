@@ -184,12 +184,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\xunit.analyzers.0.10.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
@@ -202,10 +211,6 @@
     <ProjectReference Include="..\FileManagerDB\FileManagerDB.csproj">
       <Project>{ab837fd1-34a1-4b5c-9f2e-716faccbd619}</Project>
       <Name>FileManagerDB</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SQLiteConsole\SQLiteConsole.csproj">
-      <Project>{062ca087-8fbe-4795-86a2-92fe6da8a28e}</Project>
-      <Name>SQLiteConsole</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

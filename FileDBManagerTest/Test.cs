@@ -11,7 +11,6 @@ using Serilog.Sinks.File;
 using Serilog.Extensions.Logging;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using SQLiteConsole;
 using FileDBManager.Entities;
 using System.Data;
 using System.Data.SQLite;

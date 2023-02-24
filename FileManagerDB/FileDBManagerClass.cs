@@ -37,6 +37,7 @@ namespace FileDBManager
 
         private string createStatement(string statment, params object[] args)
         {
+            var s = new SQLiteParameter(System.Data.DbType.Date);
             string filledQuery = "";
             if (statment.Count(c => c == '?') != args.Length) {
                 logger.LogWarning("Argument mismatch - query: '" + statment + $"' does not have {args.Length} params");
