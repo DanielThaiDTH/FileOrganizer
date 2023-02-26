@@ -278,7 +278,7 @@ namespace FileDBManager
         ///         </item>
         ///         </list>
         /// </returns>
-        public dynamic GetFileMetadata(int fileID)
+        public GetFileMetadataType GetFileMetadata(int fileID)
         {
             string statement = "SELECT * FROM Files "
                             + "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID "
@@ -286,7 +286,7 @@ namespace FileDBManager
                             + $" WHERE Files.ID = {fileID}";
             logger.LogDebug("Query: " + statement);
             var com = new SQLiteCommand(statement, db).ExecuteReader();
-            List<dynamic> results = new List<dynamic>();
+            List<GetFileMetadataType> results = new List<GetFileMetadataType>();
 
             Func<long, DateTime> convertDT = (unixTime) =>
             {
@@ -295,7 +295,8 @@ namespace FileDBManager
             };
 
             if (com.Read()) {
-                results.Add(new {
+                results.Add(new GetFileMetadataType
+                {
                     ID = fileID,
                     PathID = com.GetInt32(com.GetOrdinal("PathID")),
                     Path = com.GetString(com.GetOrdinal("Path")),
@@ -556,7 +557,8 @@ namespace FileDBManager
 
         /// <summary>
         ///     Updates a file's metadata. The info object must 
-        ///     have the file ID.
+        ///     have the file ID. Tags and created dates are updated 
+        ///     in another method.
         /// </summary>
         /// <param name="info"></param>
         /// <returns>Status of update</returns>

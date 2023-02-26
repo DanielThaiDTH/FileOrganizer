@@ -88,7 +88,8 @@ namespace SymLinkMaker
 
         /// <summary>
         ///     Creates a symlink at the path variable, using the target source in the source variable.
-        ///     Set if it is a directory or not in the third parameter.
+        ///     Set if it is a directory or not in the third parameter. Path parameter is the 
+        ///     destination relative to the symlink root. Source must be an absolute path.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="source"></param>
