@@ -12,20 +12,34 @@ namespace FileOrganizerCore
         SymLinkCreate,
         SymLinkDelete,
         Path,
+        Access,
         Empty
     }
 
+    /// <summary>
+    ///     Encapsulates errors into a return result. Is 
+    ///     used for setting error messages for display.
+    /// </summary>
     public class ActionResult
     {
-        List<ErrorType> type;
-        List<string> message;
-        Dictionary<ErrorType, string> defaultMessage;
-        Type resultType;
-        object result;
+        protected List<ErrorType> type;
+        protected List<string> message;
+        protected Dictionary<ErrorType, string> defaultMessage;
         public int Count { get { return type.Count; } }
-        public Type ResultType { get { return resultType; } }
-        public object Result { get { return result; } }
 
+        public static void AppendErrors<T1, T2>(ActionResult<T1> r1, ActionResult<T2> r2)
+        {
+            for (int i = 0; i < r2.Count; i++) {
+                r1.AddError(r2.GetError(i), r2.GetErrorMessage(i));
+            }
+        }
+    }
+
+    public class ActionResult<T> : ActionResult
+    {
+        
+        T result;
+        public T Result { get { return result; } }
 
         public ActionResult()
         {
@@ -37,10 +51,10 @@ namespace FileOrganizerCore
                 { ErrorType.SymLinkCreate, "Error creating a symlink" },
                 { ErrorType.SymLinkDelete, "Error raised when removing a symlink" },
                 { ErrorType.Path, "Path error was raised due to a badly formed path" },
+                { ErrorType.Access, "Error accessing a resource" },
                 { ErrorType.Empty, "No error" }
             };
-            resultType = null;
-            result = null;
+            result = default(T);
         }
 
         public ErrorType GetError(int idx)
@@ -86,10 +100,11 @@ namespace FileOrganizerCore
             }
         }
 
-        public void SetResult(Type resultType, object result)
+        public void SetResult(T result)
         {
-            this.resultType = resultType;
             this.result = result;
         }
+
+        
     }
 }
