@@ -384,7 +384,7 @@ namespace FileOrganizerCore
 
             bool status = db.AddTagCategory(category);
 
-            if (!status) res.AddError(ErrorType.SQL, "Failure updating files");
+            if (!status) res.AddError(ErrorType.SQL, "Failure adding tag category");
 
             res.SetResult(status);
 
@@ -443,6 +443,61 @@ namespace FileOrganizerCore
             }
 
             res.SetResult(status);
+            return res;
+        }
+
+        public ActionResult<bool> AddTag(string tag, string tagCategory="")
+        {
+            var res = new ActionResult<bool>();
+
+            bool status = db.AddTag(tag, tagCategory);
+
+            if (!status) res.AddError(ErrorType.SQL, "Failed to add tag");
+            res.SetResult(status);
+            
+            return res;
+        }
+
+        public ActionResult<bool> AddTagToFile(int fileID, string tag, string tagCategory = "")
+        {
+            var res = new ActionResult<bool>();
+
+            try {
+
+                bool status = db.AddTagToFile(fileID, tag, tagCategory);
+                if (!status) res.AddError(ErrorType.SQL, $"Failed to add tag {tag} to file");
+                res.SetResult(status);
+            } catch(InvalidDataException ex) {
+                logger.LogError(ex, "Failure to access DB to check tag category");
+                res.SetResult(false);
+                res.AddError(ErrorType.SQL, "DB access failure");
+            }
+
+            return res;
+        }
+
+        public ActionResult<List<GetTagType>> GetTags()
+        {
+            var res = new ActionResult<List<GetTagType>>();
+            res.SetResult(db.GetAllTags());
+
+            return res;
+        }
+        public ActionResult<List<GetTagType>> GetTagsForFile(int id)
+        {
+            var res = new ActionResult<List<GetTagType>>();
+            res.SetResult(db.GetTagsForFile(id));
+
+            return res;
+        }
+
+        public ActionResult<bool> DeleteTag(int id)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.DeleteTag(id);
+            if (!status) res.AddError(ErrorType.SQL, "Could not delete tag");
+            res.SetResult(status);
+
             return res;
         }
     }

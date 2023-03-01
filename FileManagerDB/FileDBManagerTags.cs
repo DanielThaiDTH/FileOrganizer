@@ -94,6 +94,7 @@ namespace FileDBManager
         /// <param name="tag"></param>
         /// <param name="tagCategory"></param>
         /// <returns>Status of adding new tag. Will return if it already exists</returns>
+        /// <exception cref="InvalidDataException">If fetching from tag category table fails</exception>
         public bool AddTag(string tag, string tagCategory = "")
         {
             bool result;
