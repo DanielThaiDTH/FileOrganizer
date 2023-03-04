@@ -279,7 +279,10 @@ namespace FileDBManager
         ///     their positions using the collection id.
         /// </summary>
         /// <param name="id"></param>
-        /// <returns>Collection object with the collection name, id and list of files</returns>
+        /// <returns>
+        ///     Collection object with the collection name, id and list of files.
+        ///     Null if nothing found.
+        /// </returns>
         /// 
         public GetCollectionType GetFileCollection(int id)
         {
@@ -322,7 +325,10 @@ namespace FileDBManager
         ///     their positions using the collection name.
         /// </summary>
         /// <param name="name"></param>
-        /// <returns>Collection object with the collection name, id and list of files</returns>
+        /// <returns>
+        ///     Collection object with the collection name, id and list of files.
+        ///     Null if nothing found.
+        /// </returns>
         public GetCollectionType GetFileCollection(string name)
         {
             string statement = createStatement("SELECT ID FROM Collections WHERE Name = ?", name);

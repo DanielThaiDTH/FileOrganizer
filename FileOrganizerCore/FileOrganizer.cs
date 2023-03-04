@@ -483,6 +483,7 @@ namespace FileOrganizerCore
 
             return res;
         }
+
         public ActionResult<List<GetTagType>> GetTagsForFile(int id)
         {
             var res = new ActionResult<List<GetTagType>>();
@@ -497,6 +498,151 @@ namespace FileOrganizerCore
             bool status = db.DeleteTag(id);
             if (!status) res.AddError(ErrorType.SQL, "Could not delete tag");
             res.SetResult(status);
+
+            return res;
+        }
+
+        public ActionResult<bool> DeleteTagFromFile(int fileID, int tagID)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.DeleteTagFromFile(fileID, tagID);
+            if (!status) res.AddError(ErrorType.SQL, "Could not delete tag from file");
+            res.SetResult(status);
+
+            return res;
+        }
+
+        public ActionResult<bool> UpdateTagName(string name, string oldName)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateTagName(name, oldName);
+            if (!status) res.AddError(ErrorType.SQL, $"Could not rename tag {oldName} to {name}");
+            res.SetResult(status);
+
+            return res;
+        }
+
+        public ActionResult<bool> UpdateTagName(string newName, int id)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateTagName(newName, id);
+            if (!status) res.AddError(ErrorType.SQL, $"Could not rename tag #{id} to {newName}");
+            res.SetResult(status);
+
+            return res;
+        }
+
+        /// <summary>
+        ///     Updates the tag category for a tag
+        /// </summary>
+        /// <param name="tagName"></param>
+        /// <param name="categoryID"></param>
+        /// <returns></returns>
+        public ActionResult<bool> UpdateTagCategory(string tagName, int categoryID)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateTagCategory(tagName, categoryID);
+            if (!status) res.AddError(ErrorType.SQL, 
+                $"Could not change the category of tag {tagName} to category #{categoryID}");
+            res.SetResult(status);
+
+            return res;
+        }
+
+        public ActionResult<bool> UpdateTagCategory(int tagID, int categoryID)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateTagCategory(tagID, categoryID);
+            if (!status) res.AddError(ErrorType.SQL, $"Could not set the tag #{tagID} to category #{categoryID}");
+            res.SetResult(status);
+
+            return res;
+        }
+
+        public ActionResult<bool> AddCollection(string name, IEnumerable<int> fileSequence = null)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.AddCollection(name, fileSequence);
+            if (!status) res.AddError(ErrorType.SQL, $"Failed to add collection {name}");
+            res.SetResult(status);
+
+            return res;
+        }
+
+        public ActionResult<bool> AddFileToCollection(int collectionID, int fileID, int insertindex = -1)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.AddFileToCollection(collectionID, fileID, insertindex);
+            if (!status) res.AddError(ErrorType.SQL, "Could not add file to collection");
+            
+            return res;
+        }
+
+        public ActionResult<bool> DeleteFileInCollection(int collectionID, int fileID)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.DeleteFileInCollection(collectionID, fileID);
+            if (!status) res.AddError(ErrorType.SQL, $"Failed to remove file #{fileID} from #{collectionID}");
+
+            return res;
+        }
+
+        public ActionResult<GetCollectionType> GetFileCollection(int id)
+        {
+            var res = new ActionResult<GetCollectionType>();
+            var collection = db.GetFileCollection(id);
+            if (collection is null) {
+                res.AddError(ErrorType.SQL, $"Could not find collection #{id}");
+            }
+            res.SetResult(collection);
+
+            return res;
+        }
+
+        public ActionResult<GetCollectionType> GetFileCollection(string name)
+        {
+            var res = new ActionResult<GetCollectionType>();
+            var collection = db.GetFileCollection(name);
+            if (collection is null) {
+                res.AddError(ErrorType.SQL, $"Could not find collection {name}");
+            }
+            res.SetResult(collection);
+
+            return res;
+        }
+
+        public ActionResult<bool> UpdateCollectionName(int id, string newName)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateCollectionName(id, newName);
+            if (!status) res.AddError(ErrorType.SQL, $"Failed to change collection name to {newName} for #{id}");
+
+            return res;
+        }
+
+        public ActionResult<bool> UpdateCollectionName(string name, string newName)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateCollectionName(name, newName);
+            if (!status) res.AddError(ErrorType.SQL, $"Failed to rename collection {name} to {newName}");
+
+            return res;
+        }
+
+        public ActionResult<bool> DeleteCollection(int id)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.DeleteCollection(id);
+            if (!status) res.AddError(ErrorType.SQL, $"Failed to delete collection #{id}");
+
+            return res;
+        }
+
+        public ActionResult<bool> DeleteCollection(string name)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.DeleteCollection(name);
+            if (!status) res.AddError(ErrorType.SQL, $"Failed to delete collection {name}");
 
             return res;
         }

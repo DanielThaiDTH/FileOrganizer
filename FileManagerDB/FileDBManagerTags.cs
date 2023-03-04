@@ -296,6 +296,19 @@ namespace FileDBManager
             return result;
         }
 
+        public bool DeleteTagFromFile(int fileID, int tagID)
+        {
+            bool result;
+
+            string statement = createStatement("DELETE FROM FileTagAssociations " +
+                "WHERE FileID = ? AND TagID = ?", fileID, tagID);
+            logger.LogInformation($"Removing tag {tagID} from file {fileID}");
+
+            result = ExecuteNonQuery(statement) == 1;
+
+            return result;
+        }
+
         public bool UpdateTagName(string name, string oldName)
         {
             bool result;

@@ -742,6 +742,27 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void DeleteTagFromFileOnlyRemovesTagFromFile()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"A:\del_tagged_file_1", "text", "aaa");
+            fix.db.AddFile(@"A:\del_tagged_file_2", "text", "aaa");
+            fix.db.AddTag("file_del_tag");
+            var filter = new FileSearchFilter();
+            int id1 = fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("del_tagged_file_1"))[0].ID;
+            int id2 = fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("del_tagged_file_2"))[0].ID;
+            int tagID = fix.db.GetAllTags().Find(t => t.Name == "file_del_tag").ID;
+            fix.db.AddTagToFile(id1, "file_del_tag");
+            fix.db.AddTagToFile(id2, "file_del_tag");
+            Assert.True(fix.db.DeleteTagFromFile(id1, tagID));
+            var tags1 = fix.db.GetTagsForFile(id1);
+            Assert.Empty(tags1);
+            var tags2 = fix.db.GetTagsForFile(id2);
+            Assert.Contains(tags2, (t) => t.ID == tagID );
+            Assert.Contains(fix.db.GetAllTags(), (t) => t.ID == tagID);
+        }
+
+        [Fact]
         public void UpdateTagCategoryChangesCategory()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
