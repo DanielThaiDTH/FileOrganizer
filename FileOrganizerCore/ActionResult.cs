@@ -26,6 +26,7 @@ namespace FileOrganizerCore
         protected List<string> message;
         protected Dictionary<ErrorType, string> defaultMessage;
         public int Count { get { return type.Count; } }
+        public List<string> Messages { get { return message; } }
 
         public static void AppendErrors<T1, T2>(ActionResult<T1> r1, ActionResult<T2> r2)
         {

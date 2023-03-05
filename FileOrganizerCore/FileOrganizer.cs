@@ -12,7 +12,7 @@ using FileDBManager.Entities;
 
 namespace FileOrganizerCore
 {
-    public class FileOrganizer
+    public partial class FileOrganizer
     {
         ILogger logger;
         SymLinkMaker.SymLinkMaker symlinkmaker;
@@ -21,11 +21,16 @@ namespace FileOrganizerCore
         ConfigLoader configLoader;
         private readonly string configFilename = "config.xml";
 
-        //Tags, tag categories and searched files are kept in memory
+        //Recently searched tags, tag categories and searched files are kept in memory
         List<GetTagCategoryType> tagCategories;
         public List<GetTagCategoryType> TagCategories { get { return tagCategories; } }
+        bool tagCategoriesClean;
         List<GetFileMetadataType> activeFiles;
         public List<GetFileMetadataType> ActiveFiles { get { return activeFiles; } }
+        List<GetTagType> activeTags;
+        public List<GetTagType> ActiveTags { get { return activeTags; } }
+        GetCollectionType activeCollection;
+        public GetCollectionType ActiveCollection { get { return activeCollection; } }
 
         /* WIN32 API imports/definitions section */
 
@@ -57,6 +62,7 @@ namespace FileOrganizerCore
 
             var categoryRes = GetTagCategories();
             tagCategories = categoryRes.Result ?? new List<GetTagCategoryType>();
+            tagCategoriesClean = true;
 
             ActionResult.AppendErrors(res, categoryRes);
 
@@ -166,33 +172,6 @@ namespace FileOrganizerCore
             return res;
         }
 
-        /// <summary>
-        ///     Returns all files matching criteria set by the filter parameter. If it is 
-        ///     not provided, all files will be returned.
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <returns></returns>
-        public ActionResult<List<GetFileMetadataType>> GetFileData(FileSearchFilter filter = null)
-        {
-            var res = new ActionResult<List<GetFileMetadataType>>();
-            try {
-                if (filter is null) {
-                    var files = db.GetAllFileMetadata();
-                    res.SetResult(files);
-                } else {
-                    var files = db.GetFileMetadataFiltered(filter);
-                    res.SetResult(files);
-                }
-                activeFiles = res.Result;
-            } catch (Exception ex) {
-                string filterInfoStr = (filter is null) ? "" : filter.ToString();
-                logger.LogError(ex, "Fatal error retrieving file data\n" + filterInfoStr);
-                res.AddError(ErrorType.SQL, "Fatal error retrieving file data");
-            }
-
-            return res;
-        }
-
         private long GetFileSize(string filename, in ActionResult<bool> res)
         {
             long size = 0;
@@ -210,73 +189,6 @@ namespace FileOrganizerCore
             return size;
         }
 
-        /// <summary>
-        ///     Adds a file to the system. Should be an absolute path.
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        public ActionResult<bool> AddFile(string filename, string altname = "")
-        {
-            var res = new ActionResult<bool>();
-
-            if (!Path.IsPathRooted(filename)) {
-                string msg = $"{filename} is not a rooted path";
-                logger.LogWarning(msg);
-                res.AddError(ErrorType.Path, "Internal path error");
-            } else if (File.Exists(filename)) {
-                var created = new DateTimeOptional(File.GetCreationTime(filename));
-                string hash = Utilities.Hasher.HashFile(filename, res);
-                string type = typeDet.FromFilename(filename);
-                long size = GetFileSize(filename, res);
-                bool status = db.AddFile(filename, type, hash, altname, size, created);
-                if (status) {
-                    res.SetResult(status);
-                }
-            } else {
-                string msg = $"Could not find {filename}";
-                logger.LogWarning(msg);
-                res.AddError(ErrorType.Path, msg);
-            }
-            
-            return res;
-        }
-
-        /// <summary>
-        ///     Adds files to the DB. Returns status of each 
-        ///     add, which will be in the same order as the list
-        ///     of files provided.
-        /// </summary>
-        /// <param name="filenames"></param>
-        /// <returns></returns>
-        public ActionResult<List<bool>> AddFiles(IEnumerable<string> filenames)
-        {
-            var res = new ActionResult<List<bool>>();
-            List<bool> statuses = new List<bool>();
-
-            foreach (string filename in filenames) {
-                var addRes = AddFile(filename);
-                if (addRes.HasError()) ActionResult.AppendErrors(res, addRes);
-                statuses.Add(addRes.Result);
-            }
-
-            res.SetResult(statuses);
-
-            return res;
-        }
-
-        public ActionResult<bool> DeleteFile(int id)
-        {
-            var res = new ActionResult<bool>();
-
-            bool status = db.DeleteFileMetadata(id);
-            if (!status) {
-                res.AddError(ErrorType.SQL, $"Failed deleting {id}");
-            }
-
-            res.SetResult(status);
-
-            return res;
-        }
 
         /// <summary>
         ///     Checks for file metadata mismatches between the actual file and the 
@@ -362,289 +274,6 @@ namespace FileOrganizerCore
             return res;
         }
 
-        public ActionResult<bool> UpdateFileData(FileSearchFilter newInfo, FileSearchFilter filter)
-        {
-            var res = new ActionResult<bool>();
-
-            bool status = db.UpdateFileMetadata(newInfo, filter);
-
-            if (!status) {
-                res.AddError(ErrorType.SQL, "Failure updating files");
-                logger.LogWarning($"Failure to update files using filter: {filter} \nand new info: {newInfo}");
-            }
-
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> AddTagCategory(string category)
-        {
-            var res = new ActionResult<bool>();
-
-            bool status = db.AddTagCategory(category);
-
-            if (!status) res.AddError(ErrorType.SQL, "Failure adding tag category");
-
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<List<GetTagCategoryType>> GetTagCategories()
-        {
-            var res = new ActionResult<List<GetTagCategoryType>>();
-
-            var catgories = db.GetAllTagCategories();
-            res.SetResult(catgories);
-            
-            return res;
-        }
-
-        /// <summary>
-        ///     Deletes a tag category. Returns a result that 
-        ///     can possibly contain an <see cref="ErrorType.SQL"/>
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public ActionResult<bool> DeleteTagCategory(int id)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.DeleteTagCategory(id);
-
-            if (!status) {
-                res.AddError(ErrorType.SQL, $"Failed to delete tag category {id}");
-            } else {
-                tagCategories = db.GetAllTagCategories();
-            }
-
-            res.SetResult(status);
-            return res;
-        }
-
-        /// <summary>
-        ///     Updates tag category name to a new name. 
-        ///     If failed return result with error type of <see cref="ErrorType.SQL"/>.
-        ///     All tag category names must be unique.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="newName"></param>
-        /// <returns></returns>
-        public ActionResult<bool> UpdateTagCategoryName(int id, string newName)
-        {
-            var res = new ActionResult<bool>();
-
-            bool status = db.UpdateTagCategoryName(id, newName);
-
-            if (!status) {
-                res.AddError(ErrorType.SQL, $"Failed to change tag category {id} name to {newName}");
-            } else {
-                tagCategories = db.GetAllTagCategories();
-            }
-
-            res.SetResult(status);
-            return res;
-        }
-
-        public ActionResult<bool> AddTag(string tag, string tagCategory="")
-        {
-            var res = new ActionResult<bool>();
-
-            bool status = db.AddTag(tag, tagCategory);
-
-            if (!status) res.AddError(ErrorType.SQL, "Failed to add tag");
-            res.SetResult(status);
-            
-            return res;
-        }
-
-        public ActionResult<bool> AddTagToFile(int fileID, string tag, string tagCategory = "")
-        {
-            var res = new ActionResult<bool>();
-
-            try {
-
-                bool status = db.AddTagToFile(fileID, tag, tagCategory);
-                if (!status) res.AddError(ErrorType.SQL, $"Failed to add tag {tag} to file");
-                res.SetResult(status);
-            } catch(InvalidDataException ex) {
-                logger.LogError(ex, "Failure to access DB to check tag category");
-                res.SetResult(false);
-                res.AddError(ErrorType.SQL, "DB access failure");
-            }
-
-            return res;
-        }
-
-        public ActionResult<List<GetTagType>> GetTags()
-        {
-            var res = new ActionResult<List<GetTagType>>();
-            res.SetResult(db.GetAllTags());
-
-            return res;
-        }
-
-        public ActionResult<List<GetTagType>> GetTagsForFile(int id)
-        {
-            var res = new ActionResult<List<GetTagType>>();
-            res.SetResult(db.GetTagsForFile(id));
-
-            return res;
-        }
-
-        public ActionResult<bool> DeleteTag(int id)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.DeleteTag(id);
-            if (!status) res.AddError(ErrorType.SQL, "Could not delete tag");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> DeleteTagFromFile(int fileID, int tagID)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.DeleteTagFromFile(fileID, tagID);
-            if (!status) res.AddError(ErrorType.SQL, "Could not delete tag from file");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> UpdateTagName(string name, string oldName)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.UpdateTagName(name, oldName);
-            if (!status) res.AddError(ErrorType.SQL, $"Could not rename tag {oldName} to {name}");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> UpdateTagName(string newName, int id)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.UpdateTagName(newName, id);
-            if (!status) res.AddError(ErrorType.SQL, $"Could not rename tag #{id} to {newName}");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        /// <summary>
-        ///     Updates the tag category for a tag
-        /// </summary>
-        /// <param name="tagName"></param>
-        /// <param name="categoryID"></param>
-        /// <returns></returns>
-        public ActionResult<bool> UpdateTagCategory(string tagName, int categoryID)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.UpdateTagCategory(tagName, categoryID);
-            if (!status) res.AddError(ErrorType.SQL, 
-                $"Could not change the category of tag {tagName} to category #{categoryID}");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> UpdateTagCategory(int tagID, int categoryID)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.UpdateTagCategory(tagID, categoryID);
-            if (!status) res.AddError(ErrorType.SQL, $"Could not set the tag #{tagID} to category #{categoryID}");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> AddCollection(string name, IEnumerable<int> fileSequence = null)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.AddCollection(name, fileSequence);
-            if (!status) res.AddError(ErrorType.SQL, $"Failed to add collection {name}");
-            res.SetResult(status);
-
-            return res;
-        }
-
-        public ActionResult<bool> AddFileToCollection(int collectionID, int fileID, int insertindex = -1)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.AddFileToCollection(collectionID, fileID, insertindex);
-            if (!status) res.AddError(ErrorType.SQL, "Could not add file to collection");
-            
-            return res;
-        }
-
-        public ActionResult<bool> DeleteFileInCollection(int collectionID, int fileID)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.DeleteFileInCollection(collectionID, fileID);
-            if (!status) res.AddError(ErrorType.SQL, $"Failed to remove file #{fileID} from #{collectionID}");
-
-            return res;
-        }
-
-        public ActionResult<GetCollectionType> GetFileCollection(int id)
-        {
-            var res = new ActionResult<GetCollectionType>();
-            var collection = db.GetFileCollection(id);
-            if (collection is null) {
-                res.AddError(ErrorType.SQL, $"Could not find collection #{id}");
-            }
-            res.SetResult(collection);
-
-            return res;
-        }
-
-        public ActionResult<GetCollectionType> GetFileCollection(string name)
-        {
-            var res = new ActionResult<GetCollectionType>();
-            var collection = db.GetFileCollection(name);
-            if (collection is null) {
-                res.AddError(ErrorType.SQL, $"Could not find collection {name}");
-            }
-            res.SetResult(collection);
-
-            return res;
-        }
-
-        public ActionResult<bool> UpdateCollectionName(int id, string newName)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.UpdateCollectionName(id, newName);
-            if (!status) res.AddError(ErrorType.SQL, $"Failed to change collection name to {newName} for #{id}");
-
-            return res;
-        }
-
-        public ActionResult<bool> UpdateCollectionName(string name, string newName)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.UpdateCollectionName(name, newName);
-            if (!status) res.AddError(ErrorType.SQL, $"Failed to rename collection {name} to {newName}");
-
-            return res;
-        }
-
-        public ActionResult<bool> DeleteCollection(int id)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.DeleteCollection(id);
-            if (!status) res.AddError(ErrorType.SQL, $"Failed to delete collection #{id}");
-
-            return res;
-        }
-
-        public ActionResult<bool> DeleteCollection(string name)
-        {
-            var res = new ActionResult<bool>();
-            bool status = db.DeleteCollection(name);
-            if (!status) res.AddError(ErrorType.SQL, $"Failed to delete collection {name}");
-
-            return res;
-        }
+        
     }
 }
