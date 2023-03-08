@@ -410,6 +410,13 @@ namespace FileDBManager.Entities
             }
         }
 
+        /// <summary>
+        ///     Builds the WHERE part of an SQL statement. Will require a string with the SELECT ... FROM Files 
+        ///     JOIN ... to be created before hand. An object List must also be created beforehand.
+        /// </summary>
+        /// <param name="statement"></param>
+        /// <param name="whereValues"></param>
+        /// <param name="initial"></param>
         public void BuildWhereStatementPart(ref string statement, ref List<object> whereValues, bool initial=true)
         {
             List<string> wheres = new List<string>();

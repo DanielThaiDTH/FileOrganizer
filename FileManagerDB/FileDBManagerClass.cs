@@ -391,8 +391,9 @@ namespace FileDBManager
 
         /// <summary>
         ///     Applies standard match or equality filters to file metadata search.
+        ///     Multiple filters can be applied.
         /// </summary>
-        /// <param name="filter"></param>
+        /// <param name="filters"></param>
         /// <returns>
         /// Dynamic type with the following format: <br/>
         ///         <list type="bullet">
@@ -419,17 +420,29 @@ namespace FileDBManager
         ///         </item>
         ///         </list>
         /// </returns>
-        public List<GetFileMetadataType> GetFileMetadataFiltered(FileSearchFilter filter)
+        public List<GetFileMetadataType> GetFileMetadataFiltered(params FileSearchFilter[] filters)
         {
             string statementPart1 = "SELECT * FROM Files ";
             string statementPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
             string statementPart3 = "JOIN FilePaths ON Files.PathID = FilePaths.ID ";
 
+            if (filters.Length == 0) {
+                logger.LogDebug("No filter object provided");
+                return GetAllFileMetadata();
+            } else if (filters.ToList().Contains(null)) {
+                logger.LogInformation("Null filter in list of filters");
+            }
+
             List<object> whereValues = new List<object>();
             logger.LogInformation("Querying with file metadata with filters.");
 
             string statement = statementPart1 + statementPart2 + statementPart3;
-            filter.BuildWhereStatementPart(ref statement, ref whereValues);
+            bool initial = true;
+            foreach(var filter in filters) {
+                if (filter is null) continue;
+                filter.BuildWhereStatementPart(ref statement, ref whereValues, initial);
+                initial = false;
+            }
             statement = createStatement(statement, whereValues.ToArray());
             logger.LogDebug("Using filtered query: " + statement);
 
@@ -459,12 +472,14 @@ namespace FileDBManager
             read.Close();
             com.Dispose();
 
-            if (filter.UsingCustomFilter) {
-                logger.LogInformation("Applying custom filter");
-                int oldCount = results.Count;
-                results = filter.CustomFilter(results);
-                logger.LogInformation($"Results reduced from {oldCount} to {results.Count}");
-            }
+            foreach (var filter in filters) {
+                if (filter != null && filter.UsingCustomFilter) {
+                    logger.LogInformation("Applying custom filter");
+                    int oldCount = results.Count;
+                    results = filter.CustomFilter(results);
+                    logger.LogInformation($"Results reduced from {oldCount} to {results.Count}");
+                }
+            } 
 
             logger.LogInformation($"Returning {results.Count} result(s)");
 
@@ -504,25 +519,26 @@ namespace FileDBManager
         /// </summary>
         /// <param name="info"></param>
         /// <returns>Status of update</returns>
-        public bool UpdateFileMetadata(FileSearchFilter newInfo, FileSearchFilter filter)
+        public bool UpdateFileMetadata(FileSearchFilter newInfo, params FileSearchFilter[] filters)
         {
             List<string> cols = new List<string>();
             List<object> vals = new List<object>();
             List<string> wheres = new List<string>();
             List<object> whereValues = new List<object>();
-            string query;
+            string statement;
 
-            if (newInfo.IsEmpty || filter.IsEmpty) {
-                if (filter.IsEmpty) logger.LogInformation("Filter is empty");
+            if (newInfo.IsEmpty || filters.Length == 0 || filters.ToList().All(f => f is null || f.IsEmpty)) {
+                if (filters.Length == 0) logger.LogInformation("Missing filters");
+                if (filters.ToList().All(f => f is null || f.IsEmpty)) logger.LogInformation("Empty filters");
                 if (newInfo.IsEmpty) logger.LogInformation("Update information is empty");
                 return false;
             }
 
             if (newInfo.UsingPath) {
-                query = createStatement("INSERT OR IGNORE INTO Filepaths (Path) Values (?)", newInfo.Path);
-                ExecuteNonQuery(query);
-                query = createStatement("SELECT ID FROM Filepaths WHERE Path = ?", newInfo.Path);
-                var com = new SQLiteCommand(query, db);
+                statement = createStatement("INSERT OR IGNORE INTO Filepaths (Path) Values (?)", newInfo.Path);
+                ExecuteNonQuery(statement);
+                statement = createStatement("SELECT ID FROM Filepaths WHERE Path = ?", newInfo.Path);
+                var com = new SQLiteCommand(statement, db);
                 var read = com.ExecuteReader();
                 int results = -1;
                 if (read.HasRows) {
@@ -540,10 +556,10 @@ namespace FileDBManager
             }
 
             if (newInfo.UsingFileType) {
-                query = createStatement("INSERT OR IGNORE INTO Filetypes (Name) Values (?)", newInfo.FileType);
-                ExecuteNonQuery(query);
-                query = createStatement("SELECT ID FROM FileTypes WHERE Name = ?", newInfo.FileType);
-                var com = new SQLiteCommand(query, db);
+                statement = createStatement("INSERT OR IGNORE INTO Filetypes (Name) Values (?)", newInfo.FileType);
+                ExecuteNonQuery(statement);
+                statement = createStatement("SELECT ID FROM FileTypes WHERE Name = ?", newInfo.FileType);
+                var com = new SQLiteCommand(statement, db);
                 var read = com.ExecuteReader();
                 int results;
                 if (read.HasRows) {
@@ -584,21 +600,16 @@ namespace FileDBManager
                 }
             }
 
-            BuildWhereArrays(filter, ref wheres, ref whereValues);
-            query = createStatement($"UPDATE Files SET {assignmentstr} ", vals.ToArray());
-
-            for (int i = 0; i < wheres.Count; i++) {
-                if (i == 0) {
-                    query += "WHERE ";
-                } else {
-                    query += " AND ";
-                }
-
-                query += wheres[i];
+            statement = createStatement($"UPDATE Files SET {assignmentstr} ", vals.ToArray());
+            string whereStr = "";
+            bool initial = true;
+            foreach(var filter in filters) {
+                if (filter is null) continue;
+                filter.BuildWhereStatementPart(ref whereStr, ref whereValues, initial);
             }
 
-            query = createStatement(query, whereValues.ToArray());
-            bool result = ExecuteNonQuery(query) == 1;
+            statement = createStatement(statement + whereStr, whereValues.ToArray());
+            bool result = ExecuteNonQuery(statement) == 1;
 
             if (result) {
                 logger.LogInformation("Updated file metadata with the following data: \n" + newInfo);
