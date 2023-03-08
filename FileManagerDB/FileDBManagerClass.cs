@@ -115,7 +115,7 @@ namespace FileDBManager
                 whereValues.Add(filter.FileTypeID);
             }
             if (filter.UsingHash) {
-                if (filter.hashFilterExact) {
+                if (filter.HashFilterExact) {
                     wheres.Add("Hash = ?");
                     whereValues.Add(filter.Hash);
                 } else {
@@ -425,69 +425,11 @@ namespace FileDBManager
             string statementPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
             string statementPart3 = "JOIN FilePaths ON Files.PathID = FilePaths.ID ";
 
-            List<string> wheres = new List<string>();
             List<object> whereValues = new List<object>();
             logger.LogInformation("Querying with file metadata with filters.");
 
-            BuildWhereArrays(filter, ref wheres, ref whereValues);
-
             string statement = statementPart1 + statementPart2 + statementPart3;
-            for (int i = 0; i < wheres.Count; i++) {
-                if (i == 0) {
-                    statement += "WHERE ";
-                } else {
-                    statement += " AND ";
-                }
-
-                statement += wheres[i];
-            }
-
-            if (filter.UsingTags && filter.TagIDs != null && filter.TagIDs.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < filter.TagIDs.Count; i++) {
-                    statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
-                    whereValues.Add(filter.TagIDs[i]);
-                    if (i+1 < filter.TagIDs.Count) {
-                        statement += filter.UsingTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            } else if (filter.UsingTags && filter.TagNames != null && filter.TagNames.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < filter.TagNames.Count; i++) {
-                    statement += "? IN (SELECT Tags.Name FROM " +
-                        "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
-                    whereValues.Add(filter.TagNames[i]);
-                    if (i + 1 < filter.TagNames.Count) {
-                        statement += filter.UsingTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            }
-
-            if (filter.UsingExcludeTags && filter.ExcludeTagIDs != null && filter.ExcludeTagIDs.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < filter.ExcludeTagIDs.Count; i++) {
-                    statement += "? NOT IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
-                    whereValues.Add(filter.ExcludeTagIDs[i]);
-                    if (i + 1 < filter.ExcludeTagIDs.Count) {
-                        statement += filter.UsingExcludeTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            } else if (filter.UsingExcludeTags && filter.ExcludeTagNames != null && filter.ExcludeTagNames.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < filter.ExcludeTagNames.Count; i++) {
-                    statement += "? NOT IN (SELECT Tags.Name FROM " +
-                        "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
-                    whereValues.Add(filter.ExcludeTagNames[i]);
-                    if (i + 1 < filter.ExcludeTagNames.Count) {
-                        statement += filter.UsingExcludeTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            }
-
+            filter.BuildWhereStatementPart(ref statement, ref whereValues);
             statement = createStatement(statement, whereValues.ToArray());
             logger.LogDebug("Using filtered query: " + statement);
 

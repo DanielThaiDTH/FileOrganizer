@@ -18,6 +18,7 @@ namespace FileDBManager
         public string Hash { get; set; }
         public long Size { get; set; }
         public DateTime Created { get; set; }
+        public string Fullname { get { return System.IO.Path.Combine(Path, Filename); } }
 
         public bool Equals(GetFileMetadataType other)
         {

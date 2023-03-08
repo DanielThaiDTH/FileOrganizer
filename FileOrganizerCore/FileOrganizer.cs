@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using SymLinkMaker;
 using FileDBManager;
+using FileDBManager.Entities;
 using Microsoft.Extensions.Logging;
 
 using Microsoft.Extensions.Logging.Abstractions;
-using FileDBManager.Entities;
 
 namespace FileOrganizerCore
 {
@@ -134,6 +134,24 @@ namespace FileOrganizerCore
         }
 
         /// <summary>
+        ///     Creates symlinks from the most recent search result.
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult<bool> CreateSymLinksFromActiveFiles()
+        {
+            var res = new ActionResult<bool>();
+            if (activeFiles != null) {
+                List<string> filenames = activeFiles.ConvertAll(f => f.Fullname);
+                res = CreateSymLinksFilenames(filenames);
+            } else {
+                res.AddError(ErrorType.Misc, "No file search results to create symlinks from");
+                res.SetResult(false);
+            }
+
+            return res;
+        }
+
+        /// <summary>
         ///     Creates symlinks from a list of files. The filenames must be 
         ///     a full path.
         /// </summary>
@@ -188,7 +206,6 @@ namespace FileOrganizerCore
 
             return size;
         }
-
 
         /// <summary>
         ///     Checks for file metadata mismatches between the actual file and the 

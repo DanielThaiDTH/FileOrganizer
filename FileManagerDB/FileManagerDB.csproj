@@ -142,6 +142,7 @@
     <Compile Include="Entities\FileCollection.cs" />
     <Compile Include="Entities\FileCollectionAssociation.cs" />
     <Compile Include="Entities\FileMetadata.cs" />
+    <Compile Include="Entities\FileSearchFilter.cs" />
     <Compile Include="Entities\FileTagAssociation.cs" />
     <Compile Include="Entities\FilePath.cs" />
     <Compile Include="Entities\FileType.cs" />

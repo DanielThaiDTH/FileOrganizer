@@ -13,6 +13,7 @@ namespace FileOrganizerCore
         SymLinkDelete,
         Path,
         Access,
+        Misc,
         Empty
     }
 
