@@ -367,11 +367,11 @@ namespace FileDBManager.Entities
         private void BuildWhereArrays(ref List<string> wheres, ref List<object> whereValues)
         {
             if (UsingID) {
-                wheres.Add("Files.ID = ? ");
+                wheres.Add("Files.ID = ?");
                 whereValues.Add(ID);
             }
             if (UsingPathID) {
-                wheres.Add("PathID = ? ");
+                wheres.Add("PathID = ?");
                 whereValues.Add(PathID);
             }
             if (UsingFilename) {
