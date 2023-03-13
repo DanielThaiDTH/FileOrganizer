@@ -45,7 +45,7 @@ namespace FileDBManager.Test
             string path = Path.Combine("logs", "log.log");
             if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
             Log.Logger = new LoggerConfiguration()
-                //.MinimumLevel.Debug()
+                .MinimumLevel.Debug()
                 .WriteTo.File(path,  rollingInterval: RollingInterval.Day)
                 .WriteTo.Debug()
                 .CreateLogger();
@@ -347,6 +347,7 @@ namespace FileDBManager.Test
             Assert.Equal(id1, result[0].ID);
         }
 
+
         [Fact]
         public void FileWithCreatedDatePersistsCorrectly()
         {
@@ -403,10 +404,23 @@ namespace FileDBManager.Test
         public void GetFileMetadataWithAllFiltersWorks()
         {
             Log.Information("TEST: GetFileMetadataWithAllFiltersWorks");
-            fix.db.AddFile(@"S:\Temp\unique_file", "text", "a1a", "unique_alt", 100);
+            var created = new DateTimeOptional(DateTime.Now.AddDays(-1));
+            fix.db.AddFile(@"S:\Temp\unique_file", "text", "a1a", "unique_alt", 100, created);
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("unique_file", true);
             var info = fix.db.GetFileMetadataFiltered(filter)[0];
+            fix.db.AddTagToFile(info.ID, "all_filter_tag1");
+            fix.db.AddTagToFile(info.ID, "all_filter_tag2");
+            fix.db.AddTag("all_filter_tag3");
+            var tags = fix.db.GetAllTags();
+            int tagID1 = tags.Find(t => t.Name == "all_filter_tag1").ID;
+            int tagID2 = tags.Find(t => t.Name == "all_filter_tag2").ID;
+            int tagID3 = tags.Find(t => t.Name == "all_filter_tag3").ID;
+            Func<List<GetFileMetadataType>, List<GetFileMetadataType>> timeFilter = (files) =>
+            {
+                return files.FindAll((f) => f.Created < created.Date);
+            };
+
             filter.Reset()
                 .SetIDFilter(info.ID)
                 .SetPathIDFilter(info.PathID)
@@ -417,8 +431,31 @@ namespace FileDBManager.Test
                 .SetHashFilter("a1a", true)
                 .SetFileTypeFilter("text", true)
                 .SetPathFilter(@"S:\Temp", true)
-                .SetSizeFilter(1000, true);
+                .SetSizeFilter(1000, true)
+                .SetTagFilter(new List<int>() { tagID1, tagID2 }, true)
+                .SetExcludeTagFilter(new List<int>() { tagID3 })
+                .SetCustom(timeFilter);
             Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+        }
+
+        [Fact]
+        public void GetFileMetadataWithSubFiltersWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"S:\Temp\sub_filter1", "text", "a1a", "sub_alt", 10000);
+            fix.db.AddFile(@"S:\Temp\sub_filter2", "text", "bbb", "sub_alt", 20000);
+            var filter1 = new FileSearchFilter().SetAltnameFilter("sub_alt");
+            var filter2 = new FileSearchFilter().SetSizeFilter(15000, false);
+            var filter = new FileSearchFilter().AddSubfilter(filter1).AddSubfilter(filter2);
+            var results = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Single(results);
+            Assert.Contains(results, r => r.Filename == "sub_filter2");
+            filter2.IsOr = true;
+            filter.Reset().AddSubfilter(filter1).AddSubfilter(filter2);
+            results = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Equal(2, results.Count);
+            Assert.Contains(results, r => r.Filename == "sub_filter2");
+            Assert.Contains(results, r => r.Filename == "sub_filter1");
         }
 
         [Fact]

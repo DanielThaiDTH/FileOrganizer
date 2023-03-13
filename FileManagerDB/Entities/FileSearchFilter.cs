@@ -80,6 +80,7 @@ namespace FileDBManager.Entities
         List<string> excludeTagNames;
         bool excludeTagFilterAnd;
         Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter;
+        List<FileSearchFilter> subFilters;
 
         public bool PathFilterExact { get { return pathExact; } }
         public bool FullnameFilterExact { get { return fullnameExact; } }
@@ -115,6 +116,7 @@ namespace FileDBManager.Entities
             }
         }
         public bool UsingCustomFilter { get { return customFilter != null; } }
+
         public bool IsEmpty
         {
             get
@@ -122,9 +124,20 @@ namespace FileDBManager.Entities
                 return !(UsingID || UsingPathID || UsingPath || UsingFullname
                     || UsingFilename || UsingAltname || UsingFileTypeID
                     || UsingFileType || UsingHash || UsingCustomFilter
-                    || UsingSize);
+                    || UsingSize || UsingTags || UsingExcludeTags);
             }
         }
+        public bool IsCustomOnly
+        {
+            get
+            {
+                return UsingCustomFilter && !(UsingID || UsingPathID || UsingPath || UsingFullname
+                    || UsingFilename || UsingAltname || UsingFileTypeID
+                    || UsingFileType || UsingHash || UsingSize || UsingTags);
+            }
+        }
+        public bool IsOr { get; set; } = false;
+        public bool IsBaseFilter { get { return subFilters is null || subFilters.Count == 0; } }
 
         public int ID { get { return _ID; } }
         public int PathID { get { return pathID; } }
@@ -176,6 +189,8 @@ namespace FileDBManager.Entities
             excludeTagIDs = null;
             excludeTagNames = null;
             excludeTagFilterAnd = false;
+            IsOr = false;
+            if (subFilters != null) subFilters.Clear();
 
             customFilter = null;
 
@@ -330,6 +345,20 @@ namespace FileDBManager.Entities
             return this;
         }
 
+        public FileSearchFilter AddSubfilter(FileSearchFilter filter)
+        {
+            if (subFilters is null) subFilters = new List<FileSearchFilter>();
+            subFilters.Add(filter);
+
+            return this;
+        }
+
+        public FileSearchFilter ClearSubfilters()
+        {
+            subFilters.Clear();
+            return this;
+        }
+
         /// <summary>
         ///     Builds where arrays containing basic filters. 
         /// </summary>
@@ -417,64 +446,97 @@ namespace FileDBManager.Entities
         /// <param name="statement"></param>
         /// <param name="whereValues"></param>
         /// <param name="initial"></param>
-        public void BuildWhereStatementPart(ref string statement, ref List<object> whereValues, bool initial=true)
+        /// <param name="includeWhere"></param>
+        public void BuildWhereStatementPart(ref string statement, ref List<object> whereValues, 
+            bool initial=true, bool includeWhere=true)
         {
-            List<string> wheres = new List<string>();
-            BuildWhereArrays(ref wheres, ref whereValues);
+            if (IsBaseFilter) {
+                List<string> wheres = new List<string>();
+                BuildWhereArrays(ref wheres, ref whereValues);
 
-            for (int i = 0; i < wheres.Count; i++) {
-                if (i == 0 && initial) {
-                    statement += "WHERE ";
+                for (int i = 0; i < wheres.Count; i++) {
+                    if (i == 0 && initial) {
+                        statement += includeWhere ? "WHERE " : " ";
+                    } else {
+                        statement += IsOr ? " OR " : " AND ";
+                    }
+
+                    if (i == 0) statement += "(";
+
+                    statement += wheres[i];
+                }
+
+                if (UsingTags && TagIDs != null && TagIDs.Count > 0) {
+                    if (wheres.Count == 0) {
+                        statement += initial ? " WHERE (" : "(";
+                        initial = false;
+                    } else {
+                        statement += " AND (";
+                    }
+                    for (int i = 0; i < TagIDs.Count; i++) {
+                        statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
+                        whereValues.Add(TagIDs[i]);
+                        if (i + 1 < TagIDs.Count) {
+                            statement += UsingTagAnd ? " AND " : " OR ";
+                        }
+                    }
+                    statement += ")";
+                } else if (UsingTags && TagNames != null && TagNames.Count > 0) {
+                    if (wheres.Count == 0) {
+                        statement += initial ? " WHERE (" : "(";
+                        initial = false;
+                    } else {
+                        statement += (wheres.Count == 0 && IsOr) ? " OR (" : " AND (";
+                    }
+                    for (int i = 0; i < TagNames.Count; i++) {
+                        statement += "? IN (SELECT Tags.Name FROM " +
+                            "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                        whereValues.Add(TagNames[i]);
+                        if (i + 1 < TagNames.Count) {
+                            statement += UsingTagAnd ? " AND " : " OR ";
+                        }
+                    }
+                    statement += ")";
+                }
+                if (UsingExcludeTags && ExcludeTagIDs != null && ExcludeTagIDs.Count > 0) {
+                    statement += " AND (";
+                    for (int i = 0; i < ExcludeTagIDs.Count; i++) {
+                        statement += "? NOT IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
+                        whereValues.Add(ExcludeTagIDs[i]);
+                        if (i + 1 < ExcludeTagIDs.Count) {
+                            statement += UsingExcludeTagAnd ? " AND " : " OR ";
+                        }
+                    }
+                    statement += ")";
+                } else if (UsingExcludeTags && ExcludeTagNames != null && ExcludeTagNames.Count > 0) {
+                    if (wheres.Count == 0) {
+                        statement += initial ? " WHERE (" : "(";
+                    } else {
+                        statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR (" : " AND (";
+                    }
+                    for (int i = 0; i < ExcludeTagNames.Count; i++) {
+                        statement += "? NOT IN (SELECT Tags.Name FROM " +
+                            "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                        whereValues.Add(ExcludeTagNames[i]);
+                        if (i + 1 < ExcludeTagNames.Count) {
+                            statement += UsingExcludeTagAnd ? " AND " : " OR ";
+                        }
+                    }
+                    statement += ")";
+                }
+                if (wheres.Count > 0) statement += ")";
+            } else {
+                if (initial) {
+                    statement += includeWhere ? "WHERE (" : " (";
                 } else {
-                    statement += " AND ";
+                    statement += IsOr ? " OR (" : " AND (";
+                }
+                bool start = true;
+                foreach (var f in subFilters) {
+                    f.BuildWhereStatementPart(ref statement, ref whereValues, start, false);
+                    start = false;
                 }
 
-                statement += wheres[i];
-            }
-
-            if (UsingTags && TagIDs != null && TagIDs.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < TagIDs.Count; i++) {
-                    statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
-                    whereValues.Add(TagIDs[i]);
-                    if (i + 1 < TagIDs.Count) {
-                        statement += UsingTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            } else if (UsingTags && TagNames != null && TagNames.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < TagNames.Count; i++) {
-                    statement += "? IN (SELECT Tags.Name FROM " +
-                        "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
-                    whereValues.Add(TagNames[i]);
-                    if (i + 1 < TagNames.Count) {
-                        statement += UsingTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            }
-
-            if (UsingExcludeTags && ExcludeTagIDs != null && ExcludeTagIDs.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < ExcludeTagIDs.Count; i++) {
-                    statement += "? NOT IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
-                    whereValues.Add(ExcludeTagIDs[i]);
-                    if (i + 1 < ExcludeTagIDs.Count) {
-                        statement += UsingExcludeTagAnd ? " AND " : " OR ";
-                    }
-                }
-                statement += ")";
-            } else if (UsingExcludeTags && ExcludeTagNames != null && ExcludeTagNames.Count > 0) {
-                statement += " AND (";
-                for (int i = 0; i < ExcludeTagNames.Count; i++) {
-                    statement += "? NOT IN (SELECT Tags.Name FROM " +
-                        "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
-                    whereValues.Add(ExcludeTagNames[i]);
-                    if (i + 1 < ExcludeTagNames.Count) {
-                        statement += UsingExcludeTagAnd ? " AND " : " OR ";
-                    }
-                }
                 statement += ")";
             }
 

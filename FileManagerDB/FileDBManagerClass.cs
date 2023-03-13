@@ -390,8 +390,7 @@ namespace FileDBManager
         }
 
         /// <summary>
-        ///     Applies standard match or equality filters to file metadata search.
-        ///     Multiple filters can be applied.
+        ///     Applies filters to file metadata search.
         /// </summary>
         /// <param name="filters"></param>
         /// <returns>
@@ -420,29 +419,22 @@ namespace FileDBManager
         ///         </item>
         ///         </list>
         /// </returns>
-        public List<GetFileMetadataType> GetFileMetadataFiltered(params FileSearchFilter[] filters)
+        public List<GetFileMetadataType> GetFileMetadataFiltered(FileSearchFilter filter)
         {
             string statementPart1 = "SELECT * FROM Files ";
             string statementPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
             string statementPart3 = "JOIN FilePaths ON Files.PathID = FilePaths.ID ";
 
-            if (filters.Length == 0) {
-                logger.LogDebug("No filter object provided");
-                return GetAllFileMetadata();
-            } else if (filters.ToList().Contains(null)) {
-                logger.LogInformation("Null filter in list of filters");
+            if (filter is null) {
+                logger.LogWarning("Filter is null");
+                return null;
             }
 
             List<object> whereValues = new List<object>();
             logger.LogInformation("Querying with file metadata with filters.");
 
             string statement = statementPart1 + statementPart2 + statementPart3;
-            bool initial = true;
-            foreach(var filter in filters) {
-                if (filter is null) continue;
-                filter.BuildWhereStatementPart(ref statement, ref whereValues, initial);
-                initial = false;
-            }
+            filter.BuildWhereStatementPart(ref statement, ref whereValues);
             statement = createStatement(statement, whereValues.ToArray());
             logger.LogDebug("Using filtered query: " + statement);
 
@@ -471,17 +463,14 @@ namespace FileDBManager
             }
             read.Close();
             com.Dispose();
-
-            foreach (var filter in filters) {
-                if (filter != null && filter.UsingCustomFilter) {
-                    logger.LogInformation("Applying custom filter");
-                    int oldCount = results.Count;
-                    results = filter.CustomFilter(results);
-                    logger.LogInformation($"Results reduced from {oldCount} to {results.Count}");
-                }
-            } 
-
-            logger.LogInformation($"Returning {results.Count} result(s)");
+            
+            if (filter.UsingCustomFilter) {
+                logger.LogInformation("Applying custom filter");
+                int oldCount = results.Count;
+                results = filter.CustomFilter(results);
+                logger.LogInformation($"Results reduced from {oldCount} to {results.Count}");
+                logger.LogInformation($"Returning {results.Count} result(s)");
+            }
 
             return results;
         }
@@ -517,9 +506,10 @@ namespace FileDBManager
         ///     have the file ID. Tags and created dates are updated 
         ///     in another method.
         /// </summary>
-        /// <param name="info"></param>
+        /// <param name="newInfo"></param>
+        /// <param name="filter"></param>
         /// <returns>Status of update</returns>
-        public bool UpdateFileMetadata(FileSearchFilter newInfo, params FileSearchFilter[] filters)
+        public bool UpdateFileMetadata(FileSearchFilter newInfo, FileSearchFilter filter)
         {
             List<string> cols = new List<string>();
             List<object> vals = new List<object>();
@@ -527,9 +517,9 @@ namespace FileDBManager
             List<object> whereValues = new List<object>();
             string statement;
 
-            if (newInfo.IsEmpty || filters.Length == 0 || filters.ToList().All(f => f is null || f.IsEmpty)) {
-                if (filters.Length == 0) logger.LogInformation("Missing filters");
-                if (filters.ToList().All(f => f is null || f.IsEmpty)) logger.LogInformation("Empty filters");
+            if (newInfo.IsEmpty || filter is null || filter.IsEmpty) {
+                if (filter is null) logger.LogInformation("Missing filter");
+                if (filter.IsEmpty) logger.LogInformation("Empty filter");
                 if (newInfo.IsEmpty) logger.LogInformation("Update information is empty");
                 return false;
             }
@@ -602,11 +592,7 @@ namespace FileDBManager
 
             statement = createStatement($"UPDATE Files SET {assignmentstr} ", vals.ToArray());
             string whereStr = "";
-            bool initial = true;
-            foreach(var filter in filters) {
-                if (filter is null) continue;
-                filter.BuildWhereStatementPart(ref whereStr, ref whereValues, initial);
-            }
+            filter.BuildWhereStatementPart(ref whereStr, ref whereValues);
 
             statement = createStatement(statement + whereStr, whereValues.ToArray());
             bool result = ExecuteNonQuery(statement) == 1;
