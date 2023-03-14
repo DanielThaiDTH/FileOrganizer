@@ -50,7 +50,8 @@ namespace FileDBManager.Entities
 
 
     /// <summary>
-    ///     A search filter for seraching files.
+    ///     A search filter for seraching files. Can compose multiple filters to build
+    ///     complex queries. 
     /// </summary>
     public class FileSearchFilter : ICloneable
     {
@@ -137,6 +138,7 @@ namespace FileDBManager.Entities
             }
         }
         public bool IsOr { get; set; } = false;
+        public bool IsNot { get; set; } = false;
         public bool IsBaseFilter { get { return subFilters is null || subFilters.Count == 0; } }
 
         public int ID { get { return _ID; } }
@@ -194,6 +196,18 @@ namespace FileDBManager.Entities
 
             customFilter = null;
 
+            return this;
+        }
+
+        public FileSearchFilter SetOr(bool val)
+        {
+            IsOr = val;
+            return this;
+        }
+
+        public FileSearchFilter SetNot(bool val)
+        {
+            IsNot = val;
             return this;
         }
 
@@ -273,8 +287,9 @@ namespace FileDBManager.Entities
         }
 
         /// <summary>
-        ///     Filters by tag ids. Second parameters is to set if the 
+        ///     Filters by tag ids. Second parameter is to set if the 
         ///     filter will be for files including all the given tags or just one.
+        ///     Defaults to file with any in the list.
         /// </summary>
         /// <param name="ids"></param>
         /// <param name="usingAnd"></param>
@@ -288,8 +303,9 @@ namespace FileDBManager.Entities
         }
 
         /// <summary>
-        ///     Filters by tag ids. Second parameters is to set if the 
+        ///     Filters by tag ids. Second parameter is to set if the 
         ///     filter will be for files including all the given tags or just one.
+        ///     Defaults to file with any in the list.
         /// </summary>
         /// <param name="tagNames"></param>
         /// <param name="usingAnd"></param>
@@ -304,7 +320,8 @@ namespace FileDBManager.Entities
 
         /// <summary>
         ///     Filters by tags a file does not have. Second parameter is to set if the 
-        ///     filter will be for files including all the given tags or just one.
+        ///     filter will be for files excluding all the given tags or just one.
+        ///     Defaults to file excluding any in the list.
         /// </summary>
         /// <param name="tagNames"></param>
         /// <param name="usingAnd"></param>
@@ -319,7 +336,8 @@ namespace FileDBManager.Entities
 
         /// <summary>
         ///     Filters by tag ids not used by a file. Second parameter is to set if the 
-        ///     filter will be for files including all the given tags or just one.
+        ///     filter will be for files excluding all the given tags or just one.
+        ///     Defaults to file with any in the list.
         /// </summary>
         /// <param name="ids"></param>
         /// <param name="usingAnd"></param>
@@ -458,21 +476,26 @@ namespace FileDBManager.Entities
                     if (i == 0 && initial) {
                         statement += includeWhere ? "WHERE " : " ";
                     } else {
-                        statement += IsOr ? " OR " : " AND ";
+                        statement += (IsOr && i == 0) ? " OR " : " AND ";
                     }
 
-                    if (i == 0) statement += "(";
+                    if (i == 0) {
+                        if (IsNot) statement += "NOT ";
+                        statement += "(";
+                    }
 
                     statement += wheres[i];
                 }
 
                 if (UsingTags && TagIDs != null && TagIDs.Count > 0) {
-                    if (wheres.Count == 0) {
-                        statement += initial ? " WHERE (" : "(";
+                    if (wheres.Count == 0 && initial) {
+                        statement += includeWhere ? "WHERE " : " ";
                         initial = false;
                     } else {
-                        statement += " AND (";
+                        statement += (wheres.Count == 0 && IsOr) ? " OR " : " AND ";
                     }
+                    if (wheres.Count == 0 && IsNot) statement += "NOT ";
+                    statement += "(";
                     for (int i = 0; i < TagIDs.Count; i++) {
                         statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
                         whereValues.Add(TagIDs[i]);
@@ -482,12 +505,14 @@ namespace FileDBManager.Entities
                     }
                     statement += ")";
                 } else if (UsingTags && TagNames != null && TagNames.Count > 0) {
-                    if (wheres.Count == 0) {
-                        statement += initial ? " WHERE (" : "(";
+                    if (wheres.Count == 0 && initial) {
+                        statement += includeWhere ? "WHERE " : " ";
                         initial = false;
                     } else {
-                        statement += (wheres.Count == 0 && IsOr) ? " OR (" : " AND (";
+                        statement += (wheres.Count == 0 && IsOr) ? " OR " : " AND ";
                     }
+                    if (wheres.Count == 0 && IsNot) statement += "NOT ";
+                    statement += "(";
                     for (int i = 0; i < TagNames.Count; i++) {
                         statement += "? IN (SELECT Tags.Name FROM " +
                             "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
@@ -498,8 +523,15 @@ namespace FileDBManager.Entities
                     }
                     statement += ")";
                 }
+
                 if (UsingExcludeTags && ExcludeTagIDs != null && ExcludeTagIDs.Count > 0) {
-                    statement += " AND (";
+                    if (wheres.Count == 0 && initial) {
+                        statement += includeWhere ? "WHERE " : " ";
+                    } else {
+                        statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR " : " AND ";
+                    }
+                    if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
+                    statement += "(";
                     for (int i = 0; i < ExcludeTagIDs.Count; i++) {
                         statement += "? NOT IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
                         whereValues.Add(ExcludeTagIDs[i]);
@@ -509,11 +541,13 @@ namespace FileDBManager.Entities
                     }
                     statement += ")";
                 } else if (UsingExcludeTags && ExcludeTagNames != null && ExcludeTagNames.Count > 0) {
-                    if (wheres.Count == 0) {
-                        statement += initial ? " WHERE (" : "(";
+                    if (wheres.Count == 0 && initial) {
+                        statement += includeWhere ? "WHERE " : " ";
                     } else {
-                        statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR (" : " AND (";
+                        statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR " : " AND ";
                     }
+                    if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
+                    statement += "(";
                     for (int i = 0; i < ExcludeTagNames.Count; i++) {
                         statement += "? NOT IN (SELECT Tags.Name FROM " +
                             "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
@@ -527,10 +561,11 @@ namespace FileDBManager.Entities
                 if (wheres.Count > 0) statement += ")";
             } else {
                 if (initial) {
-                    statement += includeWhere ? "WHERE (" : " (";
+                    statement += includeWhere ? "WHERE " : " ";
                 } else {
-                    statement += IsOr ? " OR (" : " AND (";
+                    statement += IsOr ? " OR " : " AND ";
                 }
+                statement += "(";
                 bool start = true;
                 foreach (var f in subFilters) {
                     f.BuildWhereStatementPart(ref statement, ref whereValues, start, false);

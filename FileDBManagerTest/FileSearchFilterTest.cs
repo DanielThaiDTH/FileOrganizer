@@ -90,5 +90,56 @@ namespace FileDBManager.Test
             Assert.Equal(greater, where);
         }
 
+        [Fact]
+        public void SubFiltersBuildProperly()
+        {
+            string expected = "WHERE ( ( (Filename = ?) AND (PathID = ?)) OR ( (Path = ?) OR (Size >= ?)))";
+            var filter1 = new FileSearchFilter().SetFilenameFilter("f");
+            var filter2 = new FileSearchFilter().SetPathIDFilter(1);
+            var filter3 = new FileSearchFilter().SetPathFilter("p");
+            var filter4 = new FileSearchFilter().SetSizeFilter(100, false);
+            var filterA = new FileSearchFilter().AddSubfilter(filter1).AddSubfilter(filter2);
+            var filterB = new FileSearchFilter().AddSubfilter(filter3).AddSubfilter(filter4);
+            filter4.IsOr = true;
+            filterB.IsOr = true;
+            var filter = new FileSearchFilter().AddSubfilter(filterA).AddSubfilter(filterB);
+            string where = "";
+            var values = new List<object>();
+            filter.BuildWhereStatementPart(ref where, ref values);
+            Assert.Equal(expected, where);
+        }
+
+        [Fact]
+        public void FilterIsOrAppliedProperly()
+        {
+            string expected = "WHERE ( (Filename = ? AND Path = ?) OR (PathID = ?))";
+            var filter1 = new FileSearchFilter().SetFilenameFilter("f")
+                                .SetPathFilter("p").SetOr(true);
+            var filter2 = new FileSearchFilter().SetPathIDFilter(1).SetOr(true);
+            var filter = new FileSearchFilter().AddSubfilter(filter1).AddSubfilter(filter2);
+            string where = "";
+            var values = new List<object>();
+            filter.BuildWhereStatementPart(ref where, ref values);
+            Assert.Equal(expected, where);
+        }
+
+        [Fact]
+        public void TagFiltersBuildProperly()
+        {
+            string expected = "WHERE (? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID) " +
+                "AND ? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID))";
+            string expectedWithOther = "WHERE (Path = ? AND " +
+                "(? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID) AND " +
+                "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)))";
+            var filter = new FileSearchFilter().SetTagFilter(new List<int>() { 1, 2 }, true).SetOr(true);
+            string where = "";
+            var values = new List<object>();
+            filter.BuildWhereStatementPart(ref where, ref values);
+            Assert.Equal(expected, where);
+            where = "";
+            filter.SetPathFilter("p");
+            filter.BuildWhereStatementPart(ref where, ref values);
+            Assert.Equal(expectedWithOther, where);
+        }
     }
 }
