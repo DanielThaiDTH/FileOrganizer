@@ -139,70 +139,70 @@ namespace FileDBManager.Test
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithFilenamesReturnsCorrectResults()
+        public void GetFileMetadataWithFilenamesReturnsCorrectResults()
         {
-            Log.Information("TEST: GetFileMetadataFilteredWithFilenamesReturnsCorrectResults");
+            Log.Information("TEST: GetFileMetadataWithFilenamesReturnsCorrectResults");
             fix.db.AddFile(@"C:\Temp\file_test1", "image", "testHash", "alt.bmp");
             fix.db.AddFile(@"C:\Temp\file_test2", "audio", "testHash2", "alt.mp3");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("file_test1", true);
-            List<GetFileMetadataType> results = fix.db.GetFileMetadataFiltered(filter);
+            List<GetFileMetadataType> results = fix.db.GetFileMetadata(filter);
             Assert.Single(results);
             Assert.Equal("file_test1", results[0].Filename);
             Assert.Equal("alt.bmp", results[0].Altname);
             Assert.Equal(@"C:\Temp", results[0].Path);
             Assert.Equal("image", results[0].FileType);
             filter.Reset().SetFilenameFilter("file_test", false);
-            results = fix.db.GetFileMetadataFiltered(filter);
+            results = fix.db.GetFileMetadata(filter);
             Assert.Equal(2, results.Count);
             filter.Reset().SetFilenameFilter("cannot_be_found", false);
-            results = fix.db.GetFileMetadataFiltered(filter);
+            results = fix.db.GetFileMetadata(filter);
             Assert.Empty(results);
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithAltnamesReturnsCorrectResults()
+        public void GetFileMetadataWithAltnamesReturnsCorrectResults()
         {
-            Log.Information("TEST: GetFileMetadataFilteredWithAltnamesReturnsCorrectResults");
+            Log.Information("TEST: GetFileMetadataWithAltnamesReturnsCorrectResults");
             fix.db.AddFile(@"C:\Temp\alt_test1", "text", "aaa", "altname1");
             fix.db.AddFile(@"C:\Temp\alt_test2", "text", "aaa", "altname2");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetAltnameFilter("altname1", true);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetAltnameFilter("altname", false);
-            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            Assert.Equal(2, fix.db.GetFileMetadata(filter).Count);
             filter.Reset().SetAltnameFilter("cannot_be_found", false);
-            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Empty(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithPathReturnsCorrectResults()
+        public void GetFileMetadataWithPathReturnsCorrectResults()
         {
-            Log.Information("TEST: GetFileMetadataFilteredWithPathReturnsCorrectResults");
+            Log.Information("TEST: GetFileMetadataWithPathReturnsCorrectResults");
             fix.db.AddFile(@"Z:\pathA\pathB\file", "text", "aaa", "testfile");
             fix.db.AddFile(@"Z:\pathA\pathC\file", "text", "aaa", "testfile");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetPathFilter(@"Z:\pathA\pathB", true);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetPathFilter("Z:\\pathA\\path", false);
-            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            Assert.Equal(2, fix.db.GetFileMetadata(filter).Count);
             filter.Reset().SetPathFilter("cannot_be_found", false);
-            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Empty(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithHashReturnsCorrectResults()
+        public void GetFileMetadataWithHashReturnsCorrectResults()
         {
-            Log.Information("TEST: GetFileMetadataFilteredWithHashReturnsCorrectResults");
+            Log.Information("TEST: GetFileMetadataWithHashReturnsCorrectResults");
             fix.db.AddFile(@"C:\Temp\hash_test_file1", "text", "000", "");
             fix.db.AddFile(@"C:\Temp\hash_test_file2", "text", "100", "");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetHashFilter("000", true);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetHashFilter("00", false);
-            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            Assert.Equal(2, fix.db.GetFileMetadata(filter).Count);
             filter.Reset().SetHashFilter("cannot_be_found", false);
-            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Empty(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
@@ -213,11 +213,11 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"C:\Temp\type_file2", "type2", "aaa", "");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFileTypeFilter("type1", true);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetFileTypeFilter("type", false);
-            Assert.Equal(2, fix.db.GetFileMetadataFiltered(filter).Count);
+            Assert.Equal(2, fix.db.GetFileMetadata(filter).Count);
             filter.Reset().SetFileTypeFilter("cannot_be_found", false);
-            Assert.Empty(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Empty(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
@@ -227,20 +227,20 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"S:\Temp\unique_file_inexact", "text", "a1a", "unique_alt");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFullnameFilter(@"\unique_file_in", false);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithTagIDsReturnsCorrectResults()
+        public void GetFileMetadataWithTagIDsReturnsCorrectResults()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var filter = new FileSearchFilter();
             fix.db.AddFile(@"C:\Tag\tagged_file1", "text", "aaa");
-            int id1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file1"))[0].ID;
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file1"))[0].ID;
             fix.db.AddFile(@"C:\Tag\tagged_file2", "text", "aaa");
-            int id2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file2"))[0].ID;
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file2"))[0].ID;
             fix.db.AddFile(@"C:\Tag\tagged_file3", "text", "aaa");
-            int id3 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file3"))[0].ID;
+            int id3 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file3"))[0].ID;
             fix.db.AddTagToFile(id1, "ftag1");
             fix.db.AddTagToFile(id1, "ftag3");
             fix.db.AddTagToFile(id2, "ftag2");
@@ -251,81 +251,81 @@ namespace FileDBManager.Test
             int tagid2 = tags.Find(t => t.Name == "ftag2").ID;
             int tagid3 = tags.Find(t => t.Name == "ftag3").ID;
             filter.Reset().SetTagFilter(new List<int>() { tagid1 });
-            Assert.Equal("tagged_file1", fix.db.GetFileMetadataFiltered(filter)[0].Filename);
+            Assert.Equal("tagged_file1", fix.db.GetFileMetadata(filter)[0].Filename);
             filter.Reset().SetTagFilter(new List<int>() { tagid2 });
-            var result = fix.db.GetFileMetadataFiltered(filter);
+            var result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (t) => t.Filename == "tagged_file2");
             Assert.Contains(result, (t) => t.Filename == "tagged_file3");
             Assert.Equal(2, result.Count);
             filter.Reset().SetTagFilter(new List<int>() { tagid1, tagid3 });
-            result = fix.db.GetFileMetadataFiltered(filter);
+            result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (t) => t.Filename == "tagged_file1");
             Assert.Contains(result, (t) => t.Filename == "tagged_file3");
             Assert.Equal(2, result.Count);
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithTagNamesReturnsCorrectResults()
+        public void GetFileMetadataWithTagNamesReturnsCorrectResults()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var filter = new FileSearchFilter();
             fix.db.AddFile(@"C:\Tag\tagged_file4", "text", "aaa");
-            int id1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file4"))[0].ID;
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file4"))[0].ID;
             fix.db.AddFile(@"C:\Tag\tagged_file5", "text", "aaa");
-            int id2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file5"))[0].ID;
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file5"))[0].ID;
             fix.db.AddFile(@"C:\Tag\tagged_file6", "text", "aaa");
-            int id3 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file6"))[0].ID;
+            int id3 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file6"))[0].ID;
             fix.db.AddTagToFile(id1, "f2tag1");
             fix.db.AddTagToFile(id1, "f2tag3");
             fix.db.AddTagToFile(id2, "f2tag2");
             fix.db.AddTagToFile(id3, "f2tag3");
             fix.db.AddTagToFile(id3, "f2tag2");
             filter.Reset().SetTagFilter(new List<string>() { "f2tag1" });
-            Assert.Equal("tagged_file4", fix.db.GetFileMetadataFiltered(filter)[0].Filename);
+            Assert.Equal("tagged_file4", fix.db.GetFileMetadata(filter)[0].Filename);
             filter.Reset().SetTagFilter(new List<string>() { "f2tag2" });
-            var result = fix.db.GetFileMetadataFiltered(filter);
+            var result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (t) => t.Filename == "tagged_file5");
             Assert.Contains(result, (t) => t.Filename == "tagged_file6");
             Assert.Equal(2, result.Count);
             filter.Reset().SetTagFilter(new List<string>() { "f2tag1", "f2tag3" });
-            result = fix.db.GetFileMetadataFiltered(filter);
+            result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (t) => t.Filename == "tagged_file4");
             Assert.Contains(result, (t) => t.Filename == "tagged_file6");
             Assert.Equal(2, result.Count);
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithEmptyTagListHasNoEffect()
+        public void GetFileMetadataWithEmptyTagListHasNoEffect()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var filter = new FileSearchFilter();
             var baseResults = fix.db.GetAllFileMetadata();
-            var results1 = fix.db.GetFileMetadataFiltered(filter.SetTagFilter(new List<int>()));
-            var results2 = fix.db.GetFileMetadataFiltered(filter.SetTagFilter(new List<string>()));
+            var results1 = fix.db.GetFileMetadata(filter.SetTagFilter(new List<int>()));
+            var results2 = fix.db.GetFileMetadata(filter.SetTagFilter(new List<string>()));
             Assert.Equal(baseResults.Count, results1.Count);
             Assert.Equal(baseResults.Count, results2.Count);
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithExcludeTagsWorks()
+        public void GetFileMetadataWithExcludeTagsWorks()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             fix.db.AddFile(@"C:\Tag\unfound_tags", "text", "aaa");
             var filter = new FileSearchFilter().SetFilenameFilter("unfound_tags");
-            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            int id = fix.db.GetFileMetadata(filter)[0].ID;
             fix.db.AddTagToFile(id, "exclude_tag1");
             fix.db.AddTag("exclude_tag2");
             filter.Reset().SetExcludeTagFilter(new List<string>(){ "exclude_tag1" });
-            var result = fix.db.GetFileMetadataFiltered(filter);
+            var result = fix.db.GetFileMetadata(filter);
             Assert.DoesNotContain(result, (f) => f.Filename == "unfound_tags");
             filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" });
-            result = fix.db.GetFileMetadataFiltered(filter);
+            result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (f) => f.Filename == "unfound_tags");
             filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" }, true);
-            result = fix.db.GetFileMetadataFiltered(filter);
+            result = fix.db.GetFileMetadata(filter);
             Assert.DoesNotContain(result, (f) => f.Filename == "unfound_tags");
             filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag2" });
-            result = fix.db.GetFileMetadataFiltered(filter);
+            result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (f) => f.Filename == "unfound_tags");
         }
 
@@ -335,14 +335,14 @@ namespace FileDBManager.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var filter = new FileSearchFilter();
             fix.db.AddFile(@"C:\Tag\tagged_file7", "text", "aaa");
-            int id1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file7"))[0].ID;
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file7"))[0].ID;
             fix.db.AddFile(@"C:\Tag\tagged_file8", "text", "aaa");
-            int id2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Tag\tagged_file8"))[0].ID;
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\tagged_file8"))[0].ID;
             fix.db.AddTagToFile(id1, "f3tag1");
             fix.db.AddTagToFile(id1, "f3tag2");
             fix.db.AddTagToFile(id2, "f3tag2");
             filter.Reset().SetTagFilter(new List<string>() { "f3tag1", "f3tag2" }, true);
-            var result = fix.db.GetFileMetadataFiltered(filter);
+            var result = fix.db.GetFileMetadata(filter);
             Assert.Single(result);
             Assert.Equal(id1, result[0].ID);
         }
@@ -354,7 +354,7 @@ namespace FileDBManager.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             DateTime fileTime = DateTime.Now;
             fix.db.AddFile(@"C:\Time\timed_file", "bin", "aaa", "", 10, new DateTimeOptional(fileTime));
-            var file = fix.db.GetFileMetadataFiltered(new FileSearchFilter().SetFilenameFilter("timed_file"))[0];
+            var file = fix.db.GetFileMetadata(new FileSearchFilter().SetFilenameFilter("timed_file"))[0];
             DateTime roundedTime = DateTimeOptional.RoundToUnixPrecision(fileTime);
             Assert.Equal(roundedTime, file.Created);
         }
@@ -375,7 +375,7 @@ namespace FileDBManager.Test
                 });
             };
             var filter = new FileSearchFilter().SetCustom(customFilter);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
@@ -384,20 +384,20 @@ namespace FileDBManager.Test
             Assert.True(fix.db.AddFile(@"U:\画家\天風かや", "jpg", "aaa", "香風かや"));
             var filter = new FileSearchFilter();
             filter.SetFilenameFilter("天風かや");
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetFilenameFilter("風か", false);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetAltnameFilter("香風かや", false);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetPathFilter(@"U:\画家");
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetPathFilter("画", false);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetFullnameFilter(@"U:\画家\天風かや");
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
             filter.Reset().SetFullnameFilter(@"家\天風か", false);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
-            Assert.Equal("天風かや", fix.db.GetFileMetadataFiltered(filter)[0].Filename);
+            Assert.Single(fix.db.GetFileMetadata(filter));
+            Assert.Equal("天風かや", fix.db.GetFileMetadata(filter)[0].Filename);
         }
 
         [Fact]
@@ -408,7 +408,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"S:\Temp\unique_file", "text", "a1a", "unique_alt", 100, created);
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("unique_file", true);
-            var info = fix.db.GetFileMetadataFiltered(filter)[0];
+            var info = fix.db.GetFileMetadata(filter)[0];
             fix.db.AddTagToFile(info.ID, "all_filter_tag1");
             fix.db.AddTagToFile(info.ID, "all_filter_tag2");
             fix.db.AddTag("all_filter_tag3");
@@ -435,7 +435,7 @@ namespace FileDBManager.Test
                 .SetTagFilter(new List<int>() { tagID1, tagID2 }, true)
                 .SetExcludeTagFilter(new List<int>() { tagID3 })
                 .SetCustom(timeFilter);
-            Assert.Single(fix.db.GetFileMetadataFiltered(filter));
+            Assert.Single(fix.db.GetFileMetadata(filter));
         }
 
         [Fact]
@@ -447,12 +447,12 @@ namespace FileDBManager.Test
             var filter1 = new FileSearchFilter().SetAltnameFilter("sub_alt");
             var filter2 = new FileSearchFilter().SetSizeFilter(15000, false);
             var filter = new FileSearchFilter().AddSubfilter(filter1).AddSubfilter(filter2);
-            var results = fix.db.GetFileMetadataFiltered(filter);
+            var results = fix.db.GetFileMetadata(filter);
             Assert.Single(results);
             Assert.Contains(results, r => r.Filename == "sub_filter2");
             filter2.IsOr = true;
             filter.Reset().AddSubfilter(filter1).AddSubfilter(filter2);
-            results = fix.db.GetFileMetadataFiltered(filter);
+            results = fix.db.GetFileMetadata(filter);
             Assert.Equal(2, results.Count);
             Assert.Contains(results, r => r.Filename == "sub_filter2");
             Assert.Contains(results, r => r.Filename == "sub_filter1");
@@ -486,7 +486,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"F:\matched\matched_file", "text", "aaa");
             fix.db.AddFile(@"F:\other\matching", "text", "aaa");
             fix.db.AddFile(@"F:\match\unmatched", "text", "aaa");
-            var results = fix.db.GetFileMetadataFiltered(filter);
+            var results = fix.db.GetFileMetadata(filter);
             Assert.Equal(2, results.Count);
             Assert.Contains(results, f => f.Filename == "matched_file");
             Assert.Contains(results, f => f.Filename == "matching");
@@ -494,7 +494,7 @@ namespace FileDBManager.Test
         }
 
         [Fact]
-        public void GetFileMetadataFilteredWithNotSetWorks()
+        public void GetFileMetadataWithNotSetWorks()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             fix.db.AddFile(@"N:\not\file1", "text", "nnn");
@@ -503,7 +503,7 @@ namespace FileDBManager.Test
             FileSearchFilter filter1 = new FileSearchFilter().SetPathFilter(@"N:\not").SetFileTypeFilter("text");
             FileSearchFilter filter2 = new FileSearchFilter().SetNot(true).SetHashFilter("aaa");
             FileSearchFilter filter = new FileSearchFilter().AddSubfilter(filter1).AddSubfilter(filter2);
-            var res = fix.db.GetFileMetadataFiltered(filter);
+            var res = fix.db.GetFileMetadata(filter);
             Assert.Single(res);
             Assert.Contains(res, f => f.Filename == "file1");
         }
@@ -515,7 +515,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"C:\Temp\delete_file", "bin", "aaa");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("delete_file", true);
-            var info = fix.db.GetFileMetadataFiltered(filter)[0];
+            var info = fix.db.GetFileMetadata(filter)[0];
             var count = fix.db.GetAllFileMetadata().Count;
             Assert.True(fix.db.DeleteFileMetadata(info.ID));
             Assert.Equal(count - 1, fix.db.GetAllFileMetadata().Count);
@@ -542,9 +542,9 @@ namespace FileDBManager.Test
                         .SetFileTypeFilter("bin")
                         .SetHashFilter("bbb")
                         .SetAltnameFilter("second_alt");
-            Assert.Empty(fix.db.GetFileMetadataFiltered(updateValues));
+            Assert.Empty(fix.db.GetFileMetadata(updateValues));
             Assert.True(fix.db.UpdateFileMetadata(updateValues, filter));
-            Assert.Single(fix.db.GetFileMetadataFiltered(updateValues));
+            Assert.Single(fix.db.GetFileMetadata(updateValues));
         }
 
         [Fact]
@@ -641,7 +641,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"A:\tagged_file1", "bin", "aaa");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFullnameFilter(@"A:\tagged_file1");
-            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            int id = fix.db.GetFileMetadata(filter)[0].ID;
             Assert.True(fix.db.AddTagToFile(id, "file_tag1"));
             var fileTags = fix.db.GetTagsForFile(id);
             Assert.Single(fileTags);
@@ -656,7 +656,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"A:\tagged_file2", "text", "fff");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFullnameFilter(@"A:\tagged_file2");
-            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            int id = fix.db.GetFileMetadata(filter)[0].ID;
             Assert.True(fix.db.AddTagToFile(id, "file_tag_w_cat", "tag_cat1"));
             var fileTags = fix.db.GetTagsForFile(id);
             Assert.Single(fileTags);
@@ -672,7 +672,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"A:\tagged_file3", "text", "ccc");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFullnameFilter(@"A:\tagged_file3");
-            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            int id = fix.db.GetFileMetadata(filter)[0].ID;
             fix.db.AddTagToFile(id, "existing_tag");
             var fileTags = fix.db.GetTagsForFile(id);
             Assert.Contains(fileTags, t => t.Name == "existing_tag");
@@ -686,7 +686,7 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"A:\file_tag_reuse", "text", "123");
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFullnameFilter(@"A:\file_tag_reuse");
-            int id = fix.db.GetFileMetadataFiltered(filter)[0].ID;
+            int id = fix.db.GetFileMetadata(filter)[0].ID;
             fix.db.AddTagToFile(id, "reuse_tag");
             Assert.False(fix.db.AddTagToFile(id, "reuse_tag"));
         }
@@ -782,7 +782,7 @@ namespace FileDBManager.Test
         {
             Log.Information("TEST: DeleteTagRemovesTagFromFile");
             fix.db.AddFile(@"A:\tagged_file4", "text", "aaa");
-            int id = fix.db.GetFileMetadataFiltered(
+            int id = fix.db.GetFileMetadata(
                 new FileSearchFilter()
                 .SetFullnameFilter(@"A:\tagged_file4"))[0].ID;
             fix.db.AddTagToFile(id, "to_be_rem");
@@ -801,8 +801,8 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"A:\del_tagged_file_2", "text", "aaa");
             fix.db.AddTag("file_del_tag");
             var filter = new FileSearchFilter();
-            int id1 = fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("del_tagged_file_1"))[0].ID;
-            int id2 = fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("del_tagged_file_2"))[0].ID;
+            int id1 = fix.db.GetFileMetadata(filter.SetFilenameFilter("del_tagged_file_1"))[0].ID;
+            int id2 = fix.db.GetFileMetadata(filter.SetFilenameFilter("del_tagged_file_2"))[0].ID;
             int tagID = fix.db.GetAllTags().Find(t => t.Name == "file_del_tag").ID;
             fix.db.AddTagToFile(id1, "file_del_tag");
             fix.db.AddTagToFile(id2, "file_del_tag");
@@ -855,9 +855,9 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"F:\collection_file3", "text", "aaa");
             var filter = new FileSearchFilter();
             List<int> ids = new List<int>();
-            ids.Add(fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("collection_file1"))[0].ID);
-            ids.Add(fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("collection_file2"))[0].ID);
-            ids.Add(fix.db.GetFileMetadataFiltered(filter.SetFilenameFilter("collection_file3"))[0].ID);
+            ids.Add(fix.db.GetFileMetadata(filter.SetFilenameFilter("collection_file1"))[0].ID);
+            ids.Add(fix.db.GetFileMetadata(filter.SetFilenameFilter("collection_file2"))[0].ID);
+            ids.Add(fix.db.GetFileMetadata(filter.SetFilenameFilter("collection_file3"))[0].ID);
             Assert.True(fix.db.AddCollection("collection_w_files", ids));
             var collection = fix.db.GetFileCollection("collection_w_files");
             Assert.Equal("collection_w_files", collection.Name);
@@ -903,8 +903,8 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"C:\Collection\file2", "text", "aaa");
             int id = fix.db.GetFileCollection("file_collection1").ID;
             FileSearchFilter filter = new FileSearchFilter();
-            int fileID1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file1"))[0].ID;
-            int fileID2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file2"))[0].ID;
+            int fileID1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Collection\file1"))[0].ID;
+            int fileID2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Collection\file2"))[0].ID;
             Assert.True(fix.db.AddFileToCollection(id, fileID1));
             Assert.True(fix.db.AddFileToCollection(id, fileID2));
             var collection = fix.db.GetFileCollection(id);
@@ -926,10 +926,10 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"C:\Collection\file6", "text", "aaa");
             int id = fix.db.GetFileCollection("file_collection2").ID;
             FileSearchFilter filter = new FileSearchFilter();
-            int fileID1 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file3"))[0].ID;
-            int fileID2 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file4"))[0].ID;
-            int fileID3 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file5"))[0].ID;
-            int fileID4 = fix.db.GetFileMetadataFiltered(filter.SetFullnameFilter(@"C:\Collection\file6"))[0].ID;
+            int fileID1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Collection\file3"))[0].ID;
+            int fileID2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Collection\file4"))[0].ID;
+            int fileID3 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Collection\file5"))[0].ID;
+            int fileID4 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Collection\file6"))[0].ID;
             Assert.True(fix.db.AddFileToCollection(id, fileID2));
             Assert.True(fix.db.AddFileToCollection(id, fileID4));
             Assert.True(fix.db.AddFileToCollection(id, fileID1, 1));
@@ -960,7 +960,7 @@ namespace FileDBManager.Test
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             fix.db.AddFile(@"C:\Collection\collection_file_rem", "text", "aaa");
-            int fileID = fix.db.GetFileMetadataFiltered(
+            int fileID = fix.db.GetFileMetadata(
                 new FileSearchFilter()
                 .SetFullnameFilter(@"C:\Collection\collection_file_rem"))[0].ID;
             fix.db.AddCollection("collection_w_deleted", new List<int>() { fileID });
@@ -977,11 +977,11 @@ namespace FileDBManager.Test
             fix.db.AddFile(@"C:\Collection\reorder2", "text", "aaa");
             fix.db.AddFile(@"C:\Collection\reorder3", "text", "aaa");
             var filter = new FileSearchFilter();
-            int fileID1 = fix.db.GetFileMetadataFiltered(
+            int fileID1 = fix.db.GetFileMetadata(
                 filter.SetFullnameFilter(@"C:\Collection\reorder1"))[0].ID;
-            int fileID2 = fix.db.GetFileMetadataFiltered(
+            int fileID2 = fix.db.GetFileMetadata(
                 filter.SetFullnameFilter(@"C:\Collection\reorder2"))[0].ID;
-            int fileID3 = fix.db.GetFileMetadataFiltered(
+            int fileID3 = fix.db.GetFileMetadata(
                 filter.SetFullnameFilter(@"C:\Collection\reorder3"))[0].ID;
             fix.db.AddCollection("collection_delete_reorder", new List<int>() { fileID1, fileID2, fileID3 });
             int id = fix.db.GetFileCollection("collection_delete_reorder").ID;

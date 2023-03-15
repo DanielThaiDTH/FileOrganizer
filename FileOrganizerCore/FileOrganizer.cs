@@ -220,7 +220,7 @@ namespace FileOrganizerCore
         {
             var res = new ActionResult<HashSet<string>>();
             var filter = new FileSearchFilter().SetFullnameFilter(filename);
-            var queryResult = db.GetFileMetadataFiltered(filter);
+            var queryResult = db.GetFileMetadata(filter);
             if (queryResult.Count != 1) {
                 string msg = ((queryResult.Count == 0) ? "No" : "Duplicate") + $" data found for {filename}";
                 res.AddError(ErrorType.Path, msg);

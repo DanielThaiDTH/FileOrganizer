@@ -28,7 +28,7 @@ namespace FileOrganizerCore
                     var files = db.GetAllFileMetadata();
                     res.SetResult(files);
                 } else {
-                    var files = db.GetFileMetadataFiltered(filter);
+                    var files = db.GetFileMetadata(filter);
                     res.SetResult(files);
                 }
                 activeFiles = res.Result;
@@ -422,7 +422,7 @@ namespace FileOrganizerCore
             }
             logger.LogDebug($"Delete path: {fullname}");
             var filter = new FileSearchFilter().SetFilenameFilter(fullname);
-            var file = db.GetFileMetadataFiltered(filter);
+            var file = db.GetFileMetadata(filter);
             if (file.Count == 1) {
                 bool status = db.DeleteFileMetadata(file[0].ID);
                 if (!status) res.AddError(ErrorType.SQL, $"Failed to delete {fullname}");
@@ -476,7 +476,7 @@ namespace FileOrganizerCore
                 filename = Path.Combine(Directory.GetCurrentDirectory(), filename);
             }
             var filter = new FileSearchFilter().SetFullnameFilter(filename);
-            var file = db.GetFileMetadataFiltered(filter);
+            var file = db.GetFileMetadata(filter);
             if (file.Count == 1) {
                 bool status = db.AddTagToFile(file[0].ID, tag, tagCategory);
                 if (!status) res.AddError(ErrorType.SQL, $"Failed to add tag {tag} to {filename}");
@@ -498,7 +498,7 @@ namespace FileOrganizerCore
                 filename = Path.Combine(Directory.GetCurrentDirectory(), filename);
             }
             var filter = new FileSearchFilter().SetFullnameFilter(filename);
-            var file = db.GetFileMetadataFiltered(filter);
+            var file = db.GetFileMetadata(filter);
             if (file.Count == 1) {
                 var tags = db.GetTagsForFile(file[0].ID);
                 res.SetResult(tags);
@@ -537,7 +537,7 @@ namespace FileOrganizerCore
                 filename = Path.Combine(Directory.GetCurrentDirectory(), filename);
             }
             var filter = new FileSearchFilter().SetFullnameFilter(filename);
-            var file = db.GetFileMetadataFiltered(filter);
+            var file = db.GetFileMetadata(filter);
             var tag = db.GetAllTags().Find(t => t.Name == tagname);
             if (file.Count == 1 && tag != null) {
                 bool status = db.DeleteTagFromFile(file[0].ID, tag.ID);
@@ -581,7 +581,7 @@ namespace FileOrganizerCore
                 filename = Path.Combine(Directory.GetCurrentDirectory(), filename);
             }
             var filter = new FileSearchFilter().SetFullnameFilter(filename);
-            var file = db.GetFileMetadataFiltered(filter);
+            var file = db.GetFileMetadata(filter);
             if (file.Count == 1 && collection != null) {
                 bool status = db.AddFileToCollection(collection.ID, file[0].ID, index);
                 if (!status) res.AddError(ErrorType.SQL, $"Could not add file {filename} " +
@@ -607,7 +607,7 @@ namespace FileOrganizerCore
                 filename = Path.Combine(Directory.GetCurrentDirectory(), filename);
             }
             var filter = new FileSearchFilter().SetFullnameFilter(filename);
-            var file = db.GetFileMetadataFiltered(filter);
+            var file = db.GetFileMetadata(filter);
             if (file.Count == 1 && collection != null) {
                 bool status = db.DeleteFileInCollection(collection.ID, file[0].ID);
                 if (!status) res.AddError(ErrorType.SQL, $"Could not delete file {filename} " +

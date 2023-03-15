@@ -419,7 +419,7 @@ namespace FileDBManager
         ///         </item>
         ///         </list>
         /// </returns>
-        public List<GetFileMetadataType> GetFileMetadataFiltered(FileSearchFilter filter)
+        public List<GetFileMetadataType> GetFileMetadata(FileSearchFilter filter)
         {
             string statementPart1 = "SELECT * FROM Files ";
             string statementPart2 = "JOIN FileTypes ON Files.FileTypeID = FileTypes.ID ";
