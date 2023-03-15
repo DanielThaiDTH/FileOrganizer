@@ -494,6 +494,21 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void GetFileMetadataFilteredWithNotSetWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"N:\not\file1", "text", "nnn");
+            fix.db.AddFile(@"N:\not\file2", "text", "aaa");
+            fix.db.AddFile(@"N:\not\file3", "binary", "nnn");
+            FileSearchFilter filter1 = new FileSearchFilter().SetPathFilter(@"N:\not").SetFileTypeFilter("text");
+            FileSearchFilter filter2 = new FileSearchFilter().SetNot(true).SetHashFilter("aaa");
+            FileSearchFilter filter = new FileSearchFilter().AddSubfilter(filter1).AddSubfilter(filter2);
+            var res = fix.db.GetFileMetadataFiltered(filter);
+            Assert.Single(res);
+            Assert.Contains(res, f => f.Filename == "file1");
+        }
+
+        [Fact]
         public void DeleteFileMetadataRemovesFile()
         {
             Log.Information("TEST: DeleteFileMetadataRemovesFile");

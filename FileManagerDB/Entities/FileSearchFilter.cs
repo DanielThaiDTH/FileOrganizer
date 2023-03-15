@@ -192,6 +192,7 @@ namespace FileDBManager.Entities
             excludeTagNames = null;
             excludeTagFilterAnd = false;
             IsOr = false;
+            IsNot = false;
             if (subFilters != null) subFilters.Clear();
 
             customFilter = null;
