@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<!--Template for test data, actual XML file should not be in source tree-->
+<Data>
+  <DB>test.db</DB>
+  <DefaultFolder>symlink</DefaultFolder>
+</Data>

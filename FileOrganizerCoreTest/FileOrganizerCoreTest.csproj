@@ -1,15 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\xunit.runner.visualstudio.2.4.5\build\net462\xunit.runner.visualstudio.props" Condition="Exists('..\packages\xunit.runner.visualstudio.2.4.5\build\net462\xunit.runner.visualstudio.props')" />
+  <Import Project="..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.props" Condition="Exists('..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.props')" />
+  <Import Project="..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.props" Condition="Exists('..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.props')" />
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" />
+  <Import Project="..\packages\xunit.core.2.4.2\build\xunit.core.props" Condition="Exists('..\packages\xunit.core.2.4.2\build\xunit.core.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{605AA4F8-299E-4EBD-80CA-C6615FE6C0D0}</ProjectGuid>
+    <ProjectGuid>{17E9A54D-505B-4C50-8F62-4FB8B64011FC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FileOrganizerCore</RootNamespace>
-    <AssemblyName>FileOrganizerCore</AssemblyName>
+    <RootNamespace>FileOrganizerCoreTest</RootNamespace>
+    <AssemblyName>FileOrganizerCoreTest</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -63,6 +67,21 @@
     </Reference>
     <Reference Include="Microsoft.Extensions.Primitives, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Primitives.7.0.0\lib\net462\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.CodeCoverage.Shim, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeCoverage.17.4.1\lib\net462\Microsoft.VisualStudio.CodeCoverage.Shim.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.12.0\lib\net47\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Extensions.Logging, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Extensions.Logging.3.1.0\lib\netstandard2.0\Serilog.Extensions.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.Debug, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.Debug.2.0.0\lib\net46\Serilog.Sinks.Debug.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.File, Version=5.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.File.5.0.0\lib\net45\Serilog.Sinks.File.dll</HintPath>
     </Reference>
     <Reference Include="SQLitePCLRaw.batteries_v2, Version=2.1.2.1721, Culture=neutral, PublicKeyToken=8226ea5df37bcae9, processorArchitecture=MSIL">
       <HintPath>..\packages\SQLitePCLRaw.bundle_e_sqlite3.2.1.2\lib\net461\SQLitePCLRaw.batteries_v2.dll</HintPath>
@@ -118,39 +137,60 @@
       <Private>True</Private>
       <Private>True</Private>
     </Reference>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.abstractions.2.0.3\lib\net35\xunit.abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.assert, Version=2.4.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.assert.2.4.2\lib\netstandard1.1\xunit.assert.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.core, Version=2.4.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.extensibility.core.2.4.2\lib\net452\xunit.core.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.execution.desktop, Version=2.4.2.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.extensibility.execution.2.4.2\lib\net452\xunit.execution.desktop.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActionResult.cs" />
-    <Compile Include="ConfigLoader.cs" />
-    <Compile Include="FileOrganizer.cs" />
-    <Compile Include="FileOrganizerFileDBProxies.cs" />
-    <Compile Include="FileTypeDeterminer.cs" />
+    <Compile Include="CoreTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities\Hasher.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FileManagerDB\FileManagerDB.csproj">
       <Project>{ab837fd1-34a1-4b5c-9f2e-716faccbd619}</Project>
       <Name>FileManagerDB</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SymLinkMaker\SymLinkMaker.csproj">
-      <Project>{f00db4c8-2234-48d8-a37e-a07eaea5ba4b}</Project>
-      <Name>SymLinkMaker</Name>
+    <ProjectReference Include="..\FileOrganizerCore\FileOrganizerCore.csproj">
+      <Project>{605aa4f8-299e-4ebd-80ca-c6615fe6c0d0}</Project>
+      <Name>FileOrganizerCore</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\xunit.analyzers.1.0.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
+    <Analyzer Include="..\packages\xunit.analyzers.1.0.0\analyzers\dotnet\cs\xunit.analyzers.fixes.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
+    <Error Condition="!Exists('..\packages\xunit.core.2.4.2\build\xunit.core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.core.2.4.2\build\xunit.core.props'))" />
+    <Error Condition="!Exists('..\packages\xunit.core.2.4.2\build\xunit.core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.core.2.4.2\build\xunit.core.targets'))" />
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.props'))" />
     <Error Condition="!Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.4.4\build\EntityFramework.targets'))" />
     <Error Condition="!Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.targets'))" />
+    <Error Condition="!Exists('..\packages\xunit.runner.visualstudio.2.4.5\build\net462\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.visualstudio.2.4.5\build\net462\xunit.runner.visualstudio.props'))" />
   </Target>
+  <Import Project="..\packages\xunit.core.2.4.2\build\xunit.core.targets" Condition="Exists('..\packages\xunit.core.2.4.2\build\xunit.core.targets')" />
   <Import Project="..\packages\EntityFramework.6.4.4\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.4.4\build\EntityFramework.targets')" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.117.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
+  <Import Project="..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.targets" Condition="Exists('..\packages\Microsoft.CodeCoverage.17.4.1\build\netstandard2.0\Microsoft.CodeCoverage.targets')" />
+  <Import Project="..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.targets" Condition="Exists('..\packages\Microsoft.NET.Test.Sdk.17.4.1\build\net462\Microsoft.NET.Test.Sdk.targets')" />
 </Project>

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileDBManagerTest", "FileDB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizerCore", "FileOrganizerCore\FileOrganizerCore.csproj", "{605AA4F8-299E-4EBD-80CA-C6615FE6C0D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizerCoreTest", "FileOrganizerCoreTest\FileOrganizerCoreTest.csproj", "{17E9A54D-505B-4C50-8F62-4FB8B64011FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,14 @@ Global
 		{605AA4F8-299E-4EBD-80CA-C6615FE6C0D0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{605AA4F8-299E-4EBD-80CA-C6615FE6C0D0}.Release|x64.ActiveCfg = Release|Any CPU
 		{605AA4F8-299E-4EBD-80CA-C6615FE6C0D0}.Release|x64.Build.0 = Release|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Debug|x64.Build.0 = Debug|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|x64.ActiveCfg = Release|Any CPU
+		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

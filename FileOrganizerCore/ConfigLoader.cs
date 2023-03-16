@@ -23,8 +23,9 @@ namespace FileOrganizerCore
         {
             this.logger = logger;
             logger.LogInformation("Loading config from " + filename);
-            configFile = new XPathDocument(
-                Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), filename));
+            string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
+            logger.LogDebug("Location: " + path);
+            configFile = new XPathDocument(Path.Combine(path, filename));
         }
 
         /// <summary>

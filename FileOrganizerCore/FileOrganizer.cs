@@ -12,6 +12,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FileOrganizerCore
 {
+    /// <summary>
+    /// Core of the file organizer. Configuration done in the config.xml. This file must have 
+    /// a node tagged DB with the db name and a node named DefaultFolder with the path to 
+    /// a default location to store symlinks.
+    /// </summary>
     public partial class FileOrganizer
     {
         ILogger logger;
@@ -19,6 +24,7 @@ namespace FileOrganizerCore
         FileDBManagerClass db;
         FileTypeDeterminer typeDet;
         ConfigLoader configLoader;
+        private string root;
         private readonly string configFilename = "config.xml";
 
         //Recently searched tags, tag categories and searched files are kept in memory
@@ -41,11 +47,16 @@ namespace FileOrganizerCore
             this.logger = logger;
             configLoader = new ConfigLoader(configFilename, logger);
             typeDet = new FileTypeDeterminer();
-            string dbPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), 
+            root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
+            logger.LogDebug("Executable root: " + root);
+            string dbPath = Path.Combine(root, 
                 configLoader.GetNodeValue("DB"));
             db = new FileDBManagerClass(dbPath, logger);
             try {
-                symlinkmaker = new SymLinkMaker.SymLinkMaker(configLoader.GetNodeValue("DefaultFolder"), logger);
+                string symlinkPath = configLoader.GetNodeValue("DefaultFolder");
+                if (!Path.IsPathRooted(symlinkPath)) symlinkPath = Path.Combine(root, symlinkPath);
+                if (!Directory.Exists(symlinkPath)) throw new ArgumentException("Folder not found");
+                symlinkmaker = new SymLinkMaker.SymLinkMaker(symlinkPath, logger);
             } catch (ArgumentException ex) {
                 logger.LogError(ex, "Path is not rooted");
                 throw ex;
@@ -60,17 +71,29 @@ namespace FileOrganizerCore
         {
             var res = new ActionResult<bool>();
 
-            var categoryRes = GetTagCategories();
-            tagCategories = categoryRes.Result ?? new List<GetTagCategoryType>();
-            tagCategoriesClean = true;
-
-            ActionResult.AppendErrors(res, categoryRes);
+            try {
+                var categoryRes = GetTagCategories();
+                tagCategories = categoryRes.Result ?? new List<GetTagCategoryType>();
+                tagCategoriesClean = true;
+                if (categoryRes.Result != null) res.SetResult(true);
+            } catch {
+                res.AddError(ErrorType.SQL, "Error accessing DB");
+            }
 
             return res;
         }
 
+        public void Stop()
+        {
+            tagCategories = null;
+            activeFiles = null;
+            activeCollection = null;
+            activeTags = null;
+            db.CloseConnection();
+        }
+
         /// <summary>
-        ///     Updates the symlink folder. 
+        ///     Updates the symlink folder. Fails if folder not found.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -79,8 +102,13 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             symlinkmaker.ClearExisting();
             try {
-                symlinkmaker = new SymLinkMaker.SymLinkMaker(path, logger);
-                res.SetResult(true);
+                if (!Path.IsPathRooted(path)) path = Path.Combine(root, path);
+                if (Directory.Exists(path)) {
+                    symlinkmaker = new SymLinkMaker.SymLinkMaker(path, logger);
+                    res.SetResult(true);
+                } else {
+                    throw new ArgumentException("Folder not found");
+                }
             } catch (ArgumentException ex) {
                 logger.LogWarning(ex, $"Error accessing path ${path} for storing symlinks");
                 res.AddError(ErrorType.Path, "Symlink folder error: " + path);
@@ -188,6 +216,11 @@ namespace FileOrganizerCore
             if (!res.HasError()) res.SetResult(true);
 
             return res;
+        }
+
+        public string GetSymLinksRoot()
+        {
+            return symlinkmaker.Root;
         }
 
         private long GetFileSize(string filename, in ActionResult<bool> res)
