@@ -159,5 +159,35 @@ namespace FileOrganizerCore.Test
             Assert.Equal(new FileInfo(fullname).Length, file[0].Size);
             fix.core.DeleteFile(fullname);
         }
+
+        [Fact]
+        public void CreateSymLinksFromActiveFilesWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var files = new List<string>() { 
+                Path.Combine(fix.root, "config.xml"), 
+                Path.Combine(fix.root, "Serilog.xml") 
+            };
+            var addRes = fix.core.AddFiles(files);
+            Assert.All(addRes.Result, r => Assert.True(r));
+            var filedata = fix.core.GetFileData().Result;
+            var res = fix.core.CreateSymLinksFromActiveFiles();
+            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "config.xml")));
+            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "Serilog.xml")));
+            fix.core.ClearSymLinks();
+            foreach (var f in filedata) {
+                fix.core.DeleteFile(f.ID);
+            }
+        }
+
+        [Fact]
+        public void CreateSymLinksFromActiveFilesReturnsErrorWithNoActiveFiles()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.core.GetFileData();
+            var res = fix.core.CreateSymLinksFromActiveFiles();
+            Assert.False(res.Result);
+            Assert.Equal(ErrorType.Misc, res.GetError(0));
+        }
     }
 }

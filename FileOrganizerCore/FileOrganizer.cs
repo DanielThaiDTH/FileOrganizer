@@ -168,7 +168,7 @@ namespace FileOrganizerCore
         public ActionResult<bool> CreateSymLinksFromActiveFiles()
         {
             var res = new ActionResult<bool>();
-            if (activeFiles != null) {
+            if (activeFiles != null && activeFiles.Count > 0) {
                 List<string> filenames = activeFiles.ConvertAll(f => f.Fullname);
                 res = CreateSymLinksFilenames(filenames);
             } else {
