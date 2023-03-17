@@ -22,6 +22,7 @@ namespace FileOrganizerCore.Test
         public FileOrganizer core;
         public Microsoft.Extensions.Logging.ILogger logger;
         public string root;
+        public FileTypeDeterminer det;
 
         public CoreTestFixture()
         {
@@ -36,6 +37,7 @@ namespace FileOrganizerCore.Test
                 File.Delete(configLoader.GetNodeValue("DB"));
             }
             core = new FileOrganizer(logger);
+            det = new FileTypeDeterminer();
             root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
             var result = core.StartUp();
             if (!result.Result) {
@@ -123,6 +125,39 @@ namespace FileOrganizerCore.Test
             Assert.Equal(ErrorType.SymLinkCreate, res.GetError(1));
             Assert.False(File.Exists(Path.Combine(fix.root, "symlink", "bad1")));
             Assert.False(File.Exists(Path.Combine(fix.root, "symlink", "bad2")));
+        }
+
+        [Fact]
+        public void CreateSymLinksFilenamesGoodAndBadReturnsFalseCreatesGood()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var files = new List<string>() { "bad1", Path.Combine(fix.root, "config.xml"), "bad2" };
+            var res = fix.core.CreateSymLinksFilenames(files);
+            Assert.False(res.Result);
+            Assert.Equal(2, res.Count);
+            Assert.Equal(ErrorType.SymLinkCreate, res.GetError(0));
+            Assert.Equal(ErrorType.SymLinkCreate, res.GetError(1));
+            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "config.xml")));
+            Assert.False(File.Exists(Path.Combine(fix.root, "symlink", "bad1")));
+            Assert.False(File.Exists(Path.Combine(fix.root, "symlink", "bad2")));
+            fix.core.ClearSymLinks();
+        }
+
+        [Fact]
+        public void AddFileAddsWithCorrectData()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            string fullname = Path.Combine(fix.root, "config.xml");
+            var res = fix.core.AddFile(fullname);
+            Assert.True(res.Result);
+            var filter = new FileSearchFilter().SetFullnameFilter(fullname);
+            var file = fix.core.GetFileData(filter).Result;
+            Assert.Single(file);
+            Assert.Equal(Utilities.Hasher.HashFile(fullname, res), file[0].Hash);
+            Assert.Equal(fullname, file[0].Fullname);
+            Assert.Equal(fix.det.FromExt("xml"), file[0].FileType);
+            Assert.Equal(new FileInfo(fullname).Length, file[0].Size);
+            fix.core.DeleteFile(fullname);
         }
     }
 }

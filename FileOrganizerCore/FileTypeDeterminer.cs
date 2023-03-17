@@ -42,6 +42,8 @@ namespace FileOrganizerCore
             ext = ext.ToLowerInvariant();
             if (extTypeMap.ContainsKey(ext)) {
                 return extTypeMap[ext];
+            } else if (ext.StartsWith(".") && extTypeMap.ContainsKey(ext.Substring(1))) {
+                return extTypeMap[ext.Substring(1)];
             } else {
                 return "unknown";
             }
