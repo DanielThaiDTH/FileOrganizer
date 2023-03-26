@@ -189,5 +189,59 @@ namespace FileOrganizerCore.Test
             Assert.False(res.Result);
             Assert.Equal(ErrorType.Misc, res.GetError(0));
         }
+
+        [Fact]
+        public void DeleteFileNonexistentFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var res = fix.core.DeleteFile(-1);
+            Assert.False(res.Result);
+            Assert.Equal(ErrorType.SQL, res.GetError(0));
+        }
+
+        [Fact]
+        public void GetTagCategoriesUpdatesTagCategories()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            int count = fix.core.TagCategories.Count;
+            var res = fix.core.AddTagCategory("test1");
+            Assert.True(res.Result);
+            Assert.Equal(count + 1, fix.core.TagCategories.Count);
+            Assert.Contains(fix.core.TagCategories, tc => tc.Name == "test1");
+        }
+
+        [Fact]
+        public void UpdateTagCategoryNameRenamesAndRefreshes()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.core.AddTagCategory("old_category");
+            int count = fix.core.TagCategories.Count;
+            var res = fix.core.UpdateTagCategoryName("old_category", "new_category");
+            Assert.True(res.Result);
+            Assert.Equal(count, fix.core.TagCategories.Count);
+            Assert.Contains(fix.core.TagCategories, tc => tc.Name == "new_category");
+        }
+
+        [Fact]
+        public void GetFileDataFromIDsWorksWithIDList()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var files = new List<string>() {
+                Path.Combine(fix.root, "config.xml"),
+                Path.Combine(fix.root, "Serilog.xml")
+            };
+            fix.core.AddFiles(files);
+            var fileData = fix.core.GetFileData().Result;
+            var idList = fileData.ConvertAll(fd => fd.ID);
+            var res = fix.core.GetFileData();
+            Assert.False(res.HasError());
+            Assert.Contains(res.Result, fd => fd.Filename == "config.xml");
+            Assert.Contains(res.Result, fd => fd.Filename == "Serilog.xml");
+            Assert.Equal(2, res.Result.Count);
+            Assert.Subset(
+                new HashSet<FileDBManager.GetFileMetadataType>(res.Result.ToArray()), 
+                new HashSet<FileDBManager.GetFileMetadataType>(fix.core.ActiveFiles.ToArray())
+                );
+        }
     }
 }

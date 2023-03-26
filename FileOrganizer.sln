@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizerCore", "FileOr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizerCoreTest", "FileOrganizerCoreTest\FileOrganizerCoreTest.csproj", "{17E9A54D-505B-4C50-8F62-4FB8B64011FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileOrganizerUI", "FileOrganizerUI\FileOrganizerUI.csproj", "{0E49CDA0-940E-4171-94F3-5C9924BBAD39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,14 @@ Global
 		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|x64.ActiveCfg = Release|Any CPU
 		{17E9A54D-505B-4C50-8F62-4FB8B64011FC}.Release|x64.Build.0 = Release|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Release|x64.ActiveCfg = Release|Any CPU
+		{0E49CDA0-940E-4171-94F3-5C9924BBAD39}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

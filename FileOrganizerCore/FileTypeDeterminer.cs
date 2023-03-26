@@ -18,7 +18,7 @@ namespace FileOrganizerCore
                 { "zip", "archive" }, { "7z", "archive" }, { "rar", "archive" },
                 { "txt", "text" }, { "log", "text" },
                 { "json", "json" },
-                { "xml", "ml" }, { "html", "ml" },
+                { "xml", "ml" }, { "html", "ml" }, { "htm", "ml" },
                 { "md", "markup" },
                 { "c", "source" }, { "h", "source" }, { "cpp", "source" }, { "hpp", "source" },
                 { "java", "source" }, { "cs", "source" }, { "js", "source" }, { "py", "source" },
@@ -27,7 +27,7 @@ namespace FileOrganizerCore
                 { "webm", "video" }, { "mp4", "video" }, { "mkv", "video" }, { "avi", "video" },
                 { "pdf", "document" }, { "epub", "document" },
                 { "exe", "executable" },
-                { "mp3", "audio" }, { "midi", "audio" }
+                { "mp3", "audio" }, { "midi", "audio" }, { "wav", "audio" }
             };
 
         }

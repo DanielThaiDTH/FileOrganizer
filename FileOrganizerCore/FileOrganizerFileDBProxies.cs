@@ -126,6 +126,11 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        ///     Also updates the TagCategories property.
+        /// </summary>
+        /// <param name="category"></param>
+        /// <returns></returns>
         public ActionResult<bool> AddTagCategory(string category)
         {
             var res = new ActionResult<bool>();
@@ -133,11 +138,15 @@ namespace FileOrganizerCore
             bool status = db.AddTagCategory(category);
             if (!status) res.AddError(ErrorType.SQL, "Failure adding tag category");
             res.SetResult(status);
-            tagCategoriesClean = false;
+            GetTagCategories();
 
             return res;
         }
 
+        /// <summary>
+        ///     Also updates the TagCategories property
+        /// </summary>
+        /// <returns></returns>
         public ActionResult<List<GetTagCategoryType>> GetTagCategories()
         {
             var res = new ActionResult<List<GetTagCategoryType>>();
@@ -464,6 +473,7 @@ namespace FileOrganizerCore
                 bool status = db.UpdateTagCategoryName(category.ID, newName);
                 if (!status) res.AddError(ErrorType.SQL, $"Could not rename category {name} to {newName}");
                 res.SetResult(status);
+                GetTagCategories();
             }
 
             return res;
@@ -623,6 +633,45 @@ namespace FileOrganizerCore
             }
 
             return res;
+        }
+
+        /// <summary>
+        ///     Queries files from a list of file ids. Will return an empty list of 
+        ///     results if the id list is null or empty.
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public ActionResult<List<GetFileMetadataType>> GetFileDataFromIDs(IEnumerable<int> ids)
+        {
+            var result = new ActionResult<List<GetFileMetadataType>>();
+
+            if (ids is null) {
+                result.AddError(ErrorType.Misc, "List of ids is null");
+                result.SetResult(new List<GetFileMetadataType>());
+                return result;
+            }
+
+            FileSearchFilter idFilters = new FileSearchFilter();
+            bool atLeastOne = false;
+            foreach(int id in ids) {
+                atLeastOne = true;
+                var filter = new FileSearchFilter().SetIDFilter(id).SetOr(true);
+                idFilters.AddSubfilter(filter);
+            }
+
+            if (atLeastOne) {
+                try {
+                    result.SetResult(db.GetFileMetadata(idFilters));
+                } catch (Exception ex) {
+                    logger.LogError(ex, "Fatal error retrieving file data");
+                    result.AddError(ErrorType.SQL, "Fatal error retrieving file data");
+                    result.SetResult(new List<GetFileMetadataType>());
+                }
+            } else {
+                result.SetResult(new List<GetFileMetadataType>());
+            }
+
+            return result;
         }
     }
 }
