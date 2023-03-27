@@ -36,6 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -118,6 +119,20 @@
     <PackageReference Include="System.Xml.XPath">
       <Version>4.3.0</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FileManagerDB\FileManagerDB.csproj">
+      <Project>{ab837fd1-34a1-4b5c-9f2e-716faccbd619}</Project>
+      <Name>FileManagerDB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FileOrganizerCore\FileOrganizerCore.csproj">
+      <Project>{605aa4f8-299e-4ebd-80ca-c6615fe6c0d0}</Project>
+      <Name>FileOrganizerCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SymLinkMaker\SymLinkMaker.csproj">
+      <Project>{f00db4c8-2234-48d8-a37e-a07eaea5ba4b}</Project>
+      <Name>SymLinkMaker</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

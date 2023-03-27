@@ -3,11 +3,11 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Collections.Specialized;
 using SymLinkMaker;
 using FileDBManager;
 using FileDBManager.Entities;
 using Microsoft.Extensions.Logging;
-
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FileOrganizerCore
@@ -42,23 +42,41 @@ namespace FileOrganizerCore
 
         /* End of win32 imports*/
 
-        public FileOrganizer(ILogger logger)
+        public FileOrganizer(ILogger logger, NameValueCollection config = null)
         {
             this.logger = logger;
-            configLoader = new ConfigLoader(configFilename, logger);
+            if (config is null) {
+                configLoader = new ConfigLoader(configFilename, logger);
+            }
+            
             typeDet = new FileTypeDeterminer();
             root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
             logger.LogDebug("Executable root: " + root);
-            string dbPath = Path.Combine(root, 
-                configLoader.GetNodeValue("DB"));
+            
+            string dbPath;
+            if (config is null) {
+                dbPath = Path.Combine(root, configLoader.GetNodeValue("DB"));
+            } else {
+                dbPath = Path.Combine(root, config.Get("DB"));
+            }
+
             db = new FileDBManagerClass(dbPath, logger);
             try {
-                string symlinkPath = configLoader.GetNodeValue("DefaultFolder");
+                
+                string symlinkPath;
+                if (config is null) {
+                    symlinkPath = configLoader.GetNodeValue("DefaultFolder");
+                } else {
+                    symlinkPath = config.Get("DefaultFolder");
+                }
+
                 if (!Path.IsPathRooted(symlinkPath)) symlinkPath = Path.Combine(root, symlinkPath);
-                if (!Directory.Exists(symlinkPath)) throw new ArgumentException("Folder not found");
+                if (!Directory.Exists(symlinkPath)) {
+                    Directory.CreateDirectory(symlinkPath);
+                }
                 symlinkmaker = new SymLinkMaker.SymLinkMaker(symlinkPath, logger);
             } catch (ArgumentException ex) {
-                logger.LogError(ex, "Path is not rooted");
+                logger.LogError(ex, "Path is not rooted or not found");
                 throw ex;
             }
         }

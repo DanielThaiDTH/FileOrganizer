@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Globalization;
+using System.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,12 +10,17 @@ using System.Windows.Forms;
 using Serilog;
 using Serilog.Extensions.Logging;
 using Microsoft.Extensions.Logging;
+using FileOrganizerCore;
 
 namespace FileOrganizerUI
 {
     static class Program
     {
         public static Microsoft.Extensions.Logging.ILogger logger;
+        private static int logKeepDate = 7;
+        private static string dbLocation;
+        private static FileOrganizer core;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -27,6 +33,10 @@ namespace FileOrganizerUI
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
             ClearOldLogs();
+            dbLocation = ConfigurationManager.AppSettings.Get("DB");
+            logger.LogDebug("DB file: " + dbLocation);
+            core = new FileOrganizer(logger, ConfigurationManager.AppSettings);
+            core.StartUp();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm(logger));
@@ -49,7 +59,7 @@ namespace FileOrganizerUI
                 logger.LogDebug("Checking log date " + logDate);
                 try {
                     DateTime logDT = DateTime.ParseExact(logDate, "yyyyMMdd", dtInfo);
-                    if (today.Subtract(logDT).TotalDays > 30) {
+                    if (today.Subtract(logDT).TotalDays > logKeepDate) {
                         logger.LogInformation("Removing log file " + logFile.Name);
                         logFile.Delete();
                     }
