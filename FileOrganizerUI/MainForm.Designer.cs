@@ -28,13 +28,15 @@ namespace FileOrganizerUI
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.OpenFilePicker = new System.Windows.Forms.Button();
             this.MessageText = new System.Windows.Forms.Label();
+            this.MessageTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.SuspendLayout();
             // 
             // OpenFilePicker
             // 
-            this.OpenFilePicker.Location = new System.Drawing.Point(905, 491);
+            this.OpenFilePicker.Location = new System.Drawing.Point(1094, 591);
             this.OpenFilePicker.Name = "OpenFilePicker";
             this.OpenFilePicker.Size = new System.Drawing.Size(183, 32);
             this.OpenFilePicker.TabIndex = 0;
@@ -45,16 +47,20 @@ namespace FileOrganizerUI
             // MessageText
             // 
             this.MessageText.AutoSize = true;
-            this.MessageText.Location = new System.Drawing.Point(484, 193);
+            this.MessageText.Location = new System.Drawing.Point(446, 591);
+            this.MessageText.MaximumSize = new System.Drawing.Size(1200, 0);
             this.MessageText.Name = "MessageText";
             this.MessageText.Size = new System.Drawing.Size(0, 17);
             this.MessageText.TabIndex = 1;
+            // 
+            // MessageTooltip
+            // 
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1139, 573);
+            this.ClientSize = new System.Drawing.Size(1320, 656);
             this.Controls.Add(this.MessageText);
             this.Controls.Add(this.OpenFilePicker);
             this.Name = "MainForm";
@@ -68,5 +74,6 @@ namespace FileOrganizerUI
 
         private System.Windows.Forms.Button OpenFilePicker;
         private System.Windows.Forms.Label MessageText;
+        private System.Windows.Forms.ToolTip MessageTooltip;
     }
 }

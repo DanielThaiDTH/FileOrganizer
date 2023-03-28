@@ -61,11 +61,12 @@ namespace FileOrganizerCore
                 string type = typeDet.FromFilename(filename);
                 long size = GetFileSize(filename, res);
                 bool status = db.AddFile(filename, type, hash, altname, size, created);
-                if (status) {
-                    res.SetResult(status);
+                res.SetResult(status);
+                if (!status) {
+                    res.AddError(ErrorType.SQL, $"Could not add {filename}");
                 }
             } else {
-                string msg = $"Could not find {filename}";
+                string msg = $"Could not add {filename} due to path issues";
                 logger.LogWarning(msg);
                 res.AddError(ErrorType.Path, msg);
             }
@@ -430,7 +431,7 @@ namespace FileOrganizerCore
                 fullname = Path.Combine(Directory.GetCurrentDirectory(), fullname);
             }
             logger.LogDebug($"Delete path: {fullname}");
-            var filter = new FileSearchFilter().SetFilenameFilter(fullname);
+            var filter = new FileSearchFilter().SetFullnameFilter(fullname);
             var file = db.GetFileMetadata(filter);
             if (file.Count == 1) {
                 bool status = db.DeleteFileMetadata(file[0].ID);

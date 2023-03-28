@@ -242,6 +242,29 @@ namespace FileOrganizerCore.Test
                 new HashSet<FileDBManager.GetFileMetadataType>(res.Result.ToArray()), 
                 new HashSet<FileDBManager.GetFileMetadataType>(fix.core.ActiveFiles.ToArray())
                 );
+            fix.core.DeleteFile(Path.Combine(fix.root, "config.xml"));
+            fix.core.DeleteFile(Path.Combine(fix.root, "Serilog.xml"));
+        }
+
+        [Fact]
+        public void DeleteFileRemovesFromDB()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var files = new List<string>() {
+                Path.Combine(fix.root, "config.xml"),
+                Path.Combine(fix.root, "Serilog.xml")
+            };
+            fix.core.AddFiles(files);
+            Assert.True(fix.core.DeleteFile(Path.Combine(fix.root, "config.xml")).Result);
+            Assert.True(fix.core.DeleteFile(Path.Combine(fix.root, "Serilog.xml")).Result);
+            Assert.Empty(fix.core.GetFileData().Result);
+            fix.core.AddFiles(files);
+            var fileData = fix.core.GetFileData().Result;
+            var idList = fileData.ConvertAll(fd => fd.ID);
+            foreach (int id in idList) {
+                Assert.True(fix.core.DeleteFile(id).Result);
+            }
+            Assert.Empty(fix.core.GetFileData().Result);
         }
     }
 }

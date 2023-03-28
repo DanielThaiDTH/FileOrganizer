@@ -39,7 +39,7 @@ namespace FileOrganizerUI
             core.StartUp();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm(logger));
+            Application.Run(new MainForm(logger, core));
         }
 
         static void ClearOldLogs()
