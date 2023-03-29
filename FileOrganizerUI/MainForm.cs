@@ -26,6 +26,9 @@ namespace FileOrganizerUI
             this.core = core;
             fileDialog = new OpenFileDialog();
             fileDialog.Multiselect = true;
+            FilePanel.AutoScroll = true;
+            FileListView.MultiSelect = true;
+            FileListView.View = View.Tile;
         }
 
         private void OpenFilePicker_Click(object sender, EventArgs e)
@@ -50,15 +53,22 @@ namespace FileOrganizerUI
                     }
                     errMsg += $"Adding files resulted in {good} successes and {bad} failures\n\n";
                     MessageText.Text = errMsg;
+                    MessageText.ForeColor = Color.FromArgb(200, 50, 50);
                     foreach (string msg in res.Messages) {
                         errMsg += msg + "\n";
                     }
                     MessageTooltip.SetToolTip(MessageText, errMsg);
                 } else {
+                    MessageText.ForeColor = Color.Black;
                     MessageText.Text = $"{filesToAdd.Count} files added";
                     MessageTooltip.SetToolTip(MessageText, MessageText.Text);
                 }
             }
+        }
+
+        private void Search_Click(object sender, EventArgs e)
+        {
+            FileListView.Items.Add(new ListViewItem("test_long_long"));
         }
     }
 }

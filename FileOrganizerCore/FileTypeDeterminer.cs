@@ -27,7 +27,9 @@ namespace FileOrganizerCore
                 { "webm", "video" }, { "mp4", "video" }, { "mkv", "video" }, { "avi", "video" },
                 { "pdf", "document" }, { "epub", "document" },
                 { "exe", "executable" },
-                { "mp3", "audio" }, { "midi", "audio" }, { "wav", "audio" }
+                { "mp3", "audio" }, { "midi", "audio" }, { "wav", "audio" },
+                { "docx", "word" }, { "doc", "word" },
+                { "xls", "excel" }, { "xlsx", "excel" }, { "xlsm", "excel" }
             };
 
         }
