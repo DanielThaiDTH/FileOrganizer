@@ -34,7 +34,7 @@ namespace FileOrganizerUI
             this.MessageTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.UpdateButton = new System.Windows.Forms.Button();
             this.FileResultHeader = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.SearchBox = new System.Windows.Forms.TextBox();
             this.Search = new System.Windows.Forms.Button();
             this.FileListView = new System.Windows.Forms.ListView();
             this.FilePanel = new System.Windows.Forms.Panel();
@@ -80,12 +80,12 @@ namespace FileOrganizerUI
             this.FileResultHeader.TabIndex = 4;
             this.FileResultHeader.Text = "File Results";
             // 
-            // textBox1
+            // SearchBox
             // 
-            this.textBox1.Location = new System.Drawing.Point(464, 22);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(683, 22);
-            this.textBox1.TabIndex = 5;
+            this.SearchBox.Location = new System.Drawing.Point(464, 22);
+            this.SearchBox.Name = "SearchBox";
+            this.SearchBox.Size = new System.Drawing.Size(683, 22);
+            this.SearchBox.TabIndex = 5;
             // 
             // Search
             // 
@@ -123,7 +123,7 @@ namespace FileOrganizerUI
             this.ClientSize = new System.Drawing.Size(1320, 656);
             this.Controls.Add(this.FilePanel);
             this.Controls.Add(this.Search);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.SearchBox);
             this.Controls.Add(this.FileResultHeader);
             this.Controls.Add(this.UpdateButton);
             this.Controls.Add(this.MessageText);
@@ -143,7 +143,7 @@ namespace FileOrganizerUI
         private System.Windows.Forms.ToolTip MessageTooltip;
         private System.Windows.Forms.Button UpdateButton;
         private System.Windows.Forms.Label FileResultHeader;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox SearchBox;
         private System.Windows.Forms.Button Search;
         private System.Windows.Forms.ListView FileListView;
         private System.Windows.Forms.Panel FilePanel;

@@ -15,3 +15,7 @@
 ## As a User, I want to interact with files graphically so that I can manage files without having to learn CLI commands.
 
 ## As a User, I want the program to have no affect on existing files so that accidental data loss is impossible.
+
+## As a User, I want to be able to update file data so that file metadata changes or files being moved can be tracked.
+
+## As a User, I want to be able to get a data report so that I can be informed about my files.

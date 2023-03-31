@@ -68,7 +68,22 @@ namespace FileOrganizerUI
 
         private void Search_Click(object sender, EventArgs e)
         {
-            FileListView.Items.Add(new ListViewItem("test_long_long"));
+            var files = core.GetFileData();
+            FileListView.Clear();
+            if (!files.HasError()) {
+                foreach (var filedata in files.Result) {
+                    FileListView.Items.Add(new ListViewItem(filedata.Filename));
+                }
+            } else {
+                string errMsg = "Failed to query files";
+                MessageText.Text = errMsg;
+                MessageText.ForeColor = Color.FromArgb(200, 50, 50);
+                errMsg = "";
+                foreach (string msg in files.Messages) {
+                    errMsg += msg + "\n";
+                }
+                MessageTooltip.SetToolTip(MessageText, errMsg);
+            }
         }
     }
 }
