@@ -245,6 +245,11 @@ namespace FileOrganizerUI.CodeBehind
                         currentExact = false;
                         currentType = FilterType.Filename;
                     } else if (next == State.Exit) {
+                        if (filterStack.Count == 0) {
+                            result = false;
+                            errMsg = $"Missing opening bracket";
+                            break;
+                        }
                         filterStack.Pop();
                         next = stateStack.Pop();
                         subFilter = new FileSearchFilter().SetOr(true);
@@ -265,7 +270,12 @@ namespace FileOrganizerUI.CodeBehind
                 position++;
             }
 
-            if (result) filter.AddSubfilter(queryFilter);
+            if (result && filterStack.Count == 0) {
+                filter.AddSubfilter(queryFilter);
+            } else if (result && filterStack.Count > 0) {
+                result = false;
+                errMsg = $"Missing {filterStack.Count} closing bracket pairs";
+            }
 
             return result;
         }
