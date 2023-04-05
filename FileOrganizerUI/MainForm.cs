@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using FileOrganizerCore;
+using FileOrganizerUI.CodeBehind;
 
 
 namespace FileOrganizerUI
@@ -18,12 +19,14 @@ namespace FileOrganizerUI
         private OpenFileDialog fileDialog;
         private ILogger logger;
         private FileOrganizer core;
+        private SearchParser parser;
 
         public MainForm(ILogger logger, FileOrganizer core)
         {
             InitializeComponent();
             this.logger = logger;
             this.core = core;
+            parser = new SearchParser(logger);
             fileDialog = new OpenFileDialog();
             fileDialog.Multiselect = true;
             FilePanel.AutoScroll = true;
@@ -68,22 +71,32 @@ namespace FileOrganizerUI
 
         private void Search_Click(object sender, EventArgs e)
         {
-            var files = core.GetFileData();
-            FileListView.Clear();
-            if (!files.HasError()) {
-                foreach (var filedata in files.Result) {
-                    FileListView.Items.Add(new ListViewItem(filedata.Filename));
-                }
-            } else {
-                string errMsg = "Failed to query files";
+            string errMsg;
+            parser.Reset();
+            bool parseResult = parser.Parse(SearchBox.Text.Trim(), out errMsg);
+
+            if (!parseResult) {
                 MessageText.Text = errMsg;
                 MessageText.ForeColor = Color.FromArgb(200, 50, 50);
-                errMsg = "";
-                foreach (string msg in files.Messages) {
-                    errMsg += msg + "\n";
+            } else {
+                var files = core.GetFileData(parser.Filter);
+                FileListView.Clear();
+                if (!files.HasError()) {
+                    foreach (var filedata in files.Result) {
+                        FileListView.Items.Add(new ListViewItem(filedata.Filename));
+                    }
+                } else {
+                    errMsg = "Failed to query files";
+                    MessageText.Text = errMsg;
+                    MessageText.ForeColor = Color.FromArgb(200, 50, 50);
+                    errMsg = "";
+                    foreach (string msg in files.Messages) {
+                        errMsg += msg + "\n";
+                    }
+                    MessageTooltip.SetToolTip(MessageText, errMsg);
                 }
-                MessageTooltip.SetToolTip(MessageText, errMsg);
             }
+            
         }
     }
 }

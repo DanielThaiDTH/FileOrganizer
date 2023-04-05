@@ -42,7 +42,8 @@ namespace FileOrganizerUI.CodeBehind
             { "tag", FilterType.Tag },
             { "type", FilterType.FileType },
             { "path", FilterType.Path },
-            { "altname", FilterType.Altname }
+            { "altname", FilterType.Altname },
+            { "alt", FilterType.Altname }
         };
 
         FileSearchFilter filter;
@@ -114,7 +115,7 @@ namespace FileOrganizerUI.CodeBehind
 
             var andTransition = new Dictionary<char, State>();
             andTransition.Add(' ', State.And);
-            andTransition.Add('\\', State.Fail);
+            andTransition.Add('\\', State.FilterType);
             andTransition.Add('+', State.Fail);
             andTransition.Add('=', State.Fail);
             andTransition.Add('~', State.Fail);
@@ -149,8 +150,13 @@ namespace FileOrganizerUI.CodeBehind
                 State next = stateTransition[current][token];
                 return next;
             } catch {
-                logger.LogDebug($"Defaulting to current state for token:{token} when in state {current}");
-                return current;
+                State next = current;
+                if (current == State.And || current == State.Base || 
+                    current == State.Equal || current == State.Like) {
+                    next = State.Plain;
+                }
+                logger.LogDebug($"Defaulting to {next} state for token:{token} when in state {current}");
+                return next;
             }
         }
 
@@ -167,7 +173,7 @@ namespace FileOrganizerUI.CodeBehind
             bool result = true;
             var queryFilter = new FileSearchFilter();
             var subFilter = new FileSearchFilter().SetOr(true);
-            Queue<char> tokens = new Queue<char>(query);
+            Queue<char> tokens = new Queue<char>(query + " ");
             string tempStore = "";
             char current;
             State currentState = State.Base;
@@ -177,6 +183,8 @@ namespace FileOrganizerUI.CodeBehind
             Stack<FileSearchFilter> filterStack = new Stack<FileSearchFilter>();
             errMsg = "";
             int position = 0;
+
+            logger.LogInformation("Parsing query " + query);
             
             while (tokens.Count > 0) {
                 current = tokens.Dequeue();
@@ -263,6 +271,10 @@ namespace FileOrganizerUI.CodeBehind
                         currentExact = false;
                     } else if (next == State.Equal) {
                         currentExact = true;
+                    } else if (next == State.Base) {
+                        subFilter = new FileSearchFilter().SetOr(true);
+                        currentExact = false;
+                        currentType = FilterType.Filename;
                     }
                 }
 
@@ -270,11 +282,21 @@ namespace FileOrganizerUI.CodeBehind
                 position++;
             }
 
-            if (result && filterStack.Count == 0) {
+            logger.LogDebug("Ending state of " + currentState);
+
+            if (result && filterStack.Count == 0 && currentState != State.Raw) {
                 filter.AddSubfilter(queryFilter);
             } else if (result && filterStack.Count > 0) {
                 result = false;
                 errMsg = $"Missing {filterStack.Count} closing bracket pairs";
+            } else if (result && currentState == State.Raw) {
+                result = false;
+                errMsg = "Missing end quote";
+            }
+
+            if (!result) {
+                logger.LogWarning(errMsg);
+                Reset();
             }
 
             return result;
