@@ -19,7 +19,7 @@ namespace FileDBManager
         public FileDBManagerClass(string dbLoc, ILogger logger)
         {
             this.logger = logger;
-            logger.LogInformation("Creating or opening DB at " + dbLoc);
+            logger.LogDebug("Creating or opening DB at " + dbLoc);
             db = new SQLiteConnection("DataSource=" + dbLoc);
             db.Open();
             CreateTable(FilePath.TableName, FilePath.Columns);

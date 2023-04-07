@@ -21,6 +21,7 @@ namespace FileOrganizerUI.CodeBehind
             Like,
             And,
             Sub,
+            Not,
             Exit,
             Fail
         }
@@ -64,6 +65,7 @@ namespace FileOrganizerUI.CodeBehind
             baseTransition.Add('"', State.Raw);
             baseTransition.Add('=', State.Fail);
             baseTransition.Add('~', State.Fail);
+            baseTransition.Add('!', State.Not);
             stateTransition.Add(State.Base, baseTransition);
 
             var plainTransition = new Dictionary<char, State>();
@@ -89,6 +91,7 @@ namespace FileOrganizerUI.CodeBehind
             filterTypeTransition.Add('(', State.Fail);
             filterTypeTransition.Add(')', State.Fail);
             filterTypeTransition.Add('"', State.Fail);
+            filterTypeTransition.Add('!', State.Not);
             stateTransition.Add(State.FilterType, filterTypeTransition);
 
             var equalTransition = new Dictionary<char, State>();
@@ -100,6 +103,7 @@ namespace FileOrganizerUI.CodeBehind
             equalTransition.Add('(', State.Fail);
             equalTransition.Add(')', State.Fail);
             equalTransition.Add('"', State.Raw);
+            equalTransition.Add('!', State.Not);
             stateTransition.Add(State.Equal, equalTransition);
 
             var likeTransition = new Dictionary<char, State>();
@@ -111,6 +115,7 @@ namespace FileOrganizerUI.CodeBehind
             likeTransition.Add('(', State.Fail);
             likeTransition.Add(')', State.Fail);
             likeTransition.Add('"', State.Raw);
+            likeTransition.Add('!', State.Not);
             stateTransition.Add(State.Like, likeTransition);
 
             var andTransition = new Dictionary<char, State>();
@@ -122,6 +127,7 @@ namespace FileOrganizerUI.CodeBehind
             andTransition.Add('(', State.Sub);
             andTransition.Add(')', State.Fail);
             andTransition.Add('"', State.Raw);
+            andTransition.Add('!', State.Not);
             stateTransition.Add(State.And, andTransition);
 
             var subTransition = new Dictionary<char, State>();
@@ -133,7 +139,20 @@ namespace FileOrganizerUI.CodeBehind
             subTransition.Add('(', State.Sub);
             subTransition.Add(')', State.Fail);
             subTransition.Add('"', State.Raw);
+            subTransition.Add('!', State.Not);
             stateTransition.Add(State.Sub, subTransition);
+
+            var notTransition = new Dictionary<char, State>();
+            notTransition.Add(' ', State.Fail);
+            notTransition.Add('\\', State.FilterType);
+            notTransition.Add('+', State.Fail);
+            notTransition.Add('=', State.Equal);
+            notTransition.Add('~', State.Like);
+            notTransition.Add('(', State.Sub);
+            notTransition.Add(')', State.Fail);
+            notTransition.Add('"', State.Raw);
+            notTransition.Add('!', State.Fail);
+            stateTransition.Add(State.Not, notTransition);
 
             filter = new FileSearchFilter();
         }
@@ -152,7 +171,7 @@ namespace FileOrganizerUI.CodeBehind
             } catch {
                 State next = current;
                 if (current == State.And || current == State.Base || 
-                    current == State.Equal || current == State.Like) {
+                    current == State.Equal || current == State.Like || current == State.Not) {
                     next = State.Plain;
                 }
                 logger.LogDebug($"Defaulting to {next} state for token:{token} when in state {current}");
@@ -271,6 +290,8 @@ namespace FileOrganizerUI.CodeBehind
                         currentExact = false;
                     } else if (next == State.Equal) {
                         currentExact = true;
+                    } else if (next == State.Not) {
+                        subFilter.SetNot(true);
                     } else if (next == State.Base) {
                         subFilter = new FileSearchFilter().SetOr(true);
                         currentExact = false;
@@ -284,7 +305,7 @@ namespace FileOrganizerUI.CodeBehind
 
             logger.LogDebug("Ending state of " + currentState);
 
-            if (result && filterStack.Count == 0 && currentState != State.Raw) {
+            if (result && filterStack.Count == 0 && currentState != State.Raw && !queryFilter.IsBaseFilter) {
                 filter.AddSubfilter(queryFilter);
             } else if (result && filterStack.Count > 0) {
                 result = false;
@@ -292,6 +313,9 @@ namespace FileOrganizerUI.CodeBehind
             } else if (result && currentState == State.Raw) {
                 result = false;
                 errMsg = "Missing end quote";
+            } else if (result && queryFilter.IsBaseFilter) {
+                result = false;
+                errMsg = "Empty query";
             }
 
             if (!result) {

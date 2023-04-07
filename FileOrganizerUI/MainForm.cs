@@ -85,6 +85,8 @@ namespace FileOrganizerUI
                     foreach (var filedata in files.Result) {
                         FileListView.Items.Add(new ListViewItem(filedata.Filename));
                     }
+                    MessageText.Text = $"Found {files.Result.Count} file(s)";
+                    MessageText.ForeColor = Color.Black;
                 } else {
                     errMsg = "Failed to query files";
                     MessageText.Text = errMsg;
