@@ -20,18 +20,24 @@ namespace FileOrganizerUI
         private ILogger logger;
         private FileOrganizer core;
         private SearchParser parser;
+        private ThumbnailProxy thumbnailProxy;
+        private ImageList imageList;
 
         public MainForm(ILogger logger, FileOrganizer core)
         {
             InitializeComponent();
             this.logger = logger;
             this.core = core;
+            thumbnailProxy = new ThumbnailProxy(logger);
             parser = new SearchParser(logger);
             fileDialog = new OpenFileDialog();
             fileDialog.Multiselect = true;
             FilePanel.AutoScroll = true;
             FileListView.MultiSelect = true;
             FileListView.View = View.Tile;
+            FileListView.BackColor = Color.White;
+            imageList = new ImageList();
+            imageList.ImageSize = new Size(32, 32);
         }
 
         private void OpenFilePicker_Click(object sender, EventArgs e)
@@ -55,15 +61,13 @@ namespace FileOrganizerUI
                         }
                     }
                     errMsg += $"Adding files resulted in {good} successes and {bad} failures\n\n";
-                    MessageText.Text = errMsg;
-                    MessageText.ForeColor = Color.FromArgb(200, 50, 50);
+                    UpdateMessage(errMsg, Color.FromArgb(200, 50, 50));
                     foreach (string msg in res.Messages) {
                         errMsg += msg + "\n";
                     }
                     MessageTooltip.SetToolTip(MessageText, errMsg);
                 } else {
-                    MessageText.ForeColor = Color.Black;
-                    MessageText.Text = $"{filesToAdd.Count} files added";
+                    UpdateMessage($"{filesToAdd.Count} files added", Color.Black);
                     MessageTooltip.SetToolTip(MessageText, MessageText.Text);
                 }
             }
@@ -73,24 +77,35 @@ namespace FileOrganizerUI
         {
             string errMsg;
             parser.Reset();
+            imageList.Images.Clear();
             bool parseResult = parser.Parse(SearchBox.Text.Trim(), out errMsg);
 
             if (!parseResult) {
-                MessageText.Text = errMsg;
-                MessageText.ForeColor = Color.FromArgb(200, 50, 50);
+                UpdateMessage(errMsg, Color.FromArgb(200, 50, 50));
             } else {
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
                 if (!files.HasError()) {
-                    foreach (var filedata in files.Result) {
-                        FileListView.Items.Add(new ListViewItem(filedata.Filename));
+
+                    var thumbnailMap = thumbnailProxy.GetThumbnails(files.Result.ConvertAll<string>(f => f.Fullname));
+                    imageList.Images.Clear();
+                    foreach (var pair in thumbnailMap) {
+                        imageList.Images.Add(pair.Key, pair.Value);
                     }
-                    MessageText.Text = $"Found {files.Result.Count} file(s)";
-                    MessageText.ForeColor = Color.Black;
+
+                    FileListView.BeginUpdate();
+                    FileListView.LargeImageList = imageList;
+                    FileListView.SmallImageList = imageList;
+                    foreach (var filedata in files.Result) {
+                        FileListView.Items.Add(new ListViewItem(filedata.Filename, filedata.Fullname));
+                    }
+                    FileListView.EndUpdate();
+
+                    UpdateMessage($"Found {files.Result.Count} file(s)", Color.Black);
+                    MessageTooltip.RemoveAll();
                 } else {
                     errMsg = "Failed to query files";
-                    MessageText.Text = errMsg;
-                    MessageText.ForeColor = Color.FromArgb(200, 50, 50);
+                    UpdateMessage(errMsg, Color.FromArgb(200, 50, 50));
                     errMsg = "";
                     foreach (string msg in files.Messages) {
                         errMsg += msg + "\n";
@@ -98,7 +113,13 @@ namespace FileOrganizerUI
                     MessageTooltip.SetToolTip(MessageText, errMsg);
                 }
             }
-            
+
+        }
+
+        private void UpdateMessage(string msg, Color color)
+        {
+            MessageText.Text = msg;
+            MessageText.ForeColor = color;
         }
     }
 }
