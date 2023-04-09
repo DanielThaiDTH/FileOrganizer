@@ -10,18 +10,22 @@ using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using FileOrganizerCore;
 using FileOrganizerUI.CodeBehind;
+using FileDBManager;
+using FileOrganizerUI.Subelements;
 
 
 namespace FileOrganizerUI
 {
     public partial class MainForm : Form
     {
-        private OpenFileDialog fileDialog;
+        private OpenFileDialog FileDialog;
+        private FileInfoForm FileInfoModal;
         private ILogger logger;
         private FileOrganizer core;
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
+        private List<GetFileMetadataType> searchResults;
 
         public MainForm(ILogger logger, FileOrganizer core)
         {
@@ -30,21 +34,28 @@ namespace FileOrganizerUI
             this.core = core;
             thumbnailProxy = new ThumbnailProxy(logger);
             parser = new SearchParser(logger);
-            fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = true;
+
+            FileDialog = new OpenFileDialog();
+            FileDialog.Multiselect = true;
+            
             FilePanel.AutoScroll = true;
             FileListView.MultiSelect = true;
             FileListView.View = View.Tile;
             FileListView.BackColor = Color.White;
+            FileListView.MouseDoubleClick += new MouseEventHandler(FileListItem_DoubleClick);
+
             imageList = new ImageList();
             imageList.ImageSize = new Size(32, 32);
+
+            FileInfoModal = new FileInfoForm(logger);
+            FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
         }
 
         private void OpenFilePicker_Click(object sender, EventArgs e)
         {
-            if (fileDialog.ShowDialog() == DialogResult.OK) {
+            if (FileDialog.ShowDialog() == DialogResult.OK) {
                 List<string> filesToAdd = new List<string>();
-                foreach (string filename in fileDialog.FileNames) {
+                foreach (string filename in FileDialog.FileNames) {
                     filesToAdd.Add(filename);
                     logger.LogDebug("Opened file: " + filename);
                 }
@@ -87,6 +98,7 @@ namespace FileOrganizerUI
                 FileListView.Clear();
                 if (!files.HasError()) {
 
+                    searchResults = files.Result;
                     var thumbnailMap = thumbnailProxy.GetThumbnails(files.Result.ConvertAll<string>(f => f.Fullname));
                     imageList.Images.Clear();
                     foreach (var pair in thumbnailMap) {
@@ -116,10 +128,25 @@ namespace FileOrganizerUI
 
         }
 
+        private void FileListItem_DoubleClick(object sender, MouseEventArgs e)
+        {
+            ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
+            if (item != null) {
+                var selectedFile = searchResults.Find(it => it.Fullname == item.ImageKey);
+                if (selectedFile != null) {
+                    FileInfoModal.Text = selectedFile.Filename;
+                    FileInfoModal.ShowDialog(this);
+                } else {
+                    logger.LogError($"File {item.ImageKey} was missing from cached search results");
+                }
+            }
+        }
+
         private void UpdateMessage(string msg, Color color)
         {
             MessageText.Text = msg;
             MessageText.ForeColor = color;
         }
+
     }
 }

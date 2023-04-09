@@ -43,7 +43,8 @@ namespace FileOrganizerUI
             // 
             // OpenFilePicker
             // 
-            this.OpenFilePicker.Location = new System.Drawing.Point(1082, 591);
+            this.OpenFilePicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.OpenFilePicker.Location = new System.Drawing.Point(1258, 591);
             this.OpenFilePicker.Name = "OpenFilePicker";
             this.OpenFilePicker.Size = new System.Drawing.Size(65, 32);
             this.OpenFilePicker.TabIndex = 0;
@@ -53,6 +54,7 @@ namespace FileOrganizerUI
             // 
             // MessageText
             // 
+            this.MessageText.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.MessageText.AutoSize = true;
             this.MessageText.Location = new System.Drawing.Point(446, 591);
             this.MessageText.MaximumSize = new System.Drawing.Size(1200, 0);
@@ -62,8 +64,9 @@ namespace FileOrganizerUI
             // 
             // UpdateButton
             // 
+            this.UpdateButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.UpdateButton.Enabled = false;
-            this.UpdateButton.Location = new System.Drawing.Point(1165, 591);
+            this.UpdateButton.Location = new System.Drawing.Point(1329, 591);
             this.UpdateButton.Name = "UpdateButton";
             this.UpdateButton.Size = new System.Drawing.Size(83, 32);
             this.UpdateButton.TabIndex = 2;
@@ -74,7 +77,7 @@ namespace FileOrganizerUI
             // 
             this.FileResultHeader.AutoSize = true;
             this.FileResultHeader.Font = new System.Drawing.Font("Segoe UI Semibold", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FileResultHeader.Location = new System.Drawing.Point(247, 16);
+            this.FileResultHeader.Location = new System.Drawing.Point(262, 16);
             this.FileResultHeader.Name = "FileResultHeader";
             this.FileResultHeader.Size = new System.Drawing.Size(135, 32);
             this.FileResultHeader.TabIndex = 4;
@@ -82,16 +85,18 @@ namespace FileOrganizerUI
             // 
             // SearchBox
             // 
+            this.SearchBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SearchBox.Location = new System.Drawing.Point(464, 22);
             this.SearchBox.Name = "SearchBox";
-            this.SearchBox.Size = new System.Drawing.Size(683, 22);
+            this.SearchBox.Size = new System.Drawing.Size(683, 26);
             this.SearchBox.TabIndex = 5;
             // 
             // Search
             // 
+            this.Search.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Search.Location = new System.Drawing.Point(1168, 20);
             this.Search.Name = "Search";
-            this.Search.Size = new System.Drawing.Size(81, 24);
+            this.Search.Size = new System.Drawing.Size(88, 28);
             this.Search.TabIndex = 6;
             this.Search.Text = "Search";
             this.Search.UseVisualStyleBackColor = true;
@@ -99,28 +104,33 @@ namespace FileOrganizerUI
             // 
             // FileListView
             // 
+            this.FileListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.FileListView.HideSelection = false;
-            this.FileListView.Location = new System.Drawing.Point(3, 3);
-            this.FileListView.MaximumSize = new System.Drawing.Size(995, -1);
+            this.FileListView.Location = new System.Drawing.Point(15, 3);
             this.FileListView.MinimumSize = new System.Drawing.Size(995, 530);
             this.FileListView.Name = "FileListView";
-            this.FileListView.Size = new System.Drawing.Size(995, 530);
+            this.FileListView.Size = new System.Drawing.Size(1167, 534);
             this.FileListView.TabIndex = 7;
             this.FileListView.UseCompatibleStateImageBehavior = false;
             // 
             // FilePanel
             // 
+            this.FilePanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.FilePanel.Controls.Add(this.FileListView);
-            this.FilePanel.Location = new System.Drawing.Point(246, 51);
+            this.FilePanel.Location = new System.Drawing.Point(253, 51);
             this.FilePanel.Name = "FilePanel";
-            this.FilePanel.Size = new System.Drawing.Size(1003, 534);
+            this.FilePanel.Size = new System.Drawing.Size(1167, 534);
             this.FilePanel.TabIndex = 8;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1320, 656);
+            this.ClientSize = new System.Drawing.Size(1447, 702);
             this.Controls.Add(this.FilePanel);
             this.Controls.Add(this.Search);
             this.Controls.Add(this.SearchBox);

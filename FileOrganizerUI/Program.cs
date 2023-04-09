@@ -33,10 +33,12 @@ namespace FileOrganizerUI
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
             ClearOldLogs();
+
             dbLocation = ConfigurationManager.AppSettings.Get("DB");
             logger.LogDebug("DB file: " + dbLocation);
             core = new FileOrganizer(logger, ConfigurationManager.AppSettings);
             core.StartUp();
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm(logger, core));
