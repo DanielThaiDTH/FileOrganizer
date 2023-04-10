@@ -37,6 +37,8 @@ namespace FileOrganizerUI
 
             FileDialog = new OpenFileDialog();
             FileDialog.Multiselect = true;
+
+            SearchBox.KeyDown += new KeyEventHandler(Search_Enter);
             
             FilePanel.AutoScroll = true;
             FileListView.MultiSelect = true;
@@ -86,6 +88,39 @@ namespace FileOrganizerUI
 
         private void Search_Click(object sender, EventArgs e)
         {
+            SearchFiles();
+        }
+
+        private void Search_Enter(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) {
+                SearchFiles();
+            }
+        }
+
+        private void FileListItem_DoubleClick(object sender, MouseEventArgs e)
+        {
+            ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
+            if (item != null) {
+                var selectedFile = searchResults.Find(it => it.Fullname == item.ImageKey);
+                if (selectedFile != null) {
+                    FileInfoModal.SetFileInfo(selectedFile);
+                    FileInfoModal.ShowDialog(this);
+                } else {
+                    logger.LogError($"File {item.ImageKey} was missing from cached search results");
+                }
+            }
+        }
+
+        #region Functionality
+        private void UpdateMessage(string msg, Color color)
+        {
+            MessageText.Text = msg;
+            MessageText.ForeColor = color;
+        }
+
+        private void SearchFiles()
+        {
             string errMsg;
             parser.Reset();
             imageList.Images.Clear();
@@ -125,28 +160,8 @@ namespace FileOrganizerUI
                     MessageTooltip.SetToolTip(MessageText, errMsg);
                 }
             }
-
         }
-
-        private void FileListItem_DoubleClick(object sender, MouseEventArgs e)
-        {
-            ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
-            if (item != null) {
-                var selectedFile = searchResults.Find(it => it.Fullname == item.ImageKey);
-                if (selectedFile != null) {
-                    FileInfoModal.Text = selectedFile.Filename;
-                    FileInfoModal.ShowDialog(this);
-                } else {
-                    logger.LogError($"File {item.ImageKey} was missing from cached search results");
-                }
-            }
-        }
-
-        private void UpdateMessage(string msg, Color color)
-        {
-            MessageText.Text = msg;
-            MessageText.ForeColor = color;
-        }
+        #endregion
 
     }
 }

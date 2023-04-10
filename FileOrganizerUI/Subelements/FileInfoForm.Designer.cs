@@ -17,6 +17,7 @@ namespace FileOrganizerUI.Subelements
             if (disposing && (components != null)) {
                 components.Dispose();
             }
+            if (disposing) detailLines.Clear();
             base.Dispose(disposing);
         }
 
@@ -28,13 +29,27 @@ namespace FileOrganizerUI.Subelements
         /// </summary>
         private void InitializeComponent()
         {
+            this.MainVPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.SuspendLayout();
+            // 
+            // MainVPanel
+            // 
+            this.MainVPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.MainVPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.MainVPanel.Location = new System.Drawing.Point(13, 13);
+            this.MainVPanel.Name = "MainVPanel";
+            this.MainVPanel.Size = new System.Drawing.Size(1416, 475);
+            this.MainVPanel.TabIndex = 0;
+            this.MainVPanel.WrapContents = false;
             // 
             // FileInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1441, 500);
+            this.Controls.Add(this.MainVPanel);
             this.Name = "FileInfoForm";
             this.Text = "FileInfoForm";
             this.ResumeLayout(false);
@@ -42,5 +57,7 @@ namespace FileOrganizerUI.Subelements
         }
 
         #endregion
+
+        private System.Windows.Forms.FlowLayoutPanel MainVPanel;
     }
 }
