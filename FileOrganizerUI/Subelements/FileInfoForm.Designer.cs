@@ -34,13 +34,14 @@ namespace FileOrganizerUI.Subelements
             // 
             // MainVPanel
             // 
-            this.MainVPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.MainVPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.MainVPanel.AutoScroll = true;
+            this.MainVPanel.AutoScrollMinSize = new System.Drawing.Size(0, 475);
             this.MainVPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.MainVPanel.Location = new System.Drawing.Point(13, 13);
             this.MainVPanel.Name = "MainVPanel";
-            this.MainVPanel.Size = new System.Drawing.Size(1416, 475);
+            this.MainVPanel.Size = new System.Drawing.Size(718, 475);
             this.MainVPanel.TabIndex = 0;
             this.MainVPanel.WrapContents = false;
             // 

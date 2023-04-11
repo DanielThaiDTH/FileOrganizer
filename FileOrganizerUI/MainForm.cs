@@ -51,6 +51,8 @@ namespace FileOrganizerUI
 
             FileInfoModal = new FileInfoForm(logger);
             FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+
+            SearchBox.Focus();
         }
 
         private void OpenFilePicker_Click(object sender, EventArgs e)
