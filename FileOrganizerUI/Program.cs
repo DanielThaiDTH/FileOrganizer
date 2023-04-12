@@ -32,6 +32,8 @@ namespace FileOrganizerUI
                 .WriteTo.File("log.log", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
+            bool hasLogsDurationSetting = int.TryParse(ConfigurationManager.AppSettings.Get("LogsKeepDuration"), out logKeepDate);
+            if (!hasLogsDurationSetting) logKeepDate = 7;
             ClearOldLogs();
 
             dbLocation = ConfigurationManager.AppSettings.Get("DB");

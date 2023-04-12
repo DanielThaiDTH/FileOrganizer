@@ -6,10 +6,12 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Reactive;
+using System.Reactive.Linq;
 using System.Windows.Forms;
 using Microsoft.Extensions.Logging;
 using FileDBManager;
-using System.IO;
 using FileOrganizerCore;
 
 namespace FileOrganizerUI.Subelements
@@ -22,6 +24,8 @@ namespace FileOrganizerUI.Subelements
         Button HashRefreshButton;
         Button UpdateButton;
         Button CloseButton;
+        Label StatusMessage;
+        IObservable<object> editObservable;
 
         public FileInfoForm(ILogger logger)
         {
@@ -31,7 +35,7 @@ namespace FileOrganizerUI.Subelements
 
             detailLines.Add("Filename", new FlowLayoutPanel());
             detailLines.Add("Path", new FlowLayoutPanel());
-            detailLines.Add("Type", new FlowLayoutPanel());
+            detailLines.Add("FileType", new FlowLayoutPanel());
             detailLines.Add("Altname", new FlowLayoutPanel());
             detailLines.Add("Hash", new FlowLayoutPanel());
             detailLines.Add("Size", new FlowLayoutPanel());
@@ -44,11 +48,37 @@ namespace FileOrganizerUI.Subelements
             this.Text = file.Fullname;
             detailLines["Filename"].Controls[1].Text = file.Filename;
             detailLines["Path"].Controls[1].Text = file.Path;
-            detailLines["Type"].Controls[1].Text = file.FileType;
+            detailLines["FileType"].Controls[1].Text = file.FileType;
             detailLines["Altname"].Controls[1].Text = file.Altname;
             detailLines["Hash"].Controls[1].Text = file.Hash;
             detailLines["Hash"].Controls[1].KeyDown += PreventInput;
             detailLines["Size"].Controls[1].Text = file.Size.ToString();
+
+            editObservable = Observable.FromEventPattern(handler => {
+                detailLines["Filename"].Controls[1].TextChanged += handler;
+                detailLines["Path"].Controls[1].TextChanged += handler;
+                detailLines["FileType"].Controls[1].TextChanged += handler;
+                detailLines["Altname"].Controls[1].TextChanged += handler;
+                detailLines["Hash"].Controls[1].TextChanged += handler;
+                detailLines["Size"].Controls[1].TextChanged += handler;
+            },
+            handler => {
+                detailLines["Filename"].Controls[1].TextChanged -= handler;
+                detailLines["Path"].Controls[1].TextChanged -= handler;
+                detailLines["FileType"].Controls[1].TextChanged -= handler;
+                detailLines["Altname"].Controls[1].TextChanged -= handler;
+                detailLines["Hash"].Controls[1].TextChanged -= handler;
+                detailLines["Size"].Controls[1].TextChanged -= handler;
+            });
+
+            editObservable.Subscribe((args) => {
+                bool changed = detailLines.Any(dl => 
+                    dl.Value.Controls[1].Text != typeof(GetFileMetadataType).GetProperty(dl.Key).GetValue(fileInfo, null).ToString());
+                UpdateButton.Enabled = changed;
+                //changed = detailLines["Filename"].Controls[1].Text != fileInfo.Filename;
+                //if (!changed) changed = detailLines["Path"].Controls[1].Text != fileInfo.Path;
+                //if (!changed) changed = detailLines["Path"].Controls[1].Text != fileInfo.Path;
+            });
         }
 
         private void PreventInput(object sender, KeyEventArgs e)
@@ -98,10 +128,13 @@ namespace FileOrganizerUI.Subelements
             UpdateButton = new Button();
             CloseButton = new Button();
             UpdateButton.Text = "Update";
+            UpdateButton.Enabled = false;
             CloseButton.Text = "Close";
             lastPanel.Controls.Add(UpdateButton);
             lastPanel.Controls.Add(CloseButton);
             MainVPanel.Controls.Add(lastPanel);
+            StatusMessage = new Label();
+            MainVPanel.Controls.Add(StatusMessage);
         }
 
         private void RefreshHash(string path)
@@ -110,7 +143,18 @@ namespace FileOrganizerUI.Subelements
             logger.LogInformation("Re-hashing " + path);
             string hash = FileOrganizerCore.Utilities.Hasher.HashFile(path, in result);
             logger.LogDebug("New hash " + hash);
-            detailLines["Hash"].Controls[1].Text = hash;
+            if (string.IsNullOrEmpty(hash)) {
+                logger.LogWarning("Unable to re-hash file");
+                UpdateMessage("Unable to re-hash file", Color.FromArgb(200, 50, 50));
+            } else {
+                detailLines["Hash"].Controls[1].Text = hash;
+            }
+        }
+
+        private void UpdateMessage(string msg, Color color)
+        {
+            StatusMessage.Text = msg;
+            StatusMessage.ForeColor = color;
         }
         #endregion
     }
