@@ -578,6 +578,28 @@ namespace FileDBManager.Entities
 
         }
 
+        /// <summary>
+        ///     Builds a filter from metadata object. Created value not created 
+        ///     and size filter defaults to greater than or equal to. 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static FileSearchFilter FromMetadata(FileMetadata data)
+        {
+            FileSearchFilter filter = new FileSearchFilter();
+
+            if (data.UsingFilename) filter.SetFilenameFilter(data.Filename);
+            if (data.UsingAltname) filter.SetAltnameFilter(data.Altname);
+            if (data.UsingFileType) filter.SetFileTypeFilter(data.FileType);
+            if (data.UsingFileTypeID) filter.SetFileTypeIDFilter(data.FileTypeID);
+            if (data.UsingHash) filter.SetHashFilter(data.Hash);
+            if (data.UsingPath) filter.SetPathFilter(data.Path);
+            if (data.UsingPathID) filter.SetPathIDFilter(data.PathID);
+            if (data.UsingSize) filter.SetSizeFilter(data.Size, false);
+
+            return filter;
+        }
+
         public override string ToString()
         {
             string str = "ID: ";

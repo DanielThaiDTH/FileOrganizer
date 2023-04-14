@@ -111,7 +111,7 @@ namespace FileOrganizerCore
             return res;
         }
 
-        public ActionResult<bool> UpdateFileData(FileSearchFilter newInfo, FileSearchFilter filter)
+        public ActionResult<bool> UpdateFileData(FileMetadata newInfo, FileSearchFilter filter)
         {
             var res = new ActionResult<bool>();
 
@@ -125,6 +125,20 @@ namespace FileOrganizerCore
             res.SetResult(status);
 
             return res;
+        }
+
+        public ActionResult<bool> UpdateFileData(FileMetadata newInfo, int id)
+        {
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetIDFilter(id);
+            return UpdateFileData(newInfo, filter);
+        }
+
+        public ActionResult<bool> UpdateFileData(FileMetadata newInfo, string filename)
+        {
+            FileSearchFilter filter = new FileSearchFilter();
+            filter.SetFilenameFilter(filename);
+            return UpdateFileData(newInfo, filter);
         }
 
         /// <summary>

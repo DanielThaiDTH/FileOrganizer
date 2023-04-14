@@ -9,6 +9,7 @@ namespace FileDBManager.Entities
     //[Table("Files")]
     public class FileMetadata
     {
+        #region TableDef
         public static string TableName = "Files";
         public static Dictionary<string, string> Columns
             = new Dictionary<string, string>(){
@@ -40,7 +41,7 @@ namespace FileDBManager.Entities
         public string Filename { get; set; }
 
         //[Column("AltName")]
-        public string AltName { get; set; }
+        public string Altname { get; set; }
 
         //[Indexed]
         //[Column("FileType")]
@@ -51,6 +52,98 @@ namespace FileDBManager.Entities
         public long Size { get; set; }
         public DateTime Created { get; set; }
         //public DateTime Modified { get; set; }
+        #endregion
+
+        public string Path { get; private set; }
+        public string FileType { get; private set; }
+
+        public bool UsingID { get; private set; } = false;
+        public bool UsingPathID { get; private set; } = false;
+        public bool UsingPath { get; private set; } = false;
+        public bool UsingFilename { get; private set; } = false;
+        public bool UsingHash { get; private set; } = false;
+        public bool UsingAltname { get; private set; } = false;
+        public bool UsingSize { get; private set; } = false;
+        public bool UsingCreated { get; private set; } = false;
+        public bool UsingFileType { get; private set; } = false;
+        public bool UsingFileTypeID { get; private set; } = false;
+
+        public bool IsEmpty { get {
+                return !(UsingID || UsingPathID || UsingPath
+                    || UsingFilename || UsingAltname || UsingFileTypeID
+                    || UsingFileType || UsingHash || UsingCreated
+                    || UsingSize);
+            } }
+
+        public FileMetadata SetFilename(string filename)
+        {
+            UsingFilename = true;
+            Filename = filename;
+            return this;
+        }
+
+        public FileMetadata SetID(int id)
+        {
+            UsingID = true;
+            this.ID = id;
+            return this;
+        }
+
+        public FileMetadata SetPathID(int id)
+        {
+            UsingPathID = true;
+            PathID = id;
+            return this;
+        }
+
+        public FileMetadata SetPath(string path)
+        {
+            UsingPath = true;
+            Path = path;
+            return this;
+        }
+
+        public FileMetadata SetHash(string hash)
+        {
+            UsingHash = true;
+            Hash = hash;
+            return this;
+        }
+
+        public FileMetadata SetAltname(string altname)
+        {
+            UsingAltname = true;
+            Altname = altname;
+            return this;
+        }
+
+        public FileMetadata SetSize(long size)
+        {
+            UsingSize = true;
+            Size = size;
+            return this;
+        }
+
+        public FileMetadata SetCreated(DateTime created)
+        {
+            UsingCreated = true;
+            Created = created;
+            return this;
+        }
+
+        public FileMetadata SetFileType(string fileType)
+        {
+            UsingFileType = true;
+            FileType = fileType;
+            return this;
+        }
+
+        public FileMetadata SetFileTypeID(int id)
+        {
+            UsingFileTypeID = true;
+            FileTypeID = id;
+            return this;
+        }
     }
 
     

@@ -73,81 +73,6 @@ namespace FileDBManager
             return result;
         }
 
-        private void BuildWhereArrays(FileSearchFilter filter, ref List<string> wheres, ref List<object> whereValues)
-        {
-            if (filter.UsingID) {
-                wheres.Add("Files.ID = ? ");
-                whereValues.Add(filter.ID);
-            }
-            if (filter.UsingPathID) {
-                wheres.Add("PathID = ? ");
-                whereValues.Add(filter.PathID);
-            }
-            if (filter.UsingFilename) {
-                if (filter.FilenameFilterExact) {
-                    wheres.Add("Filename = ?");
-                    whereValues.Add(filter.Filename);
-                } else {
-                    wheres.Add("Filename LIKE ?");
-                    whereValues.Add("%" + filter.Filename + "%");
-                }
-            }
-            if (filter.UsingFullname) {
-                if (filter.FullnameFilterExact) {
-                    wheres.Add("Path || '\\' || Filename = ?");
-                    whereValues.Add(filter.Fullname);
-                } else {
-                    wheres.Add("Path || '\\' || Filename LIKE ?");
-                    whereValues.Add("%" + filter.Fullname + "%");
-                }
-            }
-            if (filter.UsingAltname) {
-                if (filter.AltnameFilterExact) {
-                    wheres.Add("Altname = ?");
-                    whereValues.Add(filter.Altname);
-                } else {
-                    wheres.Add("Altname LIKE ?");
-                    whereValues.Add("%" + filter.Altname + "%");
-                }
-            }
-            if (filter.UsingFileTypeID) {
-                wheres.Add("FileTypeID = ?");
-                whereValues.Add(filter.FileTypeID);
-            }
-            if (filter.UsingHash) {
-                if (filter.HashFilterExact) {
-                    wheres.Add("Hash = ?");
-                    whereValues.Add(filter.Hash);
-                } else {
-                    wheres.Add("Hash LIKE ?");
-                    whereValues.Add("%" + filter.Hash + "%");
-                }
-            }
-            if (filter.UsingPath) {
-                if (filter.PathFilterExact) {
-                    wheres.Add("Path = ?");
-                    whereValues.Add(filter.Path);
-                } else {
-                    wheres.Add("Path LIKE ?");
-                    whereValues.Add("%" + filter.Path + "%");
-                }
-            }
-            if (filter.UsingFileType) {
-                if (filter.FileTypeFilterExact) {
-                    wheres.Add("Name = ?");
-                    whereValues.Add(filter.FileType);
-                } else {
-                    wheres.Add("Name LIKE ?");
-                    whereValues.Add("%" + filter.FileType + "%");
-                }
-            }
-            if (filter.UsingSize) {
-                string comp = filter.IsSizeLesser ? "<=" : ">=";
-                wheres.Add("Size " + comp + " ?");
-                whereValues.Add(filter.Size);
-            }
-        }
-
         private void CreateTable(string name, Dictionary<string, string> cols, string constraint = null)
         {
             string query = "CREATE TABLE IF NOT EXISTS " + name + "\n (";
@@ -502,14 +427,12 @@ namespace FileDBManager
         }
 
         /// <summary>
-        ///     Updates a file's metadata. The info object must 
-        ///     have the file ID. Tags and created dates are updated 
-        ///     in another method.
+        ///     Updates a file's metadata. 
         /// </summary>
         /// <param name="newInfo"></param>
         /// <param name="filter"></param>
-        /// <returns>Status of update</returns>
-        public bool UpdateFileMetadata(FileSearchFilter newInfo, FileSearchFilter filter)
+        /// <returns></returns>
+        public bool UpdateFileMetadata(FileMetadata newInfo, FileSearchFilter filter)
         {
             List<string> cols = new List<string>();
             List<object> vals = new List<object>();
@@ -607,6 +530,32 @@ namespace FileDBManager
         }
 
         /* End File Section */
+
+        /* Misc Section */
+
+        /// <summary>
+        ///     Changes the path of all files using the path with 
+        ///     the given ID.
+        /// </summary>
+        /// <param name="pathID"></param>
+        /// <param name="newPath"></param>
+        /// <returns></returns>
+        public bool ChangePath(int pathID, string newPath)
+        {
+            if (string.IsNullOrWhiteSpace(newPath) || !Path.IsPathRooted(newPath)) {
+                logger.LogWarning($"Could not change the path of {pathID} to " + newPath);
+                return false;
+            }
+
+            string statment = createStatement("UPDATE FilePaths SET Path=? WHERE ID=?", newPath, pathID);
+            bool result = ExecuteNonQuery(statment) == 1;
+
+            if (!result) logger.LogWarning($"Failed to change path value of {pathID} to {newPath}");
+
+            return result;
+        }
+
+        /* End Misc Section */
 
         public void CloseConnection()
         {

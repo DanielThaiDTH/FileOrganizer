@@ -75,9 +75,6 @@ namespace FileOrganizerUI.Subelements
                 bool changed = detailLines.Any(dl => 
                     dl.Value.Controls[1].Text != typeof(GetFileMetadataType).GetProperty(dl.Key).GetValue(fileInfo, null).ToString());
                 UpdateButton.Enabled = changed;
-                //changed = detailLines["Filename"].Controls[1].Text != fileInfo.Filename;
-                //if (!changed) changed = detailLines["Path"].Controls[1].Text != fileInfo.Path;
-                //if (!changed) changed = detailLines["Path"].Controls[1].Text != fileInfo.Path;
             });
         }
 
@@ -92,6 +89,11 @@ namespace FileOrganizerUI.Subelements
         private void HashRefresh_Click(object sender, EventArgs e)
         {
             RefreshHash(Path.Combine(detailLines["Path"].Controls[1].Text, detailLines["Filename"].Controls[1].Text));
+        }
+
+        private void Update_Click(object sender, EventArgs e)
+        {
+
         }
 
         #region Functionality
@@ -129,6 +131,7 @@ namespace FileOrganizerUI.Subelements
             CloseButton = new Button();
             UpdateButton.Text = "Update";
             UpdateButton.Enabled = false;
+            UpdateButton.Click += Update_Click;
             CloseButton.Text = "Close";
             lastPanel.Controls.Add(UpdateButton);
             lastPanel.Controls.Add(CloseButton);

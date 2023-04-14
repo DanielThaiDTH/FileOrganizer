@@ -535,26 +535,26 @@ namespace FileDBManager.Test
         {
             Log.Information("TEST: UpdateFileMetadataChangesFile");
             fix.db.AddFile(@"C:\Temp\file_to_update", "text", "aaa", "first_alt");
-            FileSearchFilter updateValues = new FileSearchFilter();
+            FileMetadata updateValues = new FileMetadata();
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("file_to_update", true);
-            updateValues.SetFilenameFilter("updated_name")
-                        .SetFileTypeFilter("bin")
-                        .SetHashFilter("bbb")
-                        .SetAltnameFilter("second_alt");
-            Assert.Empty(fix.db.GetFileMetadata(updateValues));
+            updateValues.SetFilename("updated_name")
+                        .SetFileType("bin")
+                        .SetHash("bbb")
+                        .SetAltname("second_alt");
+            Assert.Empty(fix.db.GetFileMetadata(FileSearchFilter.FromMetadata(updateValues)));
             Assert.True(fix.db.UpdateFileMetadata(updateValues, filter));
-            Assert.Single(fix.db.GetFileMetadata(updateValues));
+            Assert.Single(fix.db.GetFileMetadata(FileSearchFilter.FromMetadata(updateValues)));
         }
 
         [Fact]
         public void UpdateFileMetadataReturnsFalseUsingFilterWithNoMatch()
         {
             Log.Information("TEST: UpdateFileMetadataReturnsFalseUsingFilterWithNoMatch");
-            FileSearchFilter updateValues = new FileSearchFilter();
+            FileMetadata updateValues = new FileMetadata();
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("cannot_be_found", true);
-            updateValues.SetFilenameFilter("unused");
+            updateValues.SetFilename("unused");
             Assert.False(fix.db.UpdateFileMetadata(updateValues, filter));
         }
 
@@ -563,7 +563,7 @@ namespace FileDBManager.Test
         {
             Log.Information("TEST: UpdateFileMetadataReturnsFalseWithNoValues");
             fix.db.AddFile(@"C:\Temp\file_to_not_update", "text", "aaa", "first_alt");
-            FileSearchFilter updateValues = new FileSearchFilter();
+            FileMetadata updateValues = new FileMetadata();
             FileSearchFilter filter = new FileSearchFilter();
             filter.SetFilenameFilter("file_to_not_update", true);
             Assert.False(fix.db.UpdateFileMetadata(updateValues, filter));
@@ -574,9 +574,9 @@ namespace FileDBManager.Test
         {
             Log.Information("TEST: UpdateFileMetadataReturnsFalseWithNoFilters");
             fix.db.AddFile(@"C:\Temp\file_to_not_update2", "text", "aaa", "first_alt");
-            FileSearchFilter updateValues = new FileSearchFilter();
+            FileMetadata updateValues = new FileMetadata();
             FileSearchFilter filter = new FileSearchFilter();
-            updateValues.SetFilenameFilter("unused");
+            updateValues.SetFilename("unused");
             Assert.False(fix.db.UpdateFileMetadata(updateValues, filter));
         }
 
@@ -1038,9 +1038,16 @@ namespace FileDBManager.Test
         }
 
         [Fact]
-        public void NetTest()
+        public void ChangePathChangesForAllAssociatedFiles()
         {
-            //fix.db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), fix.logger);
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"O:\oldpath\path_file1", "bin", "aaa");
+            fix.db.AddFile(@"O:\oldpath\path_file2", "bin", "aaa");
+            var info = fix.db.GetFileMetadata(new FileSearchFilter().SetPathFilter(@"O:\oldpath"))[0];
+            int pathID = info.PathID;
+            Assert.True(fix.db.ChangePath(pathID, @"N:\newpath"));
+            Assert.Empty(fix.db.GetFileMetadata(new FileSearchFilter().SetPathFilter(@"O:\oldpath")));
+            Assert.Equal(2, fix.db.GetFileMetadata(new FileSearchFilter().SetPathFilter(@"N:\newpath")).Count);
         }
     }
 }
