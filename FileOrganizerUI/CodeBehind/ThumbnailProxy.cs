@@ -78,6 +78,32 @@ namespace FileOrganizerUI.CodeBehind
         }
 
         /// <summary>
+        ///     Returns a thumbnail for a file.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public Image GetThumbnail(string file)
+        {
+            string filepath = file;
+            if (!Path.IsPathRooted(file)) {
+                logger.LogInformation($"Using file root of {root} to locate {file}");
+                filepath = Path.Combine(root, file);
+            }
+
+            Bitmap thumbnailData = null;
+            try {
+                ShellFile shellfile = ShellFile.FromFilePath(filepath);
+                thumbnailData = shellfile.Thumbnail.LargeBitmap;
+            }
+            catch (Exception ex) {
+                logger.LogError(ex, "File load error: " + ex.GetType().ToString());
+                logger.LogDebug(ex.StackTrace);
+            }
+
+            return thumbnailData;
+        }
+
+        /// <summary>
         ///     Returns thumbnail images in a dictionary for a list of files. The list 
         ///     should be rooted or if not will use the proxy class root. The dictionary 
         ///     uses the full path of the file as an image key.
@@ -94,15 +120,7 @@ namespace FileOrganizerUI.CodeBehind
                     filepath = Path.Combine(root, file);
                 }
 
-                Bitmap thumbnailData = null;
-                try {
-                    ShellFile shellfile = ShellFile.FromFilePath(filepath);
-                    thumbnailData = shellfile.Thumbnail.LargeBitmap;
-                }
-                catch (Exception ex) {
-                    logger.LogError(ex, "File load error: " + ex.GetType().ToString());
-                    logger.LogDebug(ex.StackTrace);
-                }
+                Image thumbnailData = GetThumbnail(filepath);
 
                 if (thumbnailData != null) {
                     imageList.Add(filepath, thumbnailData);

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using FileOrganizerCore;
 using FileOrganizerUI.CodeBehind;
 using FileDBManager;
+using FileDBManager.Entities;
 using FileOrganizerUI.Subelements;
 
 
@@ -49,7 +50,7 @@ namespace FileOrganizerUI
             imageList = new ImageList();
             imageList.ImageSize = new Size(32, 32);
 
-            FileInfoModal = new FileInfoForm(logger);
+            FileInfoModal = new FileInfoForm(logger, core);
             FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
             SearchBox.Focus();
@@ -107,7 +108,36 @@ namespace FileOrganizerUI
                 var selectedFile = searchResults.Find(it => it.Fullname == item.ImageKey);
                 if (selectedFile != null) {
                     FileInfoModal.SetFileInfo(selectedFile);
-                    FileInfoModal.ShowDialog(this);
+                    var dialogResult = FileInfoModal.ShowDialog(this);
+                    
+                    if (dialogResult == DialogResult.OK || dialogResult == DialogResult.None 
+                        || dialogResult == DialogResult.Cancel) {
+                        if (FileInfoModal.IsUpdated) {
+                            var updated = core.GetFileData(new FileSearchFilter().SetIDFilter(selectedFile.ID));
+                            if (updated.Result.Count == 1) {
+                                searchResults.Remove(selectedFile);
+                                searchResults.Add(updated.Result[0]);
+                                FileListView.Items.Remove(item);
+                                FileListView.BeginUpdate();
+                                var thumbnail = thumbnailProxy.GetThumbnail(updated.Result[0].Fullname);
+                                FileListView.LargeImageList.Images.RemoveByKey(selectedFile.Fullname);
+                                FileListView.LargeImageList.Images.Add(updated.Result[0].Fullname, thumbnail);
+                                FileListView.Items.Add(new ListViewItem(updated.Result[0].Filename, updated.Result[0].Fullname));
+                                FileListView.EndUpdate();
+                            } else {
+                                UpdateMessage("Updated file missing", Color.FromArgb(200, 50, 50));
+                            }
+                        }
+                        FileInfoModal.ClearFileInfo(); 
+                    } else if (dialogResult == DialogResult.No) {
+                        FileInfoModal.ClearFileInfo();
+                        FileListView.BeginUpdate();
+                        searchResults.Remove(selectedFile);
+                        FileListView.Items.Remove(item);
+                        FileListView.LargeImageList.Images.RemoveByKey(selectedFile.Fullname);
+                        FileListView.EndUpdate();
+                    }
+
                 } else {
                     logger.LogError($"File {item.ImageKey} was missing from cached search results");
                 }
@@ -144,7 +174,7 @@ namespace FileOrganizerUI
 
                     FileListView.BeginUpdate();
                     FileListView.LargeImageList = imageList;
-                    FileListView.SmallImageList = imageList;
+                    //FileListView.SmallImageList = imageList;
                     foreach (var filedata in files.Result) {
                         FileListView.Items.Add(new ListViewItem(filedata.Filename, filedata.Fullname));
                     }

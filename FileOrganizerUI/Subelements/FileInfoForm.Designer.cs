@@ -17,7 +17,10 @@ namespace FileOrganizerUI.Subelements
             if (disposing && (components != null)) {
                 components.Dispose();
             }
-            if (disposing) detailLines.Clear();
+            if (disposing) {
+                detailLines.Clear();
+                fileInfo = null;
+            }
             base.Dispose(disposing);
         }
 

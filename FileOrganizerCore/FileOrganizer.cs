@@ -241,7 +241,7 @@ namespace FileOrganizerCore
             return symlinkmaker.Root;
         }
 
-        private long GetFileSize(string filename, in ActionResult<bool> res)
+        public long GetFileSize(string filename, in ActionResult<bool> res)
         {
             long size = 0;
             try {
