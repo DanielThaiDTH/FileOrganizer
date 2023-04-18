@@ -26,10 +26,14 @@ namespace FileOrganizerUI.Subelements
         Button HashRefreshButton;
         Button UpdateButton;
         Button CloseButton;
+        Button DeleteButton;
         Label StatusMessage;
         IObservable<object> editObservable;
         IDisposable editDispose;
+        DeleteConfirmModal DeleteModal;
+
         public bool IsUpdated { get; private set; } = false;
+        public bool IsDeleted { get; private set; } = false;
 
         public FileInfoForm(ILogger logger, FileOrganizer core)
         {
@@ -44,6 +48,8 @@ namespace FileOrganizerUI.Subelements
             detailLines.Add("Altname", new FlowLayoutPanel());
             detailLines.Add("Hash", new FlowLayoutPanel());
             detailLines.Add("Size", new FlowLayoutPanel());
+            DeleteModal = new DeleteConfirmModal();
+            DeleteModal.FormBorderStyle = FormBorderStyle.FixedDialog;
             LayoutSetup();
         }
 
@@ -71,6 +77,7 @@ namespace FileOrganizerUI.Subelements
         {
             fileInfo = new GetFileMetadataType();
             IsUpdated = false;
+            IsDeleted = false;
             Text = "";
             editDispose.Dispose();
             detailLines["Filename"].Controls[1].Text = "";
@@ -119,7 +126,27 @@ namespace FileOrganizerUI.Subelements
 
         private void Close_Click(object sender, EventArgs e)
         {
+            var result = CloseButton.DialogResult;
             Close();
+            DialogResult = result;
+        }
+
+        private void Delete_Click(object sender, EventArgs e)
+        {
+            DeleteModal.Text = "Delete " + fileInfo.Fullname;
+            var result = DeleteModal.ShowDialog(this);
+            if (result == DialogResult.Yes) {
+                var deleteResult = core.DeleteFile(fileInfo.ID);
+                if (deleteResult.Result) {
+                    logger.LogInformation("Closing info screen for deleted file " + fileInfo.Fullname);
+                    IsDeleted = true;
+                    DialogResult = DialogResult.No;
+                    Close();
+                    DialogResult = DialogResult.No;
+                } else {
+                    UpdateMessage(deleteResult.GetErrorMessage(0), Color.FromArgb(200, 50, 50));
+                }
+            }
         }
 
         #region Functionality
@@ -160,13 +187,18 @@ namespace FileOrganizerUI.Subelements
             lastPanel.AutoSize = true;
             UpdateButton = new Button();
             CloseButton = new Button();
+            DeleteButton = new Button();
             UpdateButton.Text = "Update";
             UpdateButton.Enabled = false;
             UpdateButton.Click += Update_Click;
             CloseButton.Text = "Close";
             CloseButton.DialogResult = DialogResult.OK;
+            CloseButton.Click += Close_Click;
+            DeleteButton.Text = "Delete";
+            DeleteButton.Click += Delete_Click;
             lastPanel.Controls.Add(UpdateButton);
             lastPanel.Controls.Add(CloseButton);
+            lastPanel.Controls.Add(DeleteButton);
             MainVPanel.Controls.Add(lastPanel);
             StatusMessage = new Label();
             MainVPanel.Controls.Add(StatusMessage);

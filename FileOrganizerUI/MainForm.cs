@@ -46,6 +46,7 @@ namespace FileOrganizerUI
             FileListView.View = View.Tile;
             FileListView.BackColor = Color.White;
             FileListView.MouseDoubleClick += new MouseEventHandler(FileListItem_DoubleClick);
+            FileListView.KeyDown += FileListView_SelectAll;
 
             imageList = new ImageList();
             imageList.ImageSize = new Size(32, 32);
@@ -129,7 +130,7 @@ namespace FileOrganizerUI
                             }
                         }
                         FileInfoModal.ClearFileInfo(); 
-                    } else if (dialogResult == DialogResult.No) {
+                    } else if (dialogResult == DialogResult.No && FileInfoModal.IsDeleted) {
                         FileInfoModal.ClearFileInfo();
                         FileListView.BeginUpdate();
                         searchResults.Remove(selectedFile);
@@ -141,6 +142,16 @@ namespace FileOrganizerUI
                 } else {
                     logger.LogError($"File {item.ImageKey} was missing from cached search results");
                 }
+            }
+        }
+
+        private void FileListView_SelectAll(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.A && e.Control) {
+                foreach (ListViewItem item in FileListView.Items) {
+                    item.Selected = true;
+                }
+                e.SuppressKeyPress = true;
             }
         }
 

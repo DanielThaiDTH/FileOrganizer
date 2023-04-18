@@ -59,6 +59,12 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Subelements\DeleteConfirmModal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Subelements\DeleteConfirmModal.Designer.cs">
+      <DependentUpon>DeleteConfirmModal.cs</DependentUpon>
+    </Compile>
     <Compile Include="Subelements\FileInfoForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -77,6 +83,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Subelements\DeleteConfirmModal.resx">
+      <DependentUpon>DeleteConfirmModal.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Subelements\FileInfoForm.resx">
       <DependentUpon>FileInfoForm.cs</DependentUpon>
     </EmbeddedResource>
