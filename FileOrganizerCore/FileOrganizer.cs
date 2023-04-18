@@ -24,6 +24,7 @@ namespace FileOrganizerCore
         FileDBManagerClass db;
         FileTypeDeterminer typeDet;
         ConfigLoader configLoader;
+
         private string root;
         private readonly string configFilename = "config.xml";
 
@@ -123,6 +124,7 @@ namespace FileOrganizerCore
                 if (!Path.IsPathRooted(path)) path = Path.Combine(root, path);
                 if (Directory.Exists(path)) {
                     symlinkmaker = new SymLinkMaker.SymLinkMaker(path, logger);
+                    
                     res.SetResult(true);
                 } else {
                     throw new ArgumentException("Folder not found");

@@ -38,6 +38,8 @@ namespace FileOrganizerUI
             this.Search = new System.Windows.Forms.Button();
             this.FileListView = new System.Windows.Forms.ListView();
             this.FilePanel = new System.Windows.Forms.Panel();
+            this.CreateSymLinksButton = new System.Windows.Forms.Button();
+            this.AppSettingsButton = new System.Windows.Forms.Button();
             this.FilePanel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -126,11 +128,33 @@ namespace FileOrganizerUI
             this.FilePanel.Size = new System.Drawing.Size(1167, 534);
             this.FilePanel.TabIndex = 8;
             // 
+            // CreateSymLinksButton
+            // 
+            this.CreateSymLinksButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.CreateSymLinksButton.Location = new System.Drawing.Point(1258, 629);
+            this.CreateSymLinksButton.Name = "CreateSymLinksButton";
+            this.CreateSymLinksButton.Size = new System.Drawing.Size(154, 32);
+            this.CreateSymLinksButton.TabIndex = 9;
+            this.CreateSymLinksButton.Text = "Create Symlinks";
+            this.CreateSymLinksButton.UseVisualStyleBackColor = true;
+            this.CreateSymLinksButton.Click += new System.EventHandler(this.CreateSymLinksButton_Click);
+            // 
+            // AppSettingsButton
+            // 
+            this.AppSettingsButton.Location = new System.Drawing.Point(1316, 20);
+            this.AppSettingsButton.Name = "AppSettingsButton";
+            this.AppSettingsButton.Size = new System.Drawing.Size(75, 28);
+            this.AppSettingsButton.TabIndex = 10;
+            this.AppSettingsButton.Text = "Settings";
+            this.AppSettingsButton.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1447, 702);
+            this.Controls.Add(this.AppSettingsButton);
+            this.Controls.Add(this.CreateSymLinksButton);
             this.Controls.Add(this.FilePanel);
             this.Controls.Add(this.Search);
             this.Controls.Add(this.SearchBox);
@@ -157,5 +181,7 @@ namespace FileOrganizerUI
         private System.Windows.Forms.Button Search;
         private System.Windows.Forms.ListView FileListView;
         private System.Windows.Forms.Panel FilePanel;
+        private System.Windows.Forms.Button CreateSymLinksButton;
+        private System.Windows.Forms.Button AppSettingsButton;
     }
 }

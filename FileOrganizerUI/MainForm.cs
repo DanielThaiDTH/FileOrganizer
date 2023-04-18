@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Configuration;
 using Microsoft.Extensions.Logging;
 using FileOrganizerCore;
 using FileOrganizerUI.CodeBehind;
@@ -20,6 +21,7 @@ namespace FileOrganizerUI
     public partial class MainForm : Form
     {
         private OpenFileDialog FileDialog;
+        private FolderBrowserDialog SymLinkFolderDialog;
         private FileInfoForm FileInfoModal;
         private ILogger logger;
         private FileOrganizer core;
@@ -27,6 +29,7 @@ namespace FileOrganizerUI
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
         private List<GetFileMetadataType> searchResults;
+        public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50); 
 
         public MainForm(ILogger logger, FileOrganizer core)
         {
@@ -38,6 +41,8 @@ namespace FileOrganizerUI
 
             FileDialog = new OpenFileDialog();
             FileDialog.Multiselect = true;
+
+            SymLinkFolderDialog = new FolderBrowserDialog();
 
             SearchBox.KeyDown += new KeyEventHandler(Search_Enter);
             
@@ -55,8 +60,10 @@ namespace FileOrganizerUI
             FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
             SearchBox.Focus();
+            
         }
 
+        #region Handlers
         private void OpenFilePicker_Click(object sender, EventArgs e)
         {
             if (FileDialog.ShowDialog() == DialogResult.OK) {
@@ -78,7 +85,7 @@ namespace FileOrganizerUI
                         }
                     }
                     errMsg += $"Adding files resulted in {good} successes and {bad} failures\n\n";
-                    UpdateMessage(errMsg, Color.FromArgb(200, 50, 50));
+                    UpdateMessage(errMsg, ErrorMsgColor);
                     foreach (string msg in res.Messages) {
                         errMsg += msg + "\n";
                     }
@@ -119,6 +126,7 @@ namespace FileOrganizerUI
                                 searchResults.Remove(selectedFile);
                                 searchResults.Add(updated.Result[0]);
                                 FileListView.Items.Remove(item);
+
                                 FileListView.BeginUpdate();
                                 var thumbnail = thumbnailProxy.GetThumbnail(updated.Result[0].Fullname);
                                 FileListView.LargeImageList.Images.RemoveByKey(selectedFile.Fullname);
@@ -126,7 +134,7 @@ namespace FileOrganizerUI
                                 FileListView.Items.Add(new ListViewItem(updated.Result[0].Filename, updated.Result[0].Fullname));
                                 FileListView.EndUpdate();
                             } else {
-                                UpdateMessage("Updated file missing", Color.FromArgb(200, 50, 50));
+                                UpdateMessage("Updated file missing", ErrorMsgColor);
                             }
                         }
                         FileInfoModal.ClearFileInfo(); 
@@ -135,6 +143,7 @@ namespace FileOrganizerUI
                         FileListView.BeginUpdate();
                         searchResults.Remove(selectedFile);
                         FileListView.Items.Remove(item);
+                        core.ActiveFiles.RemoveAll(f => f.ID == selectedFile.ID);
                         FileListView.LargeImageList.Images.RemoveByKey(selectedFile.Fullname);
                         FileListView.EndUpdate();
                     }
@@ -155,6 +164,22 @@ namespace FileOrganizerUI
             }
         }
 
+        private void CreateSymLinksButton_Click(object sender, EventArgs e)
+        {
+            var status = core.CreateSymLinksFromActiveFiles();
+            if (!status.Result) {
+                UpdateMessage($"Create symlinks failure for folder {core.GetSymLinksRoot()}: {status.Count} errors ",ErrorMsgColor);
+                string errMsg= "";
+                foreach (string msg in status.Messages) {
+                    errMsg += msg + "\n";
+                }
+                MessageTooltip.SetToolTip(MessageText, errMsg);
+            } else {
+                UpdateMessage("Created symlinks at " + core.GetSymLinksRoot(), Color.Black);
+            }
+        }
+        #endregion
+
         #region Functionality
         private void UpdateMessage(string msg, Color color)
         {
@@ -170,7 +195,7 @@ namespace FileOrganizerUI
             bool parseResult = parser.Parse(SearchBox.Text.Trim(), out errMsg);
 
             if (!parseResult) {
-                UpdateMessage(errMsg, Color.FromArgb(200, 50, 50));
+                UpdateMessage(errMsg, ErrorMsgColor);
             } else {
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
@@ -195,7 +220,7 @@ namespace FileOrganizerUI
                     MessageTooltip.RemoveAll();
                 } else {
                     errMsg = "Failed to query files";
-                    UpdateMessage(errMsg, Color.FromArgb(200, 50, 50));
+                    UpdateMessage(errMsg, ErrorMsgColor);
                     errMsg = "";
                     foreach (string msg in files.Messages) {
                         errMsg += msg + "\n";
@@ -204,7 +229,19 @@ namespace FileOrganizerUI
                 }
             }
         }
+
+        private void SetSymLinkFolderRoot(string filepath)
+        {
+            Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.AppSettings.Settings["DefaultFolder"].Value = filepath;
+            config.Save(ConfigurationSaveMode.Modified);
+            var result = core.SetSymLinkFolder(filepath);
+            if (!result.Result) {
+                UpdateMessage(result.GetErrorMessage(0), ErrorMsgColor);
+            }
+        }
         #endregion
 
+        
     }
 }
