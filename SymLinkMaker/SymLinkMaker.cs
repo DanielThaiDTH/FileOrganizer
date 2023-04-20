@@ -172,7 +172,7 @@ namespace SymLinkMaker
             logger.LogInformation("Clearing all symlinks in {0}", root);
 
             foreach (string sl in symLinks) {
-                logger.LogDebug("Deleting {0}", sl);
+                logger.LogInformation("Deleting {0}", sl);
                 if (DeleteFile(Path.Combine(root, sl))) {
                     logger.LogDebug("Deleted {0}", sl);
                     count++;
@@ -185,6 +185,16 @@ namespace SymLinkMaker
 
             symLinks.Clear();
             logger.LogInformation("{0} symlinks cleared", count);
+
+            logger.LogInformation("Removing preexisting symlinks");
+            DirectoryInfo directoryInfo = new DirectoryInfo(root);
+            var files = directoryInfo.GetFiles();
+            foreach(var file in files) {
+                if (file.Attributes.HasFlag(FileAttributes.ReparsePoint)) {
+                    logger.LogInformation("Deleting {0}", file.Name);
+                    file.Delete();
+                }
+            }
 
             return count;
         }

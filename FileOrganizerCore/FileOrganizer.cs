@@ -112,7 +112,7 @@ namespace FileOrganizerCore
         }
 
         /// <summary>
-        ///     Updates the symlink folder. Fails if folder not found.
+        ///     Updates the symlink folder. Fails if folder not found. Clears existing folder.
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -182,7 +182,7 @@ namespace FileOrganizerCore
         }
 
         /// <summary>
-        ///     Creates symlinks from the most recent search result.
+        ///     Creates symlinks from the most recent search result. Clears existing symlinks.
         /// </summary>
         /// <returns></returns>
         public ActionResult<bool> CreateSymLinksFromActiveFiles()
@@ -201,7 +201,7 @@ namespace FileOrganizerCore
 
         /// <summary>
         ///     Creates symlinks from a list of files. The filenames must be 
-        ///     a full path.
+        ///     a full path. Clears existing.
         /// </summary>
         /// <param name="filenames"></param>
         /// <returns></returns>

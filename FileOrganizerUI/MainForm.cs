@@ -21,7 +21,7 @@ namespace FileOrganizerUI
     public partial class MainForm : Form
     {
         private OpenFileDialog FileDialog;
-        private FolderBrowserDialog SymLinkFolderDialog;
+        private SettingsForm SettingsDialog;
         private FileInfoForm FileInfoModal;
         private ILogger logger;
         private FileOrganizer core;
@@ -42,7 +42,7 @@ namespace FileOrganizerUI
             FileDialog = new OpenFileDialog();
             FileDialog.Multiselect = true;
 
-            SymLinkFolderDialog = new FolderBrowserDialog();
+            SettingsDialog = new SettingsForm(logger, core);
 
             SearchBox.KeyDown += new KeyEventHandler(Search_Enter);
             
@@ -178,6 +178,12 @@ namespace FileOrganizerUI
                 UpdateMessage("Created symlinks at " + core.GetSymLinksRoot(), Color.Black);
             }
         }
+
+        private void AppSettingsButton_Click(object sender, EventArgs e)
+        {
+            SettingsDialog.ShowDialog(this);
+            SaveSymLinkFolderRoot(core.GetSymLinksRoot());
+        }
         #endregion
 
         #region Functionality
@@ -230,7 +236,7 @@ namespace FileOrganizerUI
             }
         }
 
-        private void SetSymLinkFolderRoot(string filepath)
+        private void SaveSymLinkFolderRoot(string filepath)
         {
             Configuration config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             config.AppSettings.Settings["DefaultFolder"].Value = filepath;
@@ -240,6 +246,7 @@ namespace FileOrganizerUI
                 UpdateMessage(result.GetErrorMessage(0), ErrorMsgColor);
             }
         }
+
         #endregion
 
         

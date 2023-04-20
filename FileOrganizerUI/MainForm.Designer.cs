@@ -95,7 +95,7 @@ namespace FileOrganizerUI
             // 
             // Search
             // 
-            this.Search.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Search.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Search.Location = new System.Drawing.Point(1168, 20);
             this.Search.Name = "Search";
             this.Search.Size = new System.Drawing.Size(88, 28);
@@ -147,6 +147,7 @@ namespace FileOrganizerUI
             this.AppSettingsButton.TabIndex = 10;
             this.AppSettingsButton.Text = "Settings";
             this.AppSettingsButton.UseVisualStyleBackColor = true;
+            this.AppSettingsButton.Click += new System.EventHandler(this.AppSettingsButton_Click);
             // 
             // MainForm
             // 
