@@ -144,6 +144,34 @@ namespace FileDBManager.Entities
             FileTypeID = id;
             return this;
         }
+
+        /// <summary>
+        /// Prints information in metadata
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            string str = "ID: ";
+            if (UsingID) str += ID.ToString();
+            str += "\nPath: ";
+            if (UsingPath) str += Path;
+            str += "\nPathID: ";
+            if (UsingPathID) str += PathID.ToString();
+            str += "\nFilename: ";
+            if (UsingFilename) str += Filename;
+            str += "\nAltname: ";
+            if (UsingAltname) str += Altname;
+            str += "\nFileType: ";
+            if (UsingFileType) str += FileType;
+            str += "\nFileTypeID";
+            if (UsingFileTypeID) str += FileTypeID.ToString();
+            str += "\nHash: ";
+            if (UsingHash) str += Hash;
+            str += "\nCreated: ";
+            if (UsingCreated) str += Created.ToString("yyyy-MM-dd");
+
+            return str;
+        }
     }
 
     

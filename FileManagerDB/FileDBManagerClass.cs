@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using System.Data.SQLite;
 using FileDBManager.Entities;
@@ -434,11 +435,13 @@ namespace FileDBManager
         /// <returns></returns>
         public bool UpdateFileMetadata(FileMetadata newInfo, FileSearchFilter filter)
         {
+            logger.LogDebug(MethodBase.GetCurrentMethod().Name);
             List<string> cols = new List<string>();
             List<object> vals = new List<object>();
             List<string> wheres = new List<string>();
             List<object> whereValues = new List<object>();
             string statement;
+            bool result;
 
             if (newInfo.IsEmpty || filter is null || filter.IsEmpty) {
                 if (filter is null) logger.LogInformation("Missing filter");
@@ -464,6 +467,8 @@ namespace FileDBManager
                     com.Dispose();
                     throw new InvalidDataException("Path could not be found or inserted");
                 }
+
+                logger.LogDebug("Updating file path");
                 cols.Add("PathID");
                 vals.Add(results);
             }
@@ -485,25 +490,41 @@ namespace FileDBManager
                     com.Dispose();
                     throw new InvalidDataException("Path could not be found or inserted");
                 }
+
+                logger.LogDebug("Updating file type");
                 cols.Add("FileTypeID");
                 vals.Add(results);
             }
             if (newInfo.UsingFilename) {
+                logger.LogDebug("Updating filename");
                 cols.Add("Filename");
                 vals.Add(newInfo.Filename);
             }
             if (newInfo.UsingAltname) {
+                logger.LogDebug("Updating file altname");
                 cols.Add("Altname");
                 vals.Add(newInfo.Altname);
             }
             if (newInfo.UsingHash) {
+                logger.LogDebug("Updating file hash");
                 cols.Add("Hash");
                 vals.Add(newInfo.Hash);
             }
             if (newInfo.UsingSize) {
+                logger.LogDebug("Updating file size");
                 cols.Add("Size");
                 vals.Add(newInfo.Size);
             }
+
+            logger.LogInformation(newInfo.UsingCreated.ToString());
+            logger.LogInformation(newInfo.Created.ToString());
+            if (newInfo.UsingCreated) {
+                logger.LogDebug("Updating file date");
+                cols.Add("Created");
+                vals.Add(DateTimeOptional.ToUnixTime(newInfo.Created));
+            }
+
+            logger.LogDebug("Number of columns to update: " + cols.Count);
 
             string assignmentstr = "";
             for (int i = 0; i < cols.Count; i++) {
@@ -518,10 +539,18 @@ namespace FileDBManager
             filter.BuildWhereStatementPart(ref whereStr, ref whereValues);
 
             statement = createStatement(statement + whereStr, whereValues.ToArray());
-            bool result = ExecuteNonQuery(statement) == 1;
+            try {
+                result = ExecuteNonQuery(statement) == 1;
+            } catch (SQLiteException ex) {
+                logger.LogError("SQLiteException: " + ex.Message);
+                result = false;
+            }  catch (Exception ex2) {
+                logger.LogError("Exception: " + ex2.Message);
+                result = false;
+            }
 
             if (result) {
-                logger.LogInformation("Updated file metadata with the following data: \n" + newInfo);
+                logger.LogInformation("Updated file metadata with the following data: \n" + newInfo.ToString());
             } else {
                 logger.LogWarning("Could not update with the following information: \n" + newInfo);
             }

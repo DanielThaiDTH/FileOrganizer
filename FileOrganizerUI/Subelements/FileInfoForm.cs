@@ -23,6 +23,7 @@ namespace FileOrganizerUI.Subelements
         GetFileMetadataType fileInfo;
         FileOrganizer core;
         private Dictionary<string, FlowLayoutPanel> detailLines;
+        private Dictionary<string, FlowLayoutPanel> specialDetailLines;
         Button HashRefreshButton;
         Button UpdateButton;
         Button CloseButton;
@@ -41,6 +42,7 @@ namespace FileOrganizerUI.Subelements
             this.logger = logger;
             this.core = core;
             detailLines = new Dictionary<string, FlowLayoutPanel>();
+            specialDetailLines = new Dictionary<string, FlowLayoutPanel>();
 
             detailLines.Add("Filename", new FlowLayoutPanel());
             detailLines.Add("Path", new FlowLayoutPanel());
@@ -48,6 +50,7 @@ namespace FileOrganizerUI.Subelements
             detailLines.Add("Altname", new FlowLayoutPanel());
             detailLines.Add("Hash", new FlowLayoutPanel());
             detailLines.Add("Size", new FlowLayoutPanel());
+            specialDetailLines.Add("Created", new FlowLayoutPanel());
             DeleteModal = new DeleteConfirmModal();
             DeleteModal.FormBorderStyle = FormBorderStyle.FixedDialog;
             LayoutSetup();
@@ -64,10 +67,12 @@ namespace FileOrganizerUI.Subelements
             detailLines["Hash"].Controls[1].Text = file.Hash;
             detailLines["Hash"].Controls[1].KeyDown += PreventInput;
             detailLines["Size"].Controls[1].Text = file.Size.ToString();
+            specialDetailLines["Created"].Controls[1].Text = file.Created.ToString("yyyy-MM-dd");
 
             editDispose = editObservable.Subscribe((args) => {
                 bool changed = detailLines.Any(dl => 
-                    dl.Value.Controls[1].Text != typeof(GetFileMetadataType).GetProperty(dl.Key).GetValue(fileInfo, null).ToString());
+                    dl.Value.Controls[1].Text != typeof(GetFileMetadataType).GetProperty(dl.Key).GetValue(fileInfo, null).ToString())
+                    || specialDetailLines["Created"].Controls[1].Text != file.Created.ToString("yyyy-MM-dd");
                 UpdateButton.Enabled = changed;
             });
             UpdateButton.DialogResult = DialogResult.OK;
@@ -87,6 +92,9 @@ namespace FileOrganizerUI.Subelements
             detailLines["Hash"].Controls[1].Text = "";
             detailLines["Hash"].Controls[1].KeyDown -= PreventInput;
             detailLines["Size"].Controls[1].Text = "";
+            detailLines["Size"].Controls[1].KeyDown -= PreventInput;
+            specialDetailLines["Created"].Controls[1].Text = "";
+            specialDetailLines["Created"].Controls[1].KeyDown -= PreventInput;
             UpdateButton.DialogResult = DialogResult.Abort;
         }
 
@@ -102,6 +110,7 @@ namespace FileOrganizerUI.Subelements
         {
             RefreshHash(GetPath());
             RefreshSize(GetPath());
+            RefreshCreated(GetPath());
         }
 
         private void Update_Click(object sender, EventArgs e)
@@ -114,8 +123,12 @@ namespace FileOrganizerUI.Subelements
             if (isChanged("Altname", fileInfo.Altname)) newData.SetAltname(detailLines["Altname"].Controls[1].Text);
             if (isChanged("Hash", fileInfo.Hash)) newData.SetHash(detailLines["Hash"].Controls[1].Text);
             if (isChanged("Size", fileInfo.Size.ToString())) newData.SetSize(long.Parse(detailLines["Size"].Controls[1].Text));
+            if (specialDetailLines["Created"].Controls[1].Text != fileInfo.Created.ToString("yyyy-MM-dd")) {
+                logger.LogDebug("Updating date to " + specialDetailLines["Created"].Controls[1].Text);
+                newData.SetCreated(File.GetCreationTime(GetPath()));
+            }
 
-            var result = core.UpdateFileData(newData, new FileSearchFilter().SetIDFilter(fileInfo.ID));
+            var result = core.UpdateFileData(newData, fileInfo.ID);
             if (result.Result) {
                 UpdateMessage("File updated", Color.Black);
                 IsUpdated = true;
@@ -182,6 +195,25 @@ namespace FileOrganizerUI.Subelements
                 MainVPanel.Controls.Add(detailPair.Value);
             }
 
+            //Created row
+            specialDetailLines["Created"].AutoSize = true;
+            Label specialLabel = new Label();
+            specialLabel.Text = "Created";
+            specialLabel.Margin = Padding.Empty;
+            TextBox specialBox = new TextBox();
+            specialBox.Text = "";
+            specialBox.Margin = Padding.Empty;
+            specialBox.Width = 500;
+            HashRefreshButton = new Button();
+            HashRefreshButton.Text = "Refresh";
+            HashRefreshButton.Margin = Padding.Empty;
+            HashRefreshButton.Click += Refresh_Click;
+            specialDetailLines["Created"].Controls.Add(specialLabel);
+            specialDetailLines["Created"].Controls.Add(specialBox);
+            specialDetailLines["Created"].Controls.Add(HashRefreshButton);
+            MainVPanel.Controls.Add(specialDetailLines["Created"]);
+
+            //Buttons row
             FlowLayoutPanel lastPanel = new FlowLayoutPanel();
             lastPanel.Parent = MainVPanel;
             lastPanel.AutoSize = true;
@@ -210,6 +242,7 @@ namespace FileOrganizerUI.Subelements
                 detailLines["Altname"].Controls[1].TextChanged += handler;
                 detailLines["Hash"].Controls[1].TextChanged += handler;
                 detailLines["Size"].Controls[1].TextChanged += handler;
+                specialDetailLines["Created"].Controls[1].TextChanged += handler;
             },
             handler => {
                 detailLines["Filename"].Controls[1].TextChanged -= handler;
@@ -218,6 +251,7 @@ namespace FileOrganizerUI.Subelements
                 detailLines["Altname"].Controls[1].TextChanged -= handler;
                 detailLines["Hash"].Controls[1].TextChanged -= handler;
                 detailLines["Size"].Controls[1].TextChanged -= handler;
+                specialDetailLines["Created"].Controls[1].TextChanged += handler;
             });
         }
 
@@ -238,11 +272,23 @@ namespace FileOrganizerUI.Subelements
         private void RefreshSize(string path)
         {
             var result = new ActionResult<bool>();
-            long size = core.GetFileSize(GetPath(), in result);
+            long size = core.GetFileSize(path, in result);
             if (result.Result) {
                 detailLines["Size"].Controls[1].Text = size.ToString();
             } else {
-                UpdateMessage(result.GetErrorMessage(0), Color.FromArgb(200, 50, 50));
+                UpdateMessage(result.GetErrorMessage(0), MainForm.ErrorMsgColor);
+            }
+        }
+
+        private void RefreshCreated(string path)
+        {
+            try {
+                var dt = File.GetCreationTime(path);
+                specialDetailLines["Created"].Controls[1].Text = dt.ToString("yyyy-MM-dd");
+            } catch (AccessViolationException ex) {
+                UpdateMessage(ex.ToString() + ": No access to file", MainForm.ErrorMsgColor);
+            } catch (IOException ex) {
+                UpdateMessage(ex.ToString() + ": File is missing", MainForm.ErrorMsgColor);
             }
         }
 

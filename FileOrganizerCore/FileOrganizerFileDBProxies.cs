@@ -113,8 +113,9 @@ namespace FileOrganizerCore
 
         public ActionResult<bool> UpdateFileData(FileMetadata newInfo, FileSearchFilter filter)
         {
-            var res = new ActionResult<bool>();
+            logger.LogDebug("Updating with data\n" + newInfo.ToString());
 
+            var res = new ActionResult<bool>();
             bool status = db.UpdateFileMetadata(newInfo, filter);
 
             if (!status) {
