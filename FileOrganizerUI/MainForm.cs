@@ -28,7 +28,6 @@ namespace FileOrganizerUI
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
-        private List<GetFileMetadataType> searchResults;
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50); 
 
         public MainForm(ILogger logger, FileOrganizer core)
@@ -58,6 +57,11 @@ namespace FileOrganizerUI
 
             FileInfoModal = new FileInfoForm(logger, core);
             FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
+
+            TagSearchBox.KeyDown += TagSearch_Enter;
+
+            TagListView.MultiSelect = true;
+            TagListView.View = View.List;
 
             SearchBox.Focus();
             
@@ -109,11 +113,18 @@ namespace FileOrganizerUI
             }
         }
 
+        private void TagSearch_Enter(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) {
+                SearchTags((sender as TextBox).Text);
+            }
+        }
+
         private void FileListItem_DoubleClick(object sender, MouseEventArgs e)
         {
             ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
             if (item != null) {
-                var selectedFile = searchResults.Find(it => it.Fullname == item.ImageKey);
+                var selectedFile = core.ActiveFiles.Find(it => it.Fullname == item.ImageKey);
                 if (selectedFile != null) {
                     FileInfoModal.SetFileInfo(selectedFile);
                     var dialogResult = FileInfoModal.ShowDialog(this);
@@ -123,8 +134,8 @@ namespace FileOrganizerUI
                         if (FileInfoModal.IsUpdated) {
                             var updated = core.GetFileData(new FileSearchFilter().SetIDFilter(selectedFile.ID));
                             if (updated.Result.Count == 1) {
-                                searchResults.Remove(selectedFile);
-                                searchResults.Add(updated.Result[0]);
+                                core.ActiveFiles.Remove(selectedFile);
+                                core.ActiveFiles.Add(updated.Result[0]);
                                 FileListView.Items.Remove(item);
 
                                 FileListView.BeginUpdate();
@@ -141,7 +152,7 @@ namespace FileOrganizerUI
                     } else if (dialogResult == DialogResult.No && FileInfoModal.IsDeleted) {
                         FileInfoModal.ClearFileInfo();
                         FileListView.BeginUpdate();
-                        searchResults.Remove(selectedFile);
+                        core.ActiveFiles.Remove(selectedFile);
                         FileListView.Items.Remove(item);
                         core.ActiveFiles.RemoveAll(f => f.ID == selectedFile.ID);
                         FileListView.LargeImageList.Images.RemoveByKey(selectedFile.Fullname);
@@ -206,8 +217,6 @@ namespace FileOrganizerUI
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
                 if (!files.HasError()) {
-
-                    searchResults = files.Result;
                     var thumbnailMap = thumbnailProxy.GetThumbnails(files.Result.ConvertAll<string>(f => f.Fullname));
                     imageList.Images.Clear();
                     foreach (var pair in thumbnailMap) {
@@ -216,7 +225,7 @@ namespace FileOrganizerUI
 
                     FileListView.BeginUpdate();
                     FileListView.LargeImageList = imageList;
-                    //FileListView.SmallImageList = imageList;
+
                     foreach (var filedata in files.Result) {
                         FileListView.Items.Add(new ListViewItem(filedata.Filename, filedata.Fullname));
                     }
@@ -247,8 +256,18 @@ namespace FileOrganizerUI
             }
         }
 
-        #endregion
+        private void SearchTags(string query)
+        {
+            if (!string.IsNullOrWhiteSpace(query)) {
+                var tags = core.AllTags.FindAll(t => t.Name.ToLowerInvariant().Contains(query.ToLowerInvariant()));
+                core.ActiveTags = tags;
+                TagListView.Clear();
+                foreach (var tag in tags) {
+                    TagListView.Items.Add(new ListViewItem(tag.Name));
+                }
+            }
+        }
 
-        
+        #endregion
     }
 }

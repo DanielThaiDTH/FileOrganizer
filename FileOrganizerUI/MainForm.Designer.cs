@@ -40,7 +40,23 @@ namespace FileOrganizerUI
             this.FilePanel = new System.Windows.Forms.Panel();
             this.CreateSymLinksButton = new System.Windows.Forms.Button();
             this.AppSettingsButton = new System.Windows.Forms.Button();
+            this.SideTab = new System.Windows.Forms.TabControl();
+            this.TagsTab = new System.Windows.Forms.TabPage();
+            this.AssignTagButton = new System.Windows.Forms.Button();
+            this.AddTagGroup = new System.Windows.Forms.GroupBox();
+            this.AddNewTagButton = new System.Windows.Forms.Button();
+            this.NewTagCategoryComboBox = new System.Windows.Forms.ComboBox();
+            this.NewTagCategoryLabel = new System.Windows.Forms.Label();
+            this.NewTagNameBox = new System.Windows.Forms.TextBox();
+            this.NewTagLabel = new System.Windows.Forms.Label();
+            this.TagListView = new System.Windows.Forms.ListView();
+            this.TagSearchLabel = new System.Windows.Forms.Label();
+            this.TagSearchBox = new System.Windows.Forms.TextBox();
+            this.CollectionsTab = new System.Windows.Forms.TabPage();
             this.FilePanel.SuspendLayout();
+            this.SideTab.SuspendLayout();
+            this.TagsTab.SuspendLayout();
+            this.AddTagGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // OpenFilePicker
@@ -79,7 +95,7 @@ namespace FileOrganizerUI
             // 
             this.FileResultHeader.AutoSize = true;
             this.FileResultHeader.Font = new System.Drawing.Font("Segoe UI Semibold", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.FileResultHeader.Location = new System.Drawing.Point(262, 16);
+            this.FileResultHeader.Location = new System.Drawing.Point(282, 16);
             this.FileResultHeader.Name = "FileResultHeader";
             this.FileResultHeader.Size = new System.Drawing.Size(135, 32);
             this.FileResultHeader.TabIndex = 4;
@@ -110,10 +126,10 @@ namespace FileOrganizerUI
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FileListView.HideSelection = false;
-            this.FileListView.Location = new System.Drawing.Point(15, 3);
-            this.FileListView.MinimumSize = new System.Drawing.Size(995, 530);
+            this.FileListView.Location = new System.Drawing.Point(20, 3);
+            this.FileListView.MinimumSize = new System.Drawing.Size(800, 530);
             this.FileListView.Name = "FileListView";
-            this.FileListView.Size = new System.Drawing.Size(1167, 534);
+            this.FileListView.Size = new System.Drawing.Size(1147, 534);
             this.FileListView.TabIndex = 7;
             this.FileListView.UseCompatibleStateImageBehavior = false;
             // 
@@ -123,9 +139,9 @@ namespace FileOrganizerUI
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FilePanel.Controls.Add(this.FileListView);
-            this.FilePanel.Location = new System.Drawing.Point(253, 51);
+            this.FilePanel.Location = new System.Drawing.Point(268, 51);
             this.FilePanel.Name = "FilePanel";
-            this.FilePanel.Size = new System.Drawing.Size(1167, 534);
+            this.FilePanel.Size = new System.Drawing.Size(1152, 534);
             this.FilePanel.TabIndex = 8;
             // 
             // CreateSymLinksButton
@@ -149,11 +165,141 @@ namespace FileOrganizerUI
             this.AppSettingsButton.UseVisualStyleBackColor = true;
             this.AppSettingsButton.Click += new System.EventHandler(this.AppSettingsButton_Click);
             // 
+            // SideTab
+            // 
+            this.SideTab.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.SideTab.Controls.Add(this.TagsTab);
+            this.SideTab.Controls.Add(this.CollectionsTab);
+            this.SideTab.Location = new System.Drawing.Point(12, 22);
+            this.SideTab.Name = "SideTab";
+            this.SideTab.SelectedIndex = 0;
+            this.SideTab.Size = new System.Drawing.Size(250, 668);
+            this.SideTab.TabIndex = 11;
+            // 
+            // TagsTab
+            // 
+            this.TagsTab.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.TagsTab.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TagsTab.Controls.Add(this.AssignTagButton);
+            this.TagsTab.Controls.Add(this.AddTagGroup);
+            this.TagsTab.Controls.Add(this.TagListView);
+            this.TagsTab.Controls.Add(this.TagSearchLabel);
+            this.TagsTab.Controls.Add(this.TagSearchBox);
+            this.TagsTab.Location = new System.Drawing.Point(4, 25);
+            this.TagsTab.Name = "TagsTab";
+            this.TagsTab.Padding = new System.Windows.Forms.Padding(3);
+            this.TagsTab.Size = new System.Drawing.Size(242, 639);
+            this.TagsTab.TabIndex = 0;
+            this.TagsTab.Text = "Tags";
+            // 
+            // AssignTagButton
+            // 
+            this.AssignTagButton.Location = new System.Drawing.Point(153, 460);
+            this.AssignTagButton.Name = "AssignTagButton";
+            this.AssignTagButton.Size = new System.Drawing.Size(75, 34);
+            this.AssignTagButton.TabIndex = 4;
+            this.AssignTagButton.Text = "Assign";
+            this.AssignTagButton.UseVisualStyleBackColor = true;
+            // 
+            // AddTagGroup
+            // 
+            this.AddTagGroup.Controls.Add(this.AddNewTagButton);
+            this.AddTagGroup.Controls.Add(this.NewTagCategoryComboBox);
+            this.AddTagGroup.Controls.Add(this.NewTagCategoryLabel);
+            this.AddTagGroup.Controls.Add(this.NewTagNameBox);
+            this.AddTagGroup.Controls.Add(this.NewTagLabel);
+            this.AddTagGroup.Location = new System.Drawing.Point(6, 500);
+            this.AddTagGroup.Name = "AddTagGroup";
+            this.AddTagGroup.Size = new System.Drawing.Size(228, 131);
+            this.AddTagGroup.TabIndex = 3;
+            this.AddTagGroup.TabStop = false;
+            this.AddTagGroup.Text = "Add New Tag";
+            // 
+            // AddNewTagButton
+            // 
+            this.AddNewTagButton.Location = new System.Drawing.Point(147, 90);
+            this.AddNewTagButton.Name = "AddNewTagButton";
+            this.AddNewTagButton.Size = new System.Drawing.Size(75, 23);
+            this.AddNewTagButton.TabIndex = 4;
+            this.AddNewTagButton.Text = "Add";
+            this.AddNewTagButton.UseVisualStyleBackColor = true;
+            // 
+            // NewTagCategoryComboBox
+            // 
+            this.NewTagCategoryComboBox.FormattingEnabled = true;
+            this.NewTagCategoryComboBox.Location = new System.Drawing.Point(80, 51);
+            this.NewTagCategoryComboBox.Name = "NewTagCategoryComboBox";
+            this.NewTagCategoryComboBox.Size = new System.Drawing.Size(142, 24);
+            this.NewTagCategoryComboBox.TabIndex = 3;
+            // 
+            // NewTagCategoryLabel
+            // 
+            this.NewTagCategoryLabel.AutoSize = true;
+            this.NewTagCategoryLabel.Location = new System.Drawing.Point(9, 54);
+            this.NewTagCategoryLabel.Name = "NewTagCategoryLabel";
+            this.NewTagCategoryLabel.Size = new System.Drawing.Size(65, 17);
+            this.NewTagCategoryLabel.TabIndex = 2;
+            this.NewTagCategoryLabel.Text = "Category";
+            // 
+            // NewTagNameBox
+            // 
+            this.NewTagNameBox.Location = new System.Drawing.Point(60, 23);
+            this.NewTagNameBox.Name = "NewTagNameBox";
+            this.NewTagNameBox.Size = new System.Drawing.Size(162, 22);
+            this.NewTagNameBox.TabIndex = 1;
+            // 
+            // NewTagLabel
+            // 
+            this.NewTagLabel.AutoSize = true;
+            this.NewTagLabel.Location = new System.Drawing.Point(9, 26);
+            this.NewTagLabel.Name = "NewTagLabel";
+            this.NewTagLabel.Size = new System.Drawing.Size(45, 17);
+            this.NewTagLabel.TabIndex = 0;
+            this.NewTagLabel.Text = "Name";
+            // 
+            // TagListView
+            // 
+            this.TagListView.HideSelection = false;
+            this.TagListView.Location = new System.Drawing.Point(6, 60);
+            this.TagListView.Name = "TagListView";
+            this.TagListView.Size = new System.Drawing.Size(228, 393);
+            this.TagListView.TabIndex = 2;
+            this.TagListView.UseCompatibleStateImageBehavior = false;
+            // 
+            // TagSearchLabel
+            // 
+            this.TagSearchLabel.AutoSize = true;
+            this.TagSearchLabel.Location = new System.Drawing.Point(7, 6);
+            this.TagSearchLabel.Name = "TagSearchLabel";
+            this.TagSearchLabel.Size = new System.Drawing.Size(53, 17);
+            this.TagSearchLabel.TabIndex = 1;
+            this.TagSearchLabel.Text = "Search";
+            // 
+            // TagSearchBox
+            // 
+            this.TagSearchBox.Location = new System.Drawing.Point(6, 31);
+            this.TagSearchBox.Name = "TagSearchBox";
+            this.TagSearchBox.Size = new System.Drawing.Size(228, 22);
+            this.TagSearchBox.TabIndex = 0;
+            // 
+            // CollectionsTab
+            // 
+            this.CollectionsTab.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.CollectionsTab.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.CollectionsTab.Location = new System.Drawing.Point(4, 25);
+            this.CollectionsTab.Name = "CollectionsTab";
+            this.CollectionsTab.Padding = new System.Windows.Forms.Padding(3);
+            this.CollectionsTab.Size = new System.Drawing.Size(242, 639);
+            this.CollectionsTab.TabIndex = 1;
+            this.CollectionsTab.Text = "Collections";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1447, 702);
+            this.Controls.Add(this.SideTab);
             this.Controls.Add(this.AppSettingsButton);
             this.Controls.Add(this.CreateSymLinksButton);
             this.Controls.Add(this.FilePanel);
@@ -164,8 +310,13 @@ namespace FileOrganizerUI
             this.Controls.Add(this.MessageText);
             this.Controls.Add(this.OpenFilePicker);
             this.Name = "MainForm";
-            this.Text = "MainForm";
+            this.Text = "File Organizer";
             this.FilePanel.ResumeLayout(false);
+            this.SideTab.ResumeLayout(false);
+            this.TagsTab.ResumeLayout(false);
+            this.TagsTab.PerformLayout();
+            this.AddTagGroup.ResumeLayout(false);
+            this.AddTagGroup.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -184,5 +335,18 @@ namespace FileOrganizerUI
         private System.Windows.Forms.Panel FilePanel;
         private System.Windows.Forms.Button CreateSymLinksButton;
         private System.Windows.Forms.Button AppSettingsButton;
+        private System.Windows.Forms.TabControl SideTab;
+        private System.Windows.Forms.TabPage TagsTab;
+        private System.Windows.Forms.TabPage CollectionsTab;
+        private System.Windows.Forms.Label TagSearchLabel;
+        private System.Windows.Forms.TextBox TagSearchBox;
+        private System.Windows.Forms.GroupBox AddTagGroup;
+        private System.Windows.Forms.ListView TagListView;
+        private System.Windows.Forms.Button AssignTagButton;
+        private System.Windows.Forms.TextBox NewTagNameBox;
+        private System.Windows.Forms.Label NewTagLabel;
+        private System.Windows.Forms.Button AddNewTagButton;
+        private System.Windows.Forms.ComboBox NewTagCategoryComboBox;
+        private System.Windows.Forms.Label NewTagCategoryLabel;
     }
 }

@@ -35,7 +35,8 @@ namespace FileOrganizerCore
         List<GetFileMetadataType> activeFiles;
         public List<GetFileMetadataType> ActiveFiles { get { return activeFiles; } }
         List<GetTagType> activeTags;
-        public List<GetTagType> ActiveTags { get { return activeTags; } }
+        public List<GetTagType> ActiveTags { get { return activeTags; } set { activeTags = value; } }
+        public List<GetTagType> AllTags { get; private set; }
         GetCollectionType activeCollection;
         public GetCollectionType ActiveCollection { get { return activeCollection; } }
 
@@ -94,6 +95,7 @@ namespace FileOrganizerCore
                 var categoryRes = GetTagCategories();
                 tagCategories = categoryRes.Result ?? new List<GetTagCategoryType>();
                 tagCategoriesClean = true;
+                AllTags = GetTags().Result;
                 if (categoryRes.Result != null) res.SetResult(true);
             } catch {
                 res.AddError(ErrorType.SQL, "Error accessing DB");
