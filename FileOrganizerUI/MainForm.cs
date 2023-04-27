@@ -28,7 +28,8 @@ namespace FileOrganizerUI
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
-        public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50); 
+        public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
+        private static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
 
         public MainForm(ILogger logger, FileOrganizer core)
         {
@@ -63,8 +64,13 @@ namespace FileOrganizerUI
             TagListView.MultiSelect = true;
             TagListView.View = View.List;
 
+            AddNewTagButton.Click += AddNewTagButton_Click;
+
+            AssignTagButton.Click += AssignTag_Click;
+
+            RefreshTagCategoryComboBox();
+
             SearchBox.Focus();
-            
         }
 
         #region Handlers
@@ -179,12 +185,8 @@ namespace FileOrganizerUI
         {
             var status = core.CreateSymLinksFromActiveFiles();
             if (!status.Result) {
-                UpdateMessage($"Create symlinks failure for folder {core.GetSymLinksRoot()}: {status.Count} errors ",ErrorMsgColor);
-                string errMsg= "";
-                foreach (string msg in status.Messages) {
-                    errMsg += msg + "\n";
-                }
-                MessageTooltip.SetToolTip(MessageText, errMsg);
+                UpdateMessage($"Create symlinks failure for folder {core.GetSymLinksRoot()}: {status.Count} errors ", ErrorMsgColor);
+                UpdateMessageToolTip(status.Messages);
             } else {
                 UpdateMessage("Created symlinks at " + core.GetSymLinksRoot(), Color.Black);
             }
@@ -194,6 +196,54 @@ namespace FileOrganizerUI
         {
             SettingsDialog.ShowDialog(this);
             SaveSymLinkFolderRoot(core.GetSymLinksRoot());
+        }
+
+        private void AddNewTagButton_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(NewTagNameBox.Text)) {
+                string category = "";
+                if ((NewTagCategoryComboBox.SelectedItem as GetTagCategoryType).ID >= 0) {
+                    category = (NewTagCategoryComboBox.SelectedItem as GetTagCategoryType).Name;
+                }
+
+                var addRes = core.AddTag(NewTagNameBox.Text.Trim(), category);
+                if (addRes.Result) {
+                    UpdateMessage($"Tag {NewTagNameBox.Text} added.", Color.Black);
+                    NewTagCategoryComboBox.SelectedItem = DefaultCategory;
+                    NewTagNameBox.Clear();
+                } else {
+                    UpdateMessage(addRes.GetErrorMessage(0), ErrorMsgColor);
+                }
+            }
+        }
+
+        private void AssignTag_Click(object sender, EventArgs e)
+        {
+            var selectedTags = TagListView.SelectedItems;
+            var selectedFiles = FileListView.SelectedItems;
+
+            if (selectedFiles.Count > 0 && selectedTags.Count > 0) {
+                ActionResult<bool> result = new ActionResult<bool>();
+                result.SetResult(true);
+                foreach (ListViewItem fileItem in selectedFiles) {
+                    foreach (ListViewItem tagItem in selectedTags) {
+                        var file = core.ActiveFiles.Find(f => f.Fullname == fileItem.ImageKey);
+                        var tag = core.AllTags.Find(t => t.Name == tagItem.Text);
+                        var addRes = core.AddTagToFile(file.ID, tag.Name);
+                        if (!addRes.Result) {
+                            result.SetResult(false);
+                            ActionResult.AppendErrors(result, addRes);
+                        }
+                    }
+                }
+
+                if (result.Result) {
+                    UpdateMessage("Added tags to files", Color.Black);
+                } else {
+                    UpdateMessage("Adding tags to files resulted in errors", ErrorMsgColor);
+                    UpdateMessageToolTip(result.Messages);
+                }
+            }
         }
         #endregion
 
@@ -236,11 +286,7 @@ namespace FileOrganizerUI
                 } else {
                     errMsg = "Failed to query files";
                     UpdateMessage(errMsg, ErrorMsgColor);
-                    errMsg = "";
-                    foreach (string msg in files.Messages) {
-                        errMsg += msg + "\n";
-                    }
-                    MessageTooltip.SetToolTip(MessageText, errMsg);
+                    UpdateMessageToolTip(files.Messages);
                 }
             }
         }
@@ -266,6 +312,26 @@ namespace FileOrganizerUI
                     TagListView.Items.Add(new ListViewItem(tag.Name));
                 }
             }
+        }
+
+        private void RefreshTagCategoryComboBox()
+        {
+            NewTagCategoryComboBox.Items.Clear();
+            foreach (var category in core.TagCategories) {
+                NewTagCategoryComboBox.Items.Add(category);
+            }
+
+            NewTagCategoryComboBox.Items.Add(DefaultCategory);
+            NewTagCategoryComboBox.SelectedItem = DefaultCategory;
+        }
+
+        private void UpdateMessageToolTip(List<string> msgs)
+        {
+            string errMsg = "";
+            foreach (string msg in msgs) {
+                errMsg += msg + "\n";
+            }
+            MessageTooltip.SetToolTip(MessageText, errMsg);
         }
 
         #endregion

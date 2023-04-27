@@ -172,7 +172,7 @@ namespace FileDBManager
 
             AddTag(tag, tagCategory);
 
-            statement = createStatement("SELECT ID FROM Tags WHERE Name = ?", tag.ToLowerInvariant());
+            statement = createStatement("SELECT ID FROM Tags WHERE Name = ?", tag);
             logger.LogDebug("Querying tag id using: " + statement);
             com = new SQLiteCommand(statement, db);
             read = com.ExecuteReader();
@@ -195,7 +195,7 @@ namespace FileDBManager
                 statement = createStatement("INSERT OR IGNORE INTO FileTagAssociations (FileID, TagID) VALUES (?, ?)",
                     fileID, tagID);
                 result = ExecuteNonQuery(statement) == 1;
-                if (result) logger.LogInformation($"Tag {tag.ToLowerInvariant()} added to file #{fileID}");
+                if (result) logger.LogInformation($"Tag {tag} added to file #{fileID}");
             }
 
             return result;

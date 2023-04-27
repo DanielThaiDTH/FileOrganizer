@@ -229,7 +229,11 @@ namespace FileOrganizerCore
 
             bool status = db.AddTag(tag, tagCategory);
 
-            if (!status) res.AddError(ErrorType.SQL, "Failed to add tag");
+            if (!status) {
+                res.AddError(ErrorType.SQL, "Failed to add tag");
+            } else {
+                AllTags = GetTags().Result;
+            }
             res.SetResult(status);
 
             return res;

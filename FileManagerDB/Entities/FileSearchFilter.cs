@@ -515,7 +515,7 @@ namespace FileDBManager.Entities
                     if (wheres.Count == 0 && IsNot) statement += "NOT ";
                     statement += "(";
                     for (int i = 0; i < TagNames.Count; i++) {
-                        statement += "? IN (SELECT Tags.Name FROM " +
+                        statement += "UPPER(?) IN (SELECT UPPER(Tags.Name) FROM " +
                             "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
                         whereValues.Add(TagNames[i]);
                         if (i + 1 < TagNames.Count) {
@@ -550,7 +550,7 @@ namespace FileDBManager.Entities
                     if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
                     statement += "(";
                     for (int i = 0; i < ExcludeTagNames.Count; i++) {
-                        statement += "? NOT IN (SELECT Tags.Name FROM " +
+                        statement += "UPPER(?) NOT IN (SELECT UPPER(Tags.Name) FROM " +
                             "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
                         whereValues.Add(ExcludeTagNames[i]);
                         if (i + 1 < ExcludeTagNames.Count) {
