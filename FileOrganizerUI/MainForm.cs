@@ -258,12 +258,12 @@ namespace FileOrganizerUI
         {
             string errMsg;
             parser.Reset();
-            imageList.Images.Clear();
             bool parseResult = parser.Parse(SearchBox.Text.Trim(), out errMsg);
 
             if (!parseResult) {
                 UpdateMessage(errMsg, ErrorMsgColor);
             } else {
+                imageList.Images.Clear();
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
                 if (!files.HasError()) {

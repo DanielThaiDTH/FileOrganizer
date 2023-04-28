@@ -233,7 +233,7 @@ namespace FileOrganizerUI.CodeBehind
                                 subFilter.SetFilenameFilter(tempStore, currentExact);
                                 break;
                             case FilterType.Tag:
-                                subFilter.SetTagFilter(new List<string> { tempStore });
+                                subFilter.SetTagFilter(new List<string> { tempStore }, currentExact);
                                 break;
                             case FilterType.Path:
                                 subFilter.SetPathFilter(tempStore, currentExact);

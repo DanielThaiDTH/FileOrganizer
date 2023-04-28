@@ -295,6 +295,58 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void GetFileMetadataWithTagNamesIgnoresCase()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var filter = new FileSearchFilter();
+            fix.db.AddFile(@"C:\Tag\case_tagged_file1", "text", "aaa");
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\case_tagged_file1"))[0].ID;
+            fix.db.AddFile(@"C:\Tag\case_tagged_file2", "text", "aaa");
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\case_tagged_file2"))[0].ID;
+            fix.db.AddFile(@"C:\Tag\case_tagged_file3", "text", "aaa");
+            int id3 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\case_tagged_file3"))[0].ID;
+            fix.db.AddTagToFile(id1, "casetag");
+            fix.db.AddTagToFile(id2, "caseTag");
+            fix.db.AddTagToFile(id3, "Casetag");
+            filter.Reset().SetTagFilter(new List<string>() { "casetag" });
+            var result = fix.db.GetFileMetadata(filter);
+            Assert.Equal(3, result.Count);
+            Assert.Contains(result, (t) => t.Filename == "case_tagged_file1");
+            Assert.Contains(result, (t) => t.Filename == "case_tagged_file2");
+            Assert.Contains(result, (t) => t.Filename == "case_tagged_file3");
+            filter.Reset().SetTagFilter(new List<string>() { "CASETAG" });
+            result = fix.db.GetFileMetadata(filter);
+            Assert.Equal(3, result.Count);
+            Assert.Contains(result, (t) => t.Filename == "case_tagged_file1");
+            Assert.Contains(result, (t) => t.Filename == "case_tagged_file2");
+            Assert.Contains(result, (t) => t.Filename == "case_tagged_file3");
+        }
+
+        [Fact]
+        public void GetFileMetadataWithInexactTagNamesWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var filter = new FileSearchFilter();
+            fix.db.AddFile(@"C:\Tag\inexact_tag1", "text", "aaa");
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\inexact_tag1"))[0].ID;
+            fix.db.AddFile(@"C:\Tag\inexact_tag2", "text", "aaa");
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\inexact_tag2"))[0].ID;
+            fix.db.AddFile(@"C:\Tag\inexact_tag3", "text", "aaa");
+            int id3 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"C:\Tag\inexact_tag3"))[0].ID;
+            fix.db.AddTagToFile(id1, "like_tag!1");
+            fix.db.AddTagToFile(id2, "like_tag!2");
+            fix.db.AddTagToFile(id3, "tag!_like3");
+            
+            filter.Reset().SetTagFilter(new List<string> { "tag!" }, false);
+            var result = fix.db.GetFileMetadata(filter);
+            Assert.Contains(result, (t) => t.ID == id1);
+            Assert.Contains(result, (t) => t.ID == id2);
+            Assert.Contains(result, (t) => t.ID == id3);
+
+            //filter.Reset().SetExcludeTagFilter(new List<string> { "like_" }, false);
+        }
+
+        [Fact]
         public void GetFileMetadataWithEmptyTagListHasNoEffect()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
@@ -321,7 +373,7 @@ namespace FileDBManager.Test
             filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" });
             result = fix.db.GetFileMetadata(filter);
             Assert.Contains(result, (f) => f.Filename == "unfound_tags");
-            filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" }, true);
+            filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag1", "exclude_tag2" }, true, true);
             result = fix.db.GetFileMetadata(filter);
             Assert.DoesNotContain(result, (f) => f.Filename == "unfound_tags");
             filter.Reset().SetExcludeTagFilter(new List<string>() { "exclude_tag2" });
@@ -341,7 +393,7 @@ namespace FileDBManager.Test
             fix.db.AddTagToFile(id1, "f3tag1");
             fix.db.AddTagToFile(id1, "f3tag2");
             fix.db.AddTagToFile(id2, "f3tag2");
-            filter.Reset().SetTagFilter(new List<string>() { "f3tag1", "f3tag2" }, true);
+            filter.Reset().SetTagFilter(new List<string>() { "f3tag1", "f3tag2" }, true, true);
             var result = fix.db.GetFileMetadata(filter);
             Assert.Single(result);
             Assert.Equal(id1, result[0].ID);

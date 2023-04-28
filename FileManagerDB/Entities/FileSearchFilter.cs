@@ -52,24 +52,20 @@ namespace FileDBManager.Entities
     /// <summary>
     ///     A search filter for seraching files. Can compose multiple filters to build
     ///     complex queries. 
+    ///     
+    ///     Base state for Or and Not settings are false.
     /// </summary>
     public class FileSearchFilter : ICloneable
     {
         int _ID;
         int pathID;
         string path;
-        bool pathExact;
         string fullname;
-        bool fullnameExact;
         string filename;
-        bool filenameExact;
         string altname;
-        bool altnameExact;
         int filetypeID;
         string fileType;
-        bool fileTypeExact;
         string hash;
-        bool hashExact;
         long size;
         bool usingSize;
         bool isSizeLesser;
@@ -83,12 +79,13 @@ namespace FileDBManager.Entities
         Func<List<GetFileMetadataType>, List<GetFileMetadataType>> customFilter;
         List<FileSearchFilter> subFilters;
 
-        public bool PathFilterExact { get { return pathExact; } }
-        public bool FullnameFilterExact { get { return fullnameExact; } }
-        public bool FilenameFilterExact { get { return filenameExact; } }
-        public bool AltnameFilterExact { get { return altnameExact; } }
-        public bool FileTypeFilterExact { get { return fileTypeExact; } }
-        public bool HashFilterExact { get { return hashExact; } }
+        public bool PathFilterExact { get; private set; }
+        public bool FullnameFilterExact { get; private set; }
+        public bool FilenameFilterExact { get; private set; }
+        public bool AltnameFilterExact { get; private set; }
+        public bool FileTypeFilterExact { get; private set; }
+        public bool HashFilterExact { get; private set; }
+        public bool TagFilterExact { get; private set; }
 
         public bool UsingID { get { return _ID >= 0; } }
         public bool UsingPathID { get { return pathID >= 0; } }
@@ -170,18 +167,18 @@ namespace FileDBManager.Entities
             _ID = int.MinValue;
             pathID = int.MinValue;
             path = null;
-            pathExact = true;
+            PathFilterExact = true;
             fullname = null;
-            fullnameExact = true;
+            FullnameFilterExact = true;
             filename = null;
-            filenameExact = true;
+            FilenameFilterExact = true;
             altname = null;
-            altnameExact = true;
+            AltnameFilterExact = true;
             filetypeID = int.MinValue;
             fileType = null;
-            fileTypeExact = true;
+            FileTypeFilterExact = true;
             hash = null;
-            hashExact = true;
+            HashFilterExact = true;
             size = 0;
             usingSize = false;
             isSizeLesser = true;
@@ -191,6 +188,7 @@ namespace FileDBManager.Entities
             excludeTagIDs = null;
             excludeTagNames = null;
             excludeTagFilterAnd = false;
+            TagFilterExact = false;
             IsOr = false;
             IsNot = false;
             if (subFilters != null) subFilters.Clear();
@@ -227,28 +225,28 @@ namespace FileDBManager.Entities
         public FileSearchFilter SetPathFilter(string path, bool exact = true)
         {
             this.path = path;
-            pathExact = exact;
+            PathFilterExact = exact;
             return this;
         }
 
         public FileSearchFilter SetFullnameFilter(string name, bool exact = true)
         {
             fullname = name;
-            fullnameExact = exact;
+            FullnameFilterExact = exact;
             return this;
         }
 
         public FileSearchFilter SetFilenameFilter(string name, bool exact = true)
         {
             filename = name;
-            filenameExact = exact;
+            FilenameFilterExact = exact;
             return this;
         }
 
         public FileSearchFilter SetAltnameFilter(string name, bool exact = true)
         {
             altname = name;
-            altnameExact = exact;
+            AltnameFilterExact = exact;
             return this;
         }
 
@@ -261,14 +259,14 @@ namespace FileDBManager.Entities
         public FileSearchFilter SetFileTypeFilter(string filetype, bool exact = true)
         {
             fileType = filetype;
-            fileTypeExact = exact;
+            FileTypeFilterExact = exact;
             return this;
         }
 
         public FileSearchFilter SetHashFilter(string hash, bool exact = true)
         {
             this.hash = hash;
-            hashExact = exact;
+            HashFilterExact = exact;
             return this;
         }
 
@@ -305,33 +303,39 @@ namespace FileDBManager.Entities
 
         /// <summary>
         ///     Filters by tag ids. Second parameter is to set if the 
-        ///     filter will be for files including all the given tags or just one.
+        ///     filter will be for files including all the given tags or just one. 
+        ///     Can match tag name exactly or inexactly.
         ///     Defaults to file with any in the list.
         /// </summary>
         /// <param name="tagNames"></param>
         /// <param name="usingAnd"></param>
+        /// <param name="isExact"></param>
         /// <returns></returns>
-        public FileSearchFilter SetTagFilter(List<string> tagNames, bool usingAnd = false)
+        public FileSearchFilter SetTagFilter(List<string> tagNames, bool isExact = true, bool usingAnd = false)
         {
             tagIDs = null;
             tagFilterAnd = usingAnd;
+            TagFilterExact = isExact;
             this.tagNames = tagNames;
             return this;
         }
 
         /// <summary>
         ///     Filters by tags a file does not have. Second parameter is to set if the 
-        ///     filter will be for files excluding all the given tags or just one.
+        ///     filter will be for files excluding all the given tags or just one. Can 
+        ///     exlude tags exactly or inexactly.
         ///     Defaults to file excluding any in the list.
         /// </summary>
         /// <param name="tagNames"></param>
         /// <param name="usingAnd"></param>
+        /// <param name="isExact"></param>
         /// <returns></returns>
-        public FileSearchFilter SetExcludeTagFilter(List<string> tagNames, bool usingAnd = false)
+        public FileSearchFilter SetExcludeTagFilter(List<string> tagNames, bool isExact = true, bool usingAnd = false)
         {
             excludeTagIDs = null;
             excludeTagFilterAnd = usingAnd;
             excludeTagNames = tagNames;
+            TagFilterExact = isExact;
             return this;
         }
 
@@ -458,6 +462,92 @@ namespace FileDBManager.Entities
             }
         }
 
+        private void BuildTagWhereStatementPart(ref string statement, ref List<string> wheres, ref List<object> whereValues,
+            ref bool initial, ref bool includeWhere)
+        {
+            if (UsingTags && TagIDs != null && TagIDs.Count > 0) {
+                if (wheres.Count == 0 && initial) {
+                    statement += includeWhere ? "WHERE " : " ";
+                    initial = false;
+                } else {
+                    statement += (wheres.Count == 0 && IsOr) ? " OR " : " AND ";
+                }
+                if (wheres.Count == 0 && IsNot) statement += "NOT ";
+                statement += "(";
+                for (int i = 0; i < TagIDs.Count; i++) {
+                    statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
+                    whereValues.Add(TagIDs[i]);
+                    if (i + 1 < TagIDs.Count) {
+                        statement += UsingTagAnd ? " AND " : " OR ";
+                    }
+                }
+                statement += ")";
+            } else if (UsingTags && TagNames != null && TagNames.Count > 0) {
+                if (wheres.Count == 0 && initial) {
+                    statement += includeWhere ? "WHERE " : " ";
+                    initial = false;
+                } else {
+                    statement += (wheres.Count == 0 && IsOr) ? " OR " : " AND ";
+                }
+                if (wheres.Count == 0 && IsNot) statement += "NOT ";
+                statement += "(";
+                for (int i = 0; i < TagNames.Count; i++) {
+                    if (TagFilterExact) {
+                        statement += "UPPER(?) IN (SELECT UPPER(Tags.Name) FROM " +
+                            "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                    } else {
+                        statement += "(SELECT COUNT(*) FROM FileTagAssociations " +
+                            "JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID AND Tags.Name LIKE '%'||?||'%') > 0";
+                    }
+                    whereValues.Add(TagNames[i]);
+                    if (i + 1 < TagNames.Count) {
+                        statement += UsingTagAnd ? " AND " : " OR ";
+                    }
+                }
+                statement += ")";
+            }
+
+            if (UsingExcludeTags && ExcludeTagIDs != null && ExcludeTagIDs.Count > 0) {
+                if (wheres.Count == 0 && initial) {
+                    statement += includeWhere ? "WHERE " : " ";
+                } else {
+                    statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR " : " AND ";
+                }
+                if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
+                statement += "(";
+                for (int i = 0; i < ExcludeTagIDs.Count; i++) {
+                    statement += "? NOT IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
+                    whereValues.Add(ExcludeTagIDs[i]);
+                    if (i + 1 < ExcludeTagIDs.Count) {
+                        statement += UsingExcludeTagAnd ? " AND " : " OR ";
+                    }
+                }
+                statement += ")";
+            } else if (UsingExcludeTags && ExcludeTagNames != null && ExcludeTagNames.Count > 0) {
+                if (wheres.Count == 0 && initial) {
+                    statement += includeWhere ? "WHERE " : " ";
+                } else {
+                    statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR " : " AND ";
+                }
+                if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
+                statement += "(";
+                for (int i = 0; i < ExcludeTagNames.Count; i++) {
+                    if (TagFilterExact) {
+                        statement += "UPPER(?) NOT IN (SELECT UPPER(Tags.Name) FROM " +
+                            "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                    } else {
+                        statement += "(SELECT COUNT(*) FROM FileTagAssociations " +
+                            "JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID AND Tags.Name LIKE '%'||?||'%') = 0";
+                    }
+                    whereValues.Add(ExcludeTagNames[i]);
+                    if (i + 1 < ExcludeTagNames.Count) {
+                        statement += UsingExcludeTagAnd ? " AND " : " OR ";
+                    }
+                }
+                statement += ")";
+            }
+        }
+
         /// <summary>
         ///     Builds the WHERE part of an SQL statement. Will require a string with the SELECT ... FROM Files 
         ///     JOIN ... to be created before hand. An object List must also be created beforehand.
@@ -488,77 +578,8 @@ namespace FileDBManager.Entities
                     statement += wheres[i];
                 }
 
-                if (UsingTags && TagIDs != null && TagIDs.Count > 0) {
-                    if (wheres.Count == 0 && initial) {
-                        statement += includeWhere ? "WHERE " : " ";
-                        initial = false;
-                    } else {
-                        statement += (wheres.Count == 0 && IsOr) ? " OR " : " AND ";
-                    }
-                    if (wheres.Count == 0 && IsNot) statement += "NOT ";
-                    statement += "(";
-                    for (int i = 0; i < TagIDs.Count; i++) {
-                        statement += "? IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
-                        whereValues.Add(TagIDs[i]);
-                        if (i + 1 < TagIDs.Count) {
-                            statement += UsingTagAnd ? " AND " : " OR ";
-                        }
-                    }
-                    statement += ")";
-                } else if (UsingTags && TagNames != null && TagNames.Count > 0) {
-                    if (wheres.Count == 0 && initial) {
-                        statement += includeWhere ? "WHERE " : " ";
-                        initial = false;
-                    } else {
-                        statement += (wheres.Count == 0 && IsOr) ? " OR " : " AND ";
-                    }
-                    if (wheres.Count == 0 && IsNot) statement += "NOT ";
-                    statement += "(";
-                    for (int i = 0; i < TagNames.Count; i++) {
-                        statement += "UPPER(?) IN (SELECT UPPER(Tags.Name) FROM " +
-                            "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
-                        whereValues.Add(TagNames[i]);
-                        if (i + 1 < TagNames.Count) {
-                            statement += UsingTagAnd ? " AND " : " OR ";
-                        }
-                    }
-                    statement += ")";
-                }
-
-                if (UsingExcludeTags && ExcludeTagIDs != null && ExcludeTagIDs.Count > 0) {
-                    if (wheres.Count == 0 && initial) {
-                        statement += includeWhere ? "WHERE " : " ";
-                    } else {
-                        statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR " : " AND ";
-                    }
-                    if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
-                    statement += "(";
-                    for (int i = 0; i < ExcludeTagIDs.Count; i++) {
-                        statement += "? NOT IN (SELECT TagID FROM FileTagAssociations WHERE FileID=Files.ID)";
-                        whereValues.Add(ExcludeTagIDs[i]);
-                        if (i + 1 < ExcludeTagIDs.Count) {
-                            statement += UsingExcludeTagAnd ? " AND " : " OR ";
-                        }
-                    }
-                    statement += ")";
-                } else if (UsingExcludeTags && ExcludeTagNames != null && ExcludeTagNames.Count > 0) {
-                    if (wheres.Count == 0 && initial) {
-                        statement += includeWhere ? "WHERE " : " ";
-                    } else {
-                        statement += (wheres.Count == 0 && IsOr && !UsingTags) ? " OR " : " AND ";
-                    }
-                    if (IsNot && !UsingTags && wheres.Count == 0) statement += "NOT ";
-                    statement += "(";
-                    for (int i = 0; i < ExcludeTagNames.Count; i++) {
-                        statement += "UPPER(?) NOT IN (SELECT UPPER(Tags.Name) FROM " +
-                            "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
-                        whereValues.Add(ExcludeTagNames[i]);
-                        if (i + 1 < ExcludeTagNames.Count) {
-                            statement += UsingExcludeTagAnd ? " AND " : " OR ";
-                        }
-                    }
-                    statement += ")";
-                }
+                BuildTagWhereStatementPart(ref statement, ref wheres, ref whereValues, ref initial, ref includeWhere);
+                
                 if (wheres.Count > 0) statement += ")";
             } else {
                 if (initial) {
@@ -630,20 +651,27 @@ namespace FileDBManager.Entities
         {
             FileSearchFilter newFilter = new FileSearchFilter();
             newFilter.path = path;
-            newFilter.pathExact = pathExact;
+            newFilter.PathFilterExact = PathFilterExact;
             newFilter.pathID = pathID;
             newFilter.hash = hash;
-            newFilter.hashExact = hashExact;
+            newFilter.HashFilterExact = HashFilterExact;
             newFilter.altname = altname;
-            newFilter.altnameExact = altnameExact;
+            newFilter.AltnameFilterExact = AltnameFilterExact;
             newFilter.filename = filename;
-            newFilter.filenameExact = filenameExact;
+            newFilter.FilenameFilterExact = FilenameFilterExact;
             newFilter.fullname = fullname;
-            newFilter.fullnameExact = fullnameExact;
+            newFilter.FullnameFilterExact = FullnameFilterExact;
             newFilter.filetypeID = filetypeID;
             newFilter.fileType = fileType;
-            newFilter.fileTypeExact = fileTypeExact;
+            newFilter.FileTypeFilterExact = FileTypeFilterExact;
             newFilter.customFilter = customFilter;
+            newFilter.subFilters = subFilters;
+            newFilter.IsOr = IsOr;
+            newFilter.IsNot = IsNot;
+            newFilter.tagFilterAnd = tagFilterAnd;
+            newFilter.TagFilterExact = TagFilterExact;
+            newFilter.tagIDs = tagIDs;
+            newFilter.tagNames = tagNames;
 
             return newFilter;
         }
