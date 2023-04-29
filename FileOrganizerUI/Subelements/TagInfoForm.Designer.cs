@@ -38,10 +38,13 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
             this.DescriptionLabel = new System.Windows.Forms.Label();
             this.DescriptionBox = new System.Windows.Forms.TextBox();
+            this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
+            this.UpdateButton = new System.Windows.Forms.Button();
             this.TagInfoFlowLayout.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
+            this.flowLayoutPanel4.SuspendLayout();
             this.SuspendLayout();
             // 
             // TagInfoFlowLayout
@@ -54,10 +57,11 @@ namespace FileOrganizerUI.Subelements
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel1);
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel2);
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel3);
+            this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel4);
             this.TagInfoFlowLayout.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.TagInfoFlowLayout.Location = new System.Drawing.Point(13, 13);
             this.TagInfoFlowLayout.Name = "TagInfoFlowLayout";
-            this.TagInfoFlowLayout.Size = new System.Drawing.Size(685, 339);
+            this.TagInfoFlowLayout.Size = new System.Drawing.Size(685, 301);
             this.TagInfoFlowLayout.TabIndex = 0;
             // 
             // flowLayoutPanel1
@@ -67,14 +71,14 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel1.Controls.Add(this.NameBox);
             this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 3);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(521, 28);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(670, 28);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
             // NameLabel
             // 
             this.NameLabel.AutoSize = true;
             this.NameLabel.Location = new System.Drawing.Point(3, 6);
-            this.NameLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 0);
+            this.NameLabel.Margin = new System.Windows.Forms.Padding(3, 6, 35, 0);
             this.NameLabel.Name = "NameLabel";
             this.NameLabel.Size = new System.Drawing.Size(45, 17);
             this.NameLabel.TabIndex = 0;
@@ -82,9 +86,9 @@ namespace FileOrganizerUI.Subelements
             // 
             // NameBox
             // 
-            this.NameBox.Location = new System.Drawing.Point(54, 3);
+            this.NameBox.Location = new System.Drawing.Point(86, 3);
             this.NameBox.Name = "NameBox";
-            this.NameBox.Size = new System.Drawing.Size(464, 22);
+            this.NameBox.Size = new System.Drawing.Size(581, 22);
             this.NameBox.TabIndex = 1;
             // 
             // flowLayoutPanel2
@@ -94,14 +98,14 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel2.Controls.Add(this.CategoryComboBox);
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 37);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(521, 31);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(670, 31);
             this.flowLayoutPanel2.TabIndex = 1;
             // 
             // CategoryLabel
             // 
             this.CategoryLabel.AutoSize = true;
             this.CategoryLabel.Location = new System.Drawing.Point(3, 6);
-            this.CategoryLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 0);
+            this.CategoryLabel.Margin = new System.Windows.Forms.Padding(3, 6, 15, 0);
             this.CategoryLabel.Name = "CategoryLabel";
             this.CategoryLabel.Size = new System.Drawing.Size(65, 17);
             this.CategoryLabel.TabIndex = 0;
@@ -110,9 +114,9 @@ namespace FileOrganizerUI.Subelements
             // CategoryComboBox
             // 
             this.CategoryComboBox.FormattingEnabled = true;
-            this.CategoryComboBox.Location = new System.Drawing.Point(74, 3);
+            this.CategoryComboBox.Location = new System.Drawing.Point(86, 3);
             this.CategoryComboBox.Name = "CategoryComboBox";
-            this.CategoryComboBox.Size = new System.Drawing.Size(444, 24);
+            this.CategoryComboBox.Size = new System.Drawing.Size(581, 24);
             this.CategoryComboBox.TabIndex = 1;
             // 
             // flowLayoutPanel3
@@ -143,11 +147,29 @@ namespace FileOrganizerUI.Subelements
             this.DescriptionBox.Size = new System.Drawing.Size(579, 167);
             this.DescriptionBox.TabIndex = 1;
             // 
+            // flowLayoutPanel4
+            // 
+            this.flowLayoutPanel4.Controls.Add(this.UpdateButton);
+            this.flowLayoutPanel4.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 253);
+            this.flowLayoutPanel4.Name = "flowLayoutPanel4";
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(670, 32);
+            this.flowLayoutPanel4.TabIndex = 3;
+            // 
+            // UpdateButton
+            // 
+            this.UpdateButton.Location = new System.Drawing.Point(592, 3);
+            this.UpdateButton.Name = "UpdateButton";
+            this.UpdateButton.Size = new System.Drawing.Size(75, 26);
+            this.UpdateButton.TabIndex = 0;
+            this.UpdateButton.Text = "Update";
+            this.UpdateButton.UseVisualStyleBackColor = true;
+            // 
             // TagInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(707, 364);
+            this.ClientSize = new System.Drawing.Size(707, 326);
             this.Controls.Add(this.TagInfoFlowLayout);
             this.Name = "TagInfoForm";
             this.Text = "Tag Info";
@@ -159,6 +181,7 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel2.PerformLayout();
             this.flowLayoutPanel3.ResumeLayout(false);
             this.flowLayoutPanel3.PerformLayout();
+            this.flowLayoutPanel4.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -176,5 +199,7 @@ namespace FileOrganizerUI.Subelements
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel3;
         private System.Windows.Forms.Label DescriptionLabel;
         private System.Windows.Forms.TextBox DescriptionBox;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
+        private System.Windows.Forms.Button UpdateButton;
     }
 }

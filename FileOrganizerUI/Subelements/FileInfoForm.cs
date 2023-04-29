@@ -106,6 +106,29 @@ namespace FileOrganizerUI.Subelements
             }
         }
 
+        /// <summary>
+        /// Prevents illegal Windows path characters from being entered.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SanitizePathInput(object sender, KeyEventArgs e)
+        {
+            if (e.Modifiers == Keys.Shift) {
+                switch (e.KeyCode) {
+                    case Keys.Oemcomma:
+                    case Keys.OemPeriod:
+                    case Keys.OemSemicolon:
+                    case Keys.OemQuotes:
+                    case Keys.OemPipe:
+                    case Keys.OemQuestion:
+                        e.SuppressKeyPress = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         private void Refresh_Click(object sender, EventArgs e)
         {
             RefreshHash(GetPath());
@@ -190,6 +213,8 @@ namespace FileOrganizerUI.Subelements
                     HashRefreshButton.Margin = Padding.Empty;
                     HashRefreshButton.Click += Refresh_Click;
                     detailPair.Value.Controls.Add(HashRefreshButton);
+                } else if (detailPair.Key == "Path" || detailPair.Key == "Filename") {
+                    detailPair.Value.Controls[1].KeyDown += SanitizePathInput;
                 }
                 
                 MainVPanel.Controls.Add(detailPair.Value);
