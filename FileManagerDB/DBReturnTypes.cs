@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FileDBManager.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,11 +42,8 @@ namespace FileDBManager
         }
     }
 
-    public class GetTagType : IEquatable<GetTagType>
+    public class GetTagType : Tag, IEquatable<GetTagType>
     {
-        public int ID { get; set; }
-        public string Name { get; set; }
-        public int CategoryID { get; set; }
         public string Category { get; set; }
 
         public bool Equals(GetTagType other)

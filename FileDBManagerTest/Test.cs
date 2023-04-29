@@ -700,7 +700,6 @@ namespace FileDBManager.Test
             Assert.Contains(fileTags, t => t.Name == "file_tag1");
         }
 
-
         [Fact]
         public void AddAndGetTagsWorksWithTagCategories()
         {
@@ -809,6 +808,38 @@ namespace FileDBManager.Test
             var categories = fix.db.GetAllTagCategories();
             int id = categories.Find(tc => tc.Name == "to_be_renamed").ID;
             Assert.False(fix.db.UpdateTagCategoryName(id, "used_name"));
+        }
+
+        [Fact]
+        public void UpdateTagNameWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("old_tag_name");
+            Assert.True(fix.db.UpdateTagName("new_tag_name", "old_tag_name"));
+            var tags = fix.db.GetAllTags();
+            Assert.Contains(tags, t => t.Name == "new_tag_name");
+            Assert.DoesNotContain(tags, t => t.Name == "old_tag_name");
+        }
+
+        [Fact]
+        public void UpdateTagNameFailsWithDuplicateName()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("tag_to_rename");
+            fix.db.AddTag("used_tag_name");
+            Assert.False(fix.db.UpdateTagName("used_tag_name", "tag_to_rename"));
+        }
+
+        [Fact]
+        public void UpdateTagDescriptionWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("tag_w_desc");
+            var tags = fix.db.GetAllTags();
+            int id = tags.Find(t => t.Name == "tag_w_desc").ID;
+            Assert.True(fix.db.UpdateTagDescription(id, "Description of the tag.\n New line"));
+            tags = fix.db.GetAllTags();
+            Assert.Contains(tags, t => t.ID == id && t.Description == "Description of the tag.\n New line");
         }
 
         [Fact]

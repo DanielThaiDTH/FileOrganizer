@@ -316,6 +316,16 @@ namespace FileOrganizerCore
             return res;
         }
 
+        public ActionResult<bool> UpdateTagDescription(int tagID, string desc)
+        {
+            var res = new ActionResult<bool>();
+            bool status = db.UpdateTagDescription(tagID, desc);
+            if (!status) res.AddError(ErrorType.SQL, "Could not update tag description");
+            res.SetResult(status);
+
+            return res;
+        }
+
         /// <summary>
         ///     Updates the tag category for a tag
         /// </summary>

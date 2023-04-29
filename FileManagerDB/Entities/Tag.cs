@@ -15,7 +15,8 @@ namespace FileDBManager.Entities
             {
                 { "ID", "INTEGER PRIMARY KEY" },
                 { "Name", "TEXT UNIQUE ON CONFLICT IGNORE" },
-                { "CategoryID", "INTEGER REFERENCES TagCategories (ID) ON DELETE SET NULL" }
+                { "CategoryID", "INTEGER REFERENCES TagCategories (ID) ON DELETE SET NULL" },
+                { "Description", "TEXT DEFAULT ''" }
             };
 
         //[PrimaryKey, AutoIncrement]
@@ -29,6 +30,9 @@ namespace FileDBManager.Entities
         //[Indexed]
         //[Column("CategoryID")]
         public int CategoryID { get; set; }
+
+        //[Column("Description")]
+        public string Description { get; set; }
     }
 
 }

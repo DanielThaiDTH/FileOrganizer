@@ -69,7 +69,6 @@ namespace FileDBManager.Entities
         long size;
         bool usingSize;
         bool isSizeLesser;
-        DateTime created;
         List<int> tagIDs;
         List<string> tagNames;
         bool tagFilterAnd;
@@ -148,7 +147,6 @@ namespace FileDBManager.Entities
         public string FileType { get { return fileType; } }
         public string Hash { get { return hash; } }
         public long Size { get { return size; } }
-        public DateTime Created { get { return created; } }
         public List<int> TagIDs { get { return tagIDs; } }
         public List<string> TagNames { get { return tagNames; } }
         public bool UsingTagAnd { get { return tagFilterAnd; } }

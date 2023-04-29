@@ -80,6 +80,12 @@
     <Compile Include="Subelements\SettingsForm.Designer.cs">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Subelements\TagInfoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Subelements\TagInfoForm.Designer.cs">
+      <DependentUpon>TagInfoForm.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -100,6 +106,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Subelements\SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Subelements\TagInfoForm.resx">
+      <DependentUpon>TagInfoForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="Properties\Settings.settings">

@@ -219,7 +219,8 @@ namespace FileDBManager
                 var newTag = new GetTagType()
                 {
                     ID = read.GetInt32(read.GetOrdinal("ID")),
-                    Name = read.GetString(read.GetOrdinal("Name"))
+                    Name = read.GetString(read.GetOrdinal("Name")),
+                    Description = read.GetString(read.GetOrdinal("Description"))
                 };
 
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
@@ -228,7 +229,7 @@ namespace FileDBManager
                     logger.LogDebug("No catagory for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
-                    newTag.Category = read.GetString(4);
+                    newTag.Category = read.GetString(5);
                 }
                 tags.Add(newTag);
             }
@@ -260,7 +261,8 @@ namespace FileDBManager
                 var newTag = new GetTagType()
                 {
                     ID = read.GetInt32(read.GetOrdinal("TagID")),
-                    Name = read.GetString(read.GetOrdinal("Name"))
+                    Name = read.GetString(read.GetOrdinal("Name")),
+                    Description = read.GetString(read.GetOrdinal("Description"))
                 };
 
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
@@ -269,7 +271,7 @@ namespace FileDBManager
                     logger.LogDebug("No catagory for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
-                    newTag.Category = read.GetString(6);
+                    newTag.Category = read.GetString(7);
                 }
                 fileTags.Add(newTag);
             }
@@ -313,7 +315,7 @@ namespace FileDBManager
         {
             bool result;
 
-            string statement = createStatement("UPDATE Tag SET Name = ? WHERE Name = ?", name, oldName);
+            string statement = createStatement("UPDATE Tags SET Name = ? WHERE Name = ?", name, oldName);
             result = ExecuteNonQuery(statement) == 1;
 
             logger.LogInformation($"Tag {oldName} was {(result ? "" : "not")} renamed to {name}");
@@ -325,10 +327,24 @@ namespace FileDBManager
         {
             bool result;
 
-            string statement = createStatement("UPDATE Tag SET Name = ? WHERE ID = ?", name, id);
+            string statement = createStatement("UPDATE Tags SET Name = ? WHERE ID = ?", name, id);
             result = ExecuteNonQuery(statement) == 1;
 
             logger.LogInformation($"Tag {id} was {(result ? "" : "not")} renamed to {name}");
+
+            return result;
+        }
+
+        public bool UpdateTagDescription(int tagID, string desc)
+        {
+            bool result;
+
+            if (desc is null) desc = "";
+            string statement = createStatement("UPDATE Tags SET Description = ? WHERE ID = ?", desc, tagID);
+            result = ExecuteNonQuery(statement) == 1;
+
+            logger.LogInformation($"Tag {tagID} description was updated");
+            logger.LogDebug("New description: " + desc);
 
             return result;
         }

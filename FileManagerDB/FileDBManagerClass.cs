@@ -23,6 +23,8 @@ namespace FileDBManager
             logger.LogDebug("Creating or opening DB at " + dbLoc);
             db = new SQLiteConnection("DataSource=" + dbLoc);
             db.Open();
+
+            //Creates
             CreateTable(FilePath.TableName, FilePath.Columns);
             CreateTable(FileType.TableName, FileType.Columns);
             CreateTable(FileMetadata.TableName, FileMetadata.Columns, FileMetadata.Constraint);
@@ -33,6 +35,10 @@ namespace FileDBManager
             CreateTable(FileCollectionAssociation.TableName,
                 FileCollectionAssociation.Columns,
                 FileCollectionAssociation.Constraint);
+
+            //Updates
+            UpdateTable(Tag.TableName, Tag.Columns, new List<string> { "Description" });
+
             ExecuteNonQuery("PRAGMA foreign_keys=ON");
         }
 
@@ -90,8 +96,37 @@ namespace FileDBManager
                 query += constraint;
             }
             query += ")";
-            logger.LogInformation($"QUERY: \n{query}");
+            logger.LogDebug($"QUERY: \n{query}");
             ExecuteNonQuery(query);
+        }
+
+        /// <summary>
+        /// Call this to update tables in databases created in an older version.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="colDefs"></param>
+        /// <param name="colsToAdd"></param>
+        private void UpdateTable(string name, Dictionary<string, string> colDefs, List<string> colsToAdd)
+        {
+            logger.LogInformation("Updating " + name);
+            foreach (var colName in colsToAdd) {
+                var com = new SQLiteCommand($"SELECT 1 FROM pragma_table_info('{name}') WHERE Name='{colName}'", db);
+                var res = com.ExecuteReader();
+                bool colMissing = !res.HasRows;
+                res.Close();
+                com.Dispose();
+                
+                if (colMissing) {
+                    try {
+                        string updateStmt = $"ALTER TABLE {name} ADD COLUMN {colName} {colDefs[colName]}";
+                        logger.LogDebug("Update statement: " + updateStmt);
+                        ExecuteNonQuery(updateStmt);
+                    } catch {
+                        logger.LogError($"Failed to add column {colName} to table {name}");
+                        if (!colDefs.ContainsKey(colName)) logger.LogError($"{colName} not defined");
+                    }
+                }
+            }
         }
 
         /* File Section */
