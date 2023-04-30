@@ -17,6 +17,7 @@ namespace FileOrganizerUI.Subelements
             if (disposing && (components != null)) {
                 components.Dispose();
             }
+            if (updateCheck != null) updateCheck.Dispose();
             base.Dispose(disposing);
         }
 
@@ -40,6 +41,8 @@ namespace FileOrganizerUI.Subelements
             this.DescriptionBox = new System.Windows.Forms.TextBox();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
             this.UpdateButton = new System.Windows.Forms.Button();
+            this.DeleteButton = new System.Windows.Forms.Button();
+            this.MessageLabel = new System.Windows.Forms.Label();
             this.TagInfoFlowLayout.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -98,7 +101,7 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel2.Controls.Add(this.CategoryComboBox);
             this.flowLayoutPanel2.Location = new System.Drawing.Point(3, 37);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
-            this.flowLayoutPanel2.Size = new System.Drawing.Size(670, 31);
+            this.flowLayoutPanel2.Size = new System.Drawing.Size(670, 30);
             this.flowLayoutPanel2.TabIndex = 1;
             // 
             // CategoryLabel
@@ -124,7 +127,7 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel3.AutoSize = true;
             this.flowLayoutPanel3.Controls.Add(this.DescriptionLabel);
             this.flowLayoutPanel3.Controls.Add(this.DescriptionBox);
-            this.flowLayoutPanel3.Location = new System.Drawing.Point(3, 74);
+            this.flowLayoutPanel3.Location = new System.Drawing.Point(3, 73);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
             this.flowLayoutPanel3.Size = new System.Drawing.Size(670, 173);
             this.flowLayoutPanel3.TabIndex = 2;
@@ -150,8 +153,10 @@ namespace FileOrganizerUI.Subelements
             // flowLayoutPanel4
             // 
             this.flowLayoutPanel4.Controls.Add(this.UpdateButton);
+            this.flowLayoutPanel4.Controls.Add(this.DeleteButton);
+            this.flowLayoutPanel4.Controls.Add(this.MessageLabel);
             this.flowLayoutPanel4.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 253);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 252);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
             this.flowLayoutPanel4.Size = new System.Drawing.Size(670, 32);
             this.flowLayoutPanel4.TabIndex = 3;
@@ -164,6 +169,24 @@ namespace FileOrganizerUI.Subelements
             this.UpdateButton.TabIndex = 0;
             this.UpdateButton.Text = "Update";
             this.UpdateButton.UseVisualStyleBackColor = true;
+            // 
+            // DeleteButton
+            // 
+            this.DeleteButton.Location = new System.Drawing.Point(511, 3);
+            this.DeleteButton.Name = "DeleteButton";
+            this.DeleteButton.Size = new System.Drawing.Size(75, 23);
+            this.DeleteButton.TabIndex = 1;
+            this.DeleteButton.Text = "Delete";
+            this.DeleteButton.UseVisualStyleBackColor = true;
+            // 
+            // MessageLabel
+            // 
+            this.MessageLabel.AutoSize = true;
+            this.MessageLabel.Location = new System.Drawing.Point(505, 6);
+            this.MessageLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 0);
+            this.MessageLabel.Name = "MessageLabel";
+            this.MessageLabel.Size = new System.Drawing.Size(0, 17);
+            this.MessageLabel.TabIndex = 2;
             // 
             // TagInfoForm
             // 
@@ -182,6 +205,7 @@ namespace FileOrganizerUI.Subelements
             this.flowLayoutPanel3.ResumeLayout(false);
             this.flowLayoutPanel3.PerformLayout();
             this.flowLayoutPanel4.ResumeLayout(false);
+            this.flowLayoutPanel4.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -201,5 +225,7 @@ namespace FileOrganizerUI.Subelements
         private System.Windows.Forms.TextBox DescriptionBox;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
         private System.Windows.Forms.Button UpdateButton;
+        private System.Windows.Forms.Button DeleteButton;
+        private System.Windows.Forms.Label MessageLabel;
     }
 }

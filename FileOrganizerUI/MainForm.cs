@@ -23,6 +23,7 @@ namespace FileOrganizerUI
         private OpenFileDialog FileDialog;
         private SettingsForm SettingsDialog;
         private FileInfoForm FileInfoModal;
+        private TagInfoForm TagInfoModal;
         private ILogger logger;
         private FileOrganizer core;
         private SearchParser parser;
@@ -63,10 +64,14 @@ namespace FileOrganizerUI
 
             TagListView.MultiSelect = true;
             TagListView.View = View.List;
+            TagListView.MouseDoubleClick += TagListItem_DoubleClick;
 
             AddNewTagButton.Click += AddNewTagButton_Click;
 
             AssignTagButton.Click += AssignTag_Click;
+
+            TagInfoModal = new TagInfoForm(logger, core);
+            TagInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
             RefreshTagCategoryComboBox();
 
@@ -135,8 +140,7 @@ namespace FileOrganizerUI
                     FileInfoModal.SetFileInfo(selectedFile);
                     var dialogResult = FileInfoModal.ShowDialog(this);
                     
-                    if (dialogResult == DialogResult.OK || dialogResult == DialogResult.None 
-                        || dialogResult == DialogResult.Cancel) {
+                    if (dialogResult == DialogResult.OK || dialogResult == DialogResult.None || dialogResult == DialogResult.Cancel) {
                         if (FileInfoModal.IsUpdated) {
                             var updated = core.GetFileData(new FileSearchFilter().SetIDFilter(selectedFile.ID));
                             if (updated.Result.Count == 1) {
@@ -242,6 +246,36 @@ namespace FileOrganizerUI
                 } else {
                     UpdateMessage("Adding tags to files resulted in errors", ErrorMsgColor);
                     UpdateMessageToolTip(result.Messages);
+                }
+            }
+        }
+
+        private void TagListItem_DoubleClick(object sender, MouseEventArgs e)
+        {
+            ListViewItem item = TagListView.GetItemAt(e.X, e.Y);
+            if (item != null) {
+                var selectedTag = core.AllTags.Find(t => t.Name == item.Text);
+                if (selectedTag != null) {
+                    TagInfoModal.SetTagInfo(selectedTag);
+                    var dialogResult = TagInfoModal.ShowDialog(this);
+                    if (dialogResult == DialogResult.OK || dialogResult == DialogResult.Cancel 
+                        || dialogResult == DialogResult.None || dialogResult == DialogResult.Abort) {
+                        if (TagInfoModal.IsUpdated) {
+                            core.GetTags();
+                            if (TagInfoModal.NameUpdated) {
+                                var listItems = TagListView.Items;
+                                foreach (ListViewItem tag in listItems) {
+                                    if (tag.Text == selectedTag.Name) {
+                                        tag.Text = core.AllTags.Find(t => t.ID == selectedTag.ID).Name;
+                                    }
+                                }
+                            }
+
+                            TagInfoModal.ClearTagInfo();
+                        }
+                    }
+                } else {
+                    logger.LogError($"Tag {item.Text} was missing from tags");
                 }
             }
         }

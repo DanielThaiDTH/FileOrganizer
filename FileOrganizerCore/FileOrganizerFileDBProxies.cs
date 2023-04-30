@@ -262,6 +262,7 @@ namespace FileOrganizerCore
         {
             var res = new ActionResult<List<GetTagType>>();
             activeTags = db.GetAllTags();
+            AllTags = new List<GetTagType>(activeTags);
             res.SetResult(activeTags);
 
             return res;

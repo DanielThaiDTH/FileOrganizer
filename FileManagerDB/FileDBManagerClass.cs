@@ -60,6 +60,8 @@ namespace FileDBManager
                     arg.GetType() == typeof(long) ||
                     arg.GetType() == typeof(double)) {
                     fixArg = arg.ToString();
+                } else if (arg is null) {
+                    fixArg = "NULL";
                 } else {
                     fixArg = "'" + arg.ToString().Replace("'", "''") + "'";
                 }
