@@ -74,7 +74,7 @@ namespace FileOrganizerUI.Subelements
             this.Controls.Add(this.ConfirmButton);
             this.Controls.Add(this.DeleteConfirmLabel);
             this.Name = "DeleteConfirmModal";
-            this.Text = "DeleteConfirmModal";
+            this.Text = "Confirm Delete?";
             this.ResumeLayout(false);
             this.PerformLayout();
 

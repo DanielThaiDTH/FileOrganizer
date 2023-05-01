@@ -263,8 +263,7 @@ namespace FileOrganizerUI
                         if (TagInfoModal.IsUpdated) {
                             core.GetTags();
                             if (TagInfoModal.NameUpdated) {
-                                var listItems = TagListView.Items;
-                                foreach (ListViewItem tag in listItems) {
+                                foreach (ListViewItem tag in TagListView.Items) {
                                     if (tag.Text == selectedTag.Name) {
                                         tag.Text = core.AllTags.Find(t => t.ID == selectedTag.ID).Name;
                                     }
@@ -273,6 +272,17 @@ namespace FileOrganizerUI
 
                             TagInfoModal.ClearTagInfo();
                         }
+                    } else if (dialogResult == DialogResult.No && TagInfoModal.IsDeleted) {
+                        core.GetTags();
+                        ListViewItem remItem = null;
+                        foreach (ListViewItem tag in TagListView.Items) {
+                            if (tag.Text == selectedTag.Name) {
+                                remItem = tag;
+                            }
+                        }
+                        if (remItem != null) TagListView.Items.Remove(remItem);
+
+                        TagInfoModal.ClearTagInfo();
                     }
                 } else {
                     logger.LogError($"Tag {item.Text} was missing from tags");

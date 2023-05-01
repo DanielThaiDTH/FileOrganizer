@@ -282,6 +282,7 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             bool status = db.DeleteTag(id);
             if (!status) res.AddError(ErrorType.SQL, "Could not delete tag");
+            if (status) GetTags();
             res.SetResult(status);
 
             return res;

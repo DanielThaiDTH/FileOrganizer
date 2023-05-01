@@ -16,5 +16,10 @@ namespace FileOrganizerUI.Subelements
         {
             InitializeComponent();
         }
+
+        public void SetMessage(string msg)
+        {
+            DeleteConfirmLabel.Text = msg;
+        }
     }
 }

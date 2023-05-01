@@ -20,8 +20,10 @@ namespace FileOrganizerUI.Subelements
         FileOrganizer core;
         static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
         public bool IsUpdated;
+        public bool IsDeleted;
         public bool NameUpdated { get; private set; }
         public GetTagType Info { get; private set; }
+        DeleteConfirmModal DeleteModal;
         IObservable<object> editObservable;
         IDisposable updateCheck;
 
@@ -32,10 +34,16 @@ namespace FileOrganizerUI.Subelements
             this.core = core;
             RefreshTagCategoryComboBox();
             IsUpdated = false;
+            IsDeleted = false;
             NameUpdated = false;
 
             UpdateButton.Click += UpdateButton_Click;
             UpdateButton.Enabled = false;
+
+            DeleteButton.Click += DeleteButton_Click;
+
+            DeleteModal = new DeleteConfirmModal();
+            DeleteModal.SetMessage("Confirm deletion of tag?");
 
             editObservable = Observable.FromEventPattern(handler =>
             {
@@ -49,8 +57,6 @@ namespace FileOrganizerUI.Subelements
                 DescriptionBox.TextChanged -= handler;
                 CategoryComboBox.SelectedIndexChanged -= handler;
             });
-
-            
         }
 
         public void SetTagInfo(GetTagType info)
@@ -58,6 +64,7 @@ namespace FileOrganizerUI.Subelements
             if (info is null) return;
             Info = info;
             IsUpdated = false;
+            IsDeleted = false;
             NameUpdated = false;
             NameBox.Text = info.Name;
             DescriptionBox.Text = info.Description;
@@ -83,6 +90,7 @@ namespace FileOrganizerUI.Subelements
             DescriptionBox.Text = "";
             CategoryComboBox.SelectedItem = DefaultCategory;
             IsUpdated = false;
+            IsDeleted = false;
             NameUpdated = false;
             updateCheck.Dispose();
             MessageLabel.Text = "";
@@ -103,6 +111,24 @@ namespace FileOrganizerUI.Subelements
             }
 
             UpdateMessage("Tag updated", Color.Black);
+        }
+
+        private void DeleteButton_Click(object sender, EventArgs e)
+        {
+            if (Info is null) return;
+            var res = DeleteModal.ShowDialog(this);
+            if (res == DialogResult.Yes) {
+                var deleteResult = core.DeleteTag(Info.ID);
+                if (deleteResult.Result) {
+                    logger.LogInformation("Closing info screen for deleted tag " + Info.Name);
+                    IsDeleted = true;
+                    DialogResult = DialogResult.No;
+                    Close();
+                    DialogResult = DialogResult.No;
+                } else {
+                    UpdateMessage(deleteResult.GetErrorMessage(0), Color.FromArgb(200, 50, 50));
+                }
+            }
         }
 
         #region Functionality
