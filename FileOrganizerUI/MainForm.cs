@@ -29,6 +29,8 @@ namespace FileOrganizerUI
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
+        private int selectedFileID = -1;
+
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
         private static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
 
@@ -51,7 +53,8 @@ namespace FileOrganizerUI
             FileListView.MultiSelect = true;
             FileListView.View = View.Tile;
             FileListView.BackColor = Color.White;
-            FileListView.MouseDoubleClick += new MouseEventHandler(FileListItem_DoubleClick);
+            FileListView.MouseDoubleClick += FileListItem_DoubleClick;
+            FileListView.MouseClick += FileListItem_Click;
             FileListView.KeyDown += FileListView_SelectAll;
 
             imageList = new ImageList();
@@ -69,6 +72,9 @@ namespace FileOrganizerUI
             AddNewTagButton.Click += AddNewTagButton_Click;
 
             AssignTagButton.Click += AssignTag_Click;
+
+            RemoveTagButton.Enabled = false;
+            RemoveTagButton.Click += RemoveTag_Click;
 
             TagInfoModal = new TagInfoForm(logger, core);
             TagInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
@@ -115,12 +121,16 @@ namespace FileOrganizerUI
         private void Search_Click(object sender, EventArgs e)
         {
             SearchFiles();
+            RemoveTagButton.Enabled = false;
+            selectedFileID = -1;
         }
 
         private void Search_Enter(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter) {
                 SearchFiles();
+                RemoveTagButton.Enabled = false;
+                selectedFileID = -1;
             }
         }
 
@@ -128,6 +138,7 @@ namespace FileOrganizerUI
         {
             if (e.KeyCode == Keys.Enter) {
                 SearchTags((sender as TextBox).Text);
+                RemoveTagButton.Enabled = false;
             }
         }
 
@@ -172,6 +183,17 @@ namespace FileOrganizerUI
                 } else {
                     logger.LogError($"File {item.ImageKey} was missing from cached search results");
                 }
+            }
+        }
+
+        private void FileListItem_Click(object sender, MouseEventArgs e)
+        {
+            RemoveTagButton.Enabled = false;
+            selectedFileID = -1;
+            if (e.Button == MouseButtons.Right) {
+                ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
+                ViewFileTags(item);
+                RemoveTagButton.Enabled = true;
             }
         }
 
@@ -245,6 +267,38 @@ namespace FileOrganizerUI
                     UpdateMessage("Added tags to files", Color.Black);
                 } else {
                     UpdateMessage("Adding tags to files resulted in errors", ErrorMsgColor);
+                    UpdateMessageToolTip(result.Messages);
+                }
+            }
+        }
+
+        private void RemoveTag_Click(object sender, EventArgs e)
+        {
+            var selectedTags = TagListView.SelectedItems;
+            List<ListViewItem> removedTags = new List<ListViewItem>();
+
+            if (selectedTags.Count > 0) {
+                ActionResult<bool> result = new ActionResult<bool>();
+                result.SetResult(true);
+                foreach (ListViewItem tagItem in selectedTags) {
+                    var tag = core.AllTags.Find(t => t.Name == tagItem.Text);
+                    var remRes = core.DeleteTagFromFile(selectedFileID, tag.ID);
+                    if (!remRes.Result) {
+                        result.SetResult(false);
+                        ActionResult.AppendErrors(result, remRes);
+                    } else {
+                        removedTags.Add(tagItem);
+                    }
+                }
+
+                foreach (var remTag in removedTags) {
+                    TagListView.Items.Remove(remTag);
+                }
+
+                if (result.Result) {
+                    UpdateMessage("Removed tags from file", Color.Black);
+                } else {
+                    UpdateMessage("Removing tags from file resulted in errors", ErrorMsgColor);
                     UpdateMessageToolTip(result.Messages);
                 }
             }
@@ -354,6 +408,23 @@ namespace FileOrganizerUI
                 TagListView.Clear();
                 foreach (var tag in tags) {
                     TagListView.Items.Add(new ListViewItem(tag.Name));
+                }
+            }
+        }
+
+        private void ViewFileTags(ListViewItem item)
+        {
+            if (item != null) {
+                var selectedFile = core.ActiveFiles.Find(it => it.Fullname == item.ImageKey);
+                if (selectedFile != null) {
+                    var fileTags = core.GetTagsForFile(selectedFile.ID);
+                    TagListView.Clear();
+                    foreach (var tag in fileTags.Result) {
+                        TagListView.Items.Add(new ListViewItem(tag.Name));
+                    }
+                    selectedFileID = selectedFile.ID;
+                } else {
+                    logger.LogError($"File {item.ImageKey} was missing from cached search results");
                 }
             }
         }

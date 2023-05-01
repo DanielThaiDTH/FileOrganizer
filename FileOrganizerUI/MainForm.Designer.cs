@@ -53,6 +53,7 @@ namespace FileOrganizerUI
             this.TagSearchLabel = new System.Windows.Forms.Label();
             this.TagSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionsTab = new System.Windows.Forms.TabPage();
+            this.RemoveTagButton = new System.Windows.Forms.Button();
             this.FilePanel.SuspendLayout();
             this.SideTab.SuspendLayout();
             this.TagsTab.SuspendLayout();
@@ -181,6 +182,7 @@ namespace FileOrganizerUI
             // 
             this.TagsTab.BackColor = System.Drawing.Color.WhiteSmoke;
             this.TagsTab.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.TagsTab.Controls.Add(this.RemoveTagButton);
             this.TagsTab.Controls.Add(this.AssignTagButton);
             this.TagsTab.Controls.Add(this.AddTagGroup);
             this.TagsTab.Controls.Add(this.TagListView);
@@ -294,6 +296,15 @@ namespace FileOrganizerUI
             this.CollectionsTab.TabIndex = 1;
             this.CollectionsTab.Text = "Collections";
             // 
+            // RemoveTagButton
+            // 
+            this.RemoveTagButton.Location = new System.Drawing.Point(66, 460);
+            this.RemoveTagButton.Name = "RemoveTagButton";
+            this.RemoveTagButton.Size = new System.Drawing.Size(81, 34);
+            this.RemoveTagButton.TabIndex = 5;
+            this.RemoveTagButton.Text = "Remove";
+            this.RemoveTagButton.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -348,5 +359,6 @@ namespace FileOrganizerUI
         private System.Windows.Forms.Button AddNewTagButton;
         private System.Windows.Forms.ComboBox NewTagCategoryComboBox;
         private System.Windows.Forms.Label NewTagCategoryLabel;
+        private System.Windows.Forms.Button RemoveTagButton;
     }
 }
