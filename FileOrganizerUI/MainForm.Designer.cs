@@ -42,6 +42,7 @@ namespace FileOrganizerUI
             this.AppSettingsButton = new System.Windows.Forms.Button();
             this.SideTab = new System.Windows.Forms.TabControl();
             this.TagsTab = new System.Windows.Forms.TabPage();
+            this.RemoveTagButton = new System.Windows.Forms.Button();
             this.AssignTagButton = new System.Windows.Forms.Button();
             this.AddTagGroup = new System.Windows.Forms.GroupBox();
             this.AddNewTagButton = new System.Windows.Forms.Button();
@@ -53,7 +54,7 @@ namespace FileOrganizerUI
             this.TagSearchLabel = new System.Windows.Forms.Label();
             this.TagSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionsTab = new System.Windows.Forms.TabPage();
-            this.RemoveTagButton = new System.Windows.Forms.Button();
+            this.AdvancedActionsButton = new System.Windows.Forms.Button();
             this.FilePanel.SuspendLayout();
             this.SideTab.SuspendLayout();
             this.TagsTab.SuspendLayout();
@@ -195,6 +196,15 @@ namespace FileOrganizerUI
             this.TagsTab.TabIndex = 0;
             this.TagsTab.Text = "Tags";
             // 
+            // RemoveTagButton
+            // 
+            this.RemoveTagButton.Location = new System.Drawing.Point(66, 460);
+            this.RemoveTagButton.Name = "RemoveTagButton";
+            this.RemoveTagButton.Size = new System.Drawing.Size(81, 34);
+            this.RemoveTagButton.TabIndex = 5;
+            this.RemoveTagButton.Text = "Remove";
+            this.RemoveTagButton.UseVisualStyleBackColor = true;
+            // 
             // AssignTagButton
             // 
             this.AssignTagButton.Location = new System.Drawing.Point(153, 460);
@@ -296,20 +306,23 @@ namespace FileOrganizerUI
             this.CollectionsTab.TabIndex = 1;
             this.CollectionsTab.Text = "Collections";
             // 
-            // RemoveTagButton
+            // AdvancedActionsButton
             // 
-            this.RemoveTagButton.Location = new System.Drawing.Point(66, 460);
-            this.RemoveTagButton.Name = "RemoveTagButton";
-            this.RemoveTagButton.Size = new System.Drawing.Size(81, 34);
-            this.RemoveTagButton.TabIndex = 5;
-            this.RemoveTagButton.Text = "Remove";
-            this.RemoveTagButton.UseVisualStyleBackColor = true;
+            this.AdvancedActionsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.AdvancedActionsButton.Location = new System.Drawing.Point(1258, 667);
+            this.AdvancedActionsButton.Name = "AdvancedActionsButton";
+            this.AdvancedActionsButton.Size = new System.Drawing.Size(154, 32);
+            this.AdvancedActionsButton.TabIndex = 12;
+            this.AdvancedActionsButton.Text = "Advanced";
+            this.AdvancedActionsButton.UseVisualStyleBackColor = true;
+            this.AdvancedActionsButton.Click += new System.EventHandler(this.AdvancedActions_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1447, 702);
+            this.Controls.Add(this.AdvancedActionsButton);
             this.Controls.Add(this.SideTab);
             this.Controls.Add(this.AppSettingsButton);
             this.Controls.Add(this.CreateSymLinksButton);
@@ -360,5 +373,6 @@ namespace FileOrganizerUI
         private System.Windows.Forms.ComboBox NewTagCategoryComboBox;
         private System.Windows.Forms.Label NewTagCategoryLabel;
         private System.Windows.Forms.Button RemoveTagButton;
+        private System.Windows.Forms.Button AdvancedActionsButton;
     }
 }

@@ -343,6 +343,11 @@ namespace FileOrganizerUI
                 }
             }
         }
+
+        private void AdvancedActions_Click(object sender, EventArgs e)
+        {
+
+        }
         #endregion
 
         #region Functionality
@@ -365,7 +370,8 @@ namespace FileOrganizerUI
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
                 if (!files.HasError()) {
-                    var thumbnailMap = thumbnailProxy.GetThumbnails(files.Result.ConvertAll<string>(f => f.Fullname));
+                    var imageSet = files.Result.FindAll(f => f.FileType == "image").ConvertAll(f => f.Fullname).ToHashSet();
+                    var thumbnailMap = thumbnailProxy.GetThumbnails(files.Result.ConvertAll(f => f.Fullname), imageSet);
                     imageList.Images.Clear();
                     foreach (var pair in thumbnailMap) {
                         imageList.Images.Add(pair.Key, pair.Value);
@@ -450,5 +456,7 @@ namespace FileOrganizerUI
         }
 
         #endregion
+
+        
     }
 }

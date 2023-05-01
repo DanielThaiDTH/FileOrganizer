@@ -81,8 +81,9 @@ namespace FileOrganizerUI.CodeBehind
         ///     Returns a thumbnail for a file.
         /// </summary>
         /// <param name="file"></param>
+        /// <param name="getIcon"></param>
         /// <returns></returns>
-        public Image GetThumbnail(string file)
+        public Image GetThumbnail(string file, bool getIcon = true)
         {
             string filepath = file;
             if (!Path.IsPathRooted(file)) {
@@ -93,10 +94,14 @@ namespace FileOrganizerUI.CodeBehind
             Bitmap thumbnailData = null;
             try {
                 ShellFile shellfile = ShellFile.FromFilePath(filepath);
-                thumbnailData = shellfile.Thumbnail.LargeBitmap;
+                var thumbnail = shellfile.Thumbnail;
+                if (getIcon) thumbnail.FormatOption = ShellThumbnailFormatOption.IconOnly;
+                thumbnailData = thumbnail.LargeBitmap;
+                if (getIcon) thumbnailData.MakeTransparent(Color.Black);
             }
             catch (Exception ex) {
-                logger.LogError(ex, "File load error: " + ex.GetType().ToString());
+                logger.LogError(ex, "Thumbnail load error: " + ex.GetType().ToString());
+                logger.LogError(ex.Message);
                 logger.LogDebug(ex.StackTrace);
             }
 
@@ -110,8 +115,9 @@ namespace FileOrganizerUI.CodeBehind
         /// </summary>
         /// <param name="files"></param>
         /// <returns></returns>
-        public Dictionary<string, Image> GetThumbnails(IEnumerable<string> files)
+        public Dictionary<string, Image> GetThumbnails(IEnumerable<string> files, HashSet<string> imageFiles = null)
         {
+            if (imageFiles is null) imageFiles = new HashSet<string>();
             var imageList = new Dictionary<string, Image>();
             foreach (string file in files) {
                 string filepath = file;
@@ -120,7 +126,7 @@ namespace FileOrganizerUI.CodeBehind
                     filepath = Path.Combine(root, file);
                 }
 
-                Image thumbnailData = GetThumbnail(filepath);
+                Image thumbnailData = GetThumbnail(filepath, !imageFiles.Contains(filepath));
 
                 if (thumbnailData != null) {
                     imageList.Add(filepath, thumbnailData);
