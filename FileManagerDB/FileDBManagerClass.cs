@@ -55,13 +55,13 @@ namespace FileDBManager
             filledQuery += queryParts[0];
             foreach (object arg in args) {
                 string fixArg;
-                if (arg.GetType() == typeof(int) ||
+                if (arg is null) {
+                    fixArg = "NULL";
+                } else if (arg.GetType() == typeof(int) ||
                     arg.GetType() == typeof(float) ||
                     arg.GetType() == typeof(long) ||
                     arg.GetType() == typeof(double)) {
                     fixArg = arg.ToString();
-                } else if (arg is null) {
-                    fixArg = "NULL";
                 } else {
                     fixArg = "'" + arg.ToString().Replace("'", "''") + "'";
                 }

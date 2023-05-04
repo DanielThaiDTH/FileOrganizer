@@ -24,6 +24,7 @@ namespace FileOrganizerUI
         private SettingsForm SettingsDialog;
         private FileInfoForm FileInfoModal;
         private TagInfoForm TagInfoModal;
+        private AdvancedWindow AdvancedModal;
         private ILogger logger;
         private FileOrganizer core;
         private SearchParser parser;
@@ -79,6 +80,8 @@ namespace FileOrganizerUI
             TagInfoModal = new TagInfoForm(logger, core);
             TagInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
+            AdvancedModal = new AdvancedWindow(logger, core);
+
             RefreshTagCategoryComboBox();
 
             SearchBox.Focus();
@@ -131,6 +134,7 @@ namespace FileOrganizerUI
                 SearchFiles();
                 RemoveTagButton.Enabled = false;
                 selectedFileID = -1;
+                e.SuppressKeyPress = true;
             }
         }
 
@@ -139,6 +143,7 @@ namespace FileOrganizerUI
             if (e.KeyCode == Keys.Enter) {
                 SearchTags((sender as TextBox).Text);
                 RemoveTagButton.Enabled = false;
+                e.SuppressKeyPress = true;
             }
         }
 
@@ -346,7 +351,8 @@ namespace FileOrganizerUI
 
         private void AdvancedActions_Click(object sender, EventArgs e)
         {
-
+            AdvancedModal.CategoriesChanged = false;
+            AdvancedModal.ShowDialog(this);
         }
         #endregion
 

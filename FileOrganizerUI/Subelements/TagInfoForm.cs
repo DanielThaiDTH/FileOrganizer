@@ -66,6 +66,7 @@ namespace FileOrganizerUI.Subelements
             IsUpdated = false;
             IsDeleted = false;
             NameUpdated = false;
+            UpdateButton.Enabled = false;
             NameBox.Text = info.Name;
             DescriptionBox.Text = info.Description;
             MessageLabel.Text = "";
@@ -135,12 +136,14 @@ namespace FileOrganizerUI.Subelements
         private void RefreshTagCategoryComboBox()
         {
             CategoryComboBox.Items.Clear();
+            var selectedCategory = DefaultCategory;
             foreach (var category in core.TagCategories) {
                 CategoryComboBox.Items.Add(category);
+                if (Info != null && category.Name == Info.Category) selectedCategory = category;
             }
 
             CategoryComboBox.Items.Add(DefaultCategory);
-            CategoryComboBox.SelectedItem = DefaultCategory;
+            CategoryComboBox.SelectedItem = selectedCategory;
         }
 
         private void UpdateMessage(string msg, Color color)
@@ -164,10 +167,10 @@ namespace FileOrganizerUI.Subelements
         {
             int newCategoryID;
             logger.LogDebug("Selected category option: " + CategoryComboBox.SelectedText);
-            if ((CategoryComboBox.SelectedItem as GetTagCategoryType).Name == DefaultCategory.Name) {
+            if (CategoryComboBox.SelectedItem.Equals(DefaultCategory)) {
                 newCategoryID = -1;
             } else {
-                newCategoryID = core.TagCategories.Find(tc => tc.Name == (CategoryComboBox.SelectedItem as GetTagCategoryType).Name).ID;
+                newCategoryID = (CategoryComboBox.SelectedItem as GetTagCategoryType).ID;
             }
 
             var categoryRes = core.UpdateTagCategory(Info.ID, newCategoryID);
@@ -190,7 +193,9 @@ namespace FileOrganizerUI.Subelements
 
         private bool IsCategoryChanged()
         {
-            return CategoryComboBox.SelectedIndex != -1 && (CategoryComboBox.SelectedItem as GetTagCategoryType).Name != DefaultCategory.Name;
+            return CategoryComboBox.SelectedIndex != -1 && 
+                !(CategoryComboBox.SelectedItem.Equals(DefaultCategory) && Info.Category is null) &&
+                !(Info.Category != null && (CategoryComboBox.SelectedItem as GetTagCategoryType).Name == Info.Category);
         }
         #endregion
     }

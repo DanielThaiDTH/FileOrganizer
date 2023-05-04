@@ -358,8 +358,14 @@ namespace FileDBManager
         public bool UpdateTagCategory(int tagID, int categoryID)
         {
             bool result;
+            string statement;
 
-            string statement = createStatement("UPDATE Tags SET CategoryID = ? WHERE ID = ?", categoryID, tagID);
+            if (categoryID < 1) {
+                statement = createStatement("UPDATE Tags SET CategoryID = ? WHERE ID = ?", null, tagID);
+            } else {
+                statement = createStatement("UPDATE Tags SET CategoryID = ? WHERE ID = ?", categoryID, tagID);
+            }
+
             result = ExecuteNonQuery(statement) == 1;
 
             logger.LogInformation($"Tag {tagID} {(result? "changed" : "did not change ")} category to {categoryID}");

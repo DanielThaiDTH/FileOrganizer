@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 namespace FileDBManager.Entities
 {
     //[Table("TagCategories")]
+    /// <summary>
+    ///     Name is always in lower case.
+    /// </summary>
     class TagCategory
     {
         public static string TableName = "TagCategories";
