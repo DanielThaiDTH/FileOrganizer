@@ -31,7 +31,6 @@ namespace FileOrganizerCore
         //Recently searched tags, tag categories and searched files are kept in memory
         List<GetTagCategoryType> tagCategories;
         public List<GetTagCategoryType> TagCategories { get { return tagCategories; } }
-        bool tagCategoriesClean;
         List<GetFileMetadataType> activeFiles;
         public List<GetFileMetadataType> ActiveFiles { get { return activeFiles; } }
         List<GetTagType> activeTags;
@@ -94,7 +93,6 @@ namespace FileOrganizerCore
             try {
                 var categoryRes = GetTagCategories();
                 tagCategories = categoryRes.Result ?? new List<GetTagCategoryType>();
-                tagCategoriesClean = true;
                 AllTags = GetTags().Result;
                 if (categoryRes.Result != null) res.SetResult(true);
             } catch {

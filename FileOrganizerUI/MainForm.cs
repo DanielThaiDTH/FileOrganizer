@@ -13,7 +13,7 @@ using FileOrganizerCore;
 using FileOrganizerUI.CodeBehind;
 using FileDBManager;
 using FileDBManager.Entities;
-using FileOrganizerUI.Subelements;
+using FileOrganizerUI.Windows;
 
 
 namespace FileOrganizerUI

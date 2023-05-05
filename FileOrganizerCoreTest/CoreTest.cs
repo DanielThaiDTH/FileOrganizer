@@ -266,5 +266,16 @@ namespace FileOrganizerCore.Test
             }
             Assert.Empty(fix.core.GetFileData().Result);
         }
+
+        [Fact]
+        public void UpdateTagCategoryWithNegative1RemovesCategoryFromTag()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.core.AddTag("tag_w_category", "test");
+            int tagID = fix.core.AllTags.Find(t => t.Name == "tag_w_category").ID;
+            Assert.True(fix.core.UpdateTagCategory(tagID, -1).Result);
+            Assert.Null(fix.core.AllTags.Find(t => t.Name == "tag_w_category").Category);
+            Assert.Equal(-1, fix.core.AllTags.Find(t => t.Name == "tag_w_category").CategoryID);
+        }
     }
 }

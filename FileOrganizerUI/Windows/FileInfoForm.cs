@@ -15,7 +15,7 @@ using FileDBManager;
 using FileDBManager.Entities;
 using FileOrganizerCore;
 
-namespace FileOrganizerUI.Subelements
+namespace FileOrganizerUI.Windows
 {
     public partial class FileInfoForm : Form
     {
@@ -68,6 +68,7 @@ namespace FileOrganizerUI.Subelements
             detailLines["Hash"].Controls[1].KeyDown += PreventInput;
             detailLines["Size"].Controls[1].Text = file.Size.ToString();
             specialDetailLines["Created"].Controls[1].Text = file.Created.ToString("yyyy-MM-dd");
+            UpdateMessage("", Color.Black);
 
             editDispose = editObservable.Subscribe((args) => {
                 bool changed = detailLines.Any(dl => 
@@ -131,9 +132,13 @@ namespace FileOrganizerUI.Subelements
 
         private void Refresh_Click(object sender, EventArgs e)
         {
-            RefreshHash(GetPath());
-            RefreshSize(GetPath());
-            RefreshCreated(GetPath());
+            if (File.Exists(GetPath())) {
+                RefreshHash(GetPath());
+                RefreshSize(GetPath());
+                RefreshCreated(GetPath());
+            } else {
+                UpdateMessage($"File {GetPath()} not found", MainForm.ErrorMsgColor);
+            }
         }
 
         private void Update_Click(object sender, EventArgs e)

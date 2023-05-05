@@ -169,7 +169,6 @@ namespace FileOrganizerCore
             var catgories = db.GetAllTagCategories();
             res.SetResult(catgories);
             tagCategories = catgories;
-            tagCategoriesClean = true;
 
             return res;
         }
@@ -184,13 +183,11 @@ namespace FileOrganizerCore
         {
             var res = new ActionResult<bool>();
             bool status = db.DeleteTagCategory(id);
-            tagCategoriesClean = false;
 
             if (!status) {
                 res.AddError(ErrorType.SQL, $"Failed to delete tag category {id}");
             } else {
                 tagCategories = db.GetAllTagCategories();
-                tagCategoriesClean = true;
             }
 
             res.SetResult(status);
@@ -210,13 +207,11 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
 
             bool status = db.UpdateTagCategoryName(id, newName);
-            tagCategoriesClean = false;
 
             if (!status) {
                 res.AddError(ErrorType.SQL, $"Failed to change tag category {id} name to {newName}");
             } else {
                 tagCategories = db.GetAllTagCategories();
-                tagCategoriesClean = true;
             }
 
             res.SetResult(status);
@@ -345,11 +340,19 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        ///     Updates tag category for tag. Category id of -1 means the category will be removed
+        ///     from the tag.
+        /// </summary>
+        /// <param name="tagID"></param>
+        /// <param name="categoryID"></param>
+        /// <returns></returns>
         public ActionResult<bool> UpdateTagCategory(int tagID, int categoryID)
         {
             var res = new ActionResult<bool>();
             bool status = db.UpdateTagCategory(tagID, categoryID);
             if (!status) res.AddError(ErrorType.SQL, $"Could not set the tag #{tagID} to category #{categoryID}");
+            if (status) GetTags();
             res.SetResult(status);
 
             return res;

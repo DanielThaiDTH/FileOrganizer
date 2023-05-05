@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FileOrganizerUI.Subelements
+namespace FileOrganizerUI.Windows
 {
     public partial class SettingsForm : Form
     {

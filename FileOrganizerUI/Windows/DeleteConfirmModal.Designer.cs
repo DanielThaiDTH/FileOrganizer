@@ -1,5 +1,5 @@
 ﻿
-namespace FileOrganizerUI.Subelements
+namespace FileOrganizerUI.Windows
 {
     partial class DeleteConfirmModal
     {

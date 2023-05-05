@@ -55,10 +55,14 @@ namespace FileOrganizerUI
             this.TagSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionsTab = new System.Windows.Forms.TabPage();
             this.AdvancedActionsButton = new System.Windows.Forms.Button();
+            this.CollectionSearchLabel = new System.Windows.Forms.Label();
+            this.CollectionSearchBox = new System.Windows.Forms.TextBox();
+            this.CollectionListView = new System.Windows.Forms.ListView();
             this.FilePanel.SuspendLayout();
             this.SideTab.SuspendLayout();
             this.TagsTab.SuspendLayout();
             this.AddTagGroup.SuspendLayout();
+            this.CollectionsTab.SuspendLayout();
             this.SuspendLayout();
             // 
             // OpenFilePicker
@@ -282,7 +286,7 @@ namespace FileOrganizerUI
             // TagSearchLabel
             // 
             this.TagSearchLabel.AutoSize = true;
-            this.TagSearchLabel.Location = new System.Drawing.Point(7, 6);
+            this.TagSearchLabel.Location = new System.Drawing.Point(7, 7);
             this.TagSearchLabel.Name = "TagSearchLabel";
             this.TagSearchLabel.Size = new System.Drawing.Size(53, 17);
             this.TagSearchLabel.TabIndex = 1;
@@ -299,6 +303,9 @@ namespace FileOrganizerUI
             // 
             this.CollectionsTab.BackColor = System.Drawing.Color.WhiteSmoke;
             this.CollectionsTab.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.CollectionsTab.Controls.Add(this.CollectionListView);
+            this.CollectionsTab.Controls.Add(this.CollectionSearchBox);
+            this.CollectionsTab.Controls.Add(this.CollectionSearchLabel);
             this.CollectionsTab.Location = new System.Drawing.Point(4, 25);
             this.CollectionsTab.Name = "CollectionsTab";
             this.CollectionsTab.Padding = new System.Windows.Forms.Padding(3);
@@ -316,6 +323,31 @@ namespace FileOrganizerUI
             this.AdvancedActionsButton.Text = "Advanced";
             this.AdvancedActionsButton.UseVisualStyleBackColor = true;
             this.AdvancedActionsButton.Click += new System.EventHandler(this.AdvancedActions_Click);
+            // 
+            // CollectionSearchLabel
+            // 
+            this.CollectionSearchLabel.AutoSize = true;
+            this.CollectionSearchLabel.Location = new System.Drawing.Point(7, 7);
+            this.CollectionSearchLabel.Name = "CollectionSearchLabel";
+            this.CollectionSearchLabel.Size = new System.Drawing.Size(53, 17);
+            this.CollectionSearchLabel.TabIndex = 0;
+            this.CollectionSearchLabel.Text = "Search";
+            // 
+            // CollectionSearchBox
+            // 
+            this.CollectionSearchBox.Location = new System.Drawing.Point(6, 31);
+            this.CollectionSearchBox.Name = "CollectionSearchBox";
+            this.CollectionSearchBox.Size = new System.Drawing.Size(228, 22);
+            this.CollectionSearchBox.TabIndex = 1;
+            // 
+            // CollectionListView
+            // 
+            this.CollectionListView.HideSelection = false;
+            this.CollectionListView.Location = new System.Drawing.Point(6, 60);
+            this.CollectionListView.Name = "CollectionListView";
+            this.CollectionListView.Size = new System.Drawing.Size(228, 198);
+            this.CollectionListView.TabIndex = 3;
+            this.CollectionListView.UseCompatibleStateImageBehavior = false;
             // 
             // MainForm
             // 
@@ -341,6 +373,8 @@ namespace FileOrganizerUI
             this.TagsTab.PerformLayout();
             this.AddTagGroup.ResumeLayout(false);
             this.AddTagGroup.PerformLayout();
+            this.CollectionsTab.ResumeLayout(false);
+            this.CollectionsTab.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -374,5 +408,8 @@ namespace FileOrganizerUI
         private System.Windows.Forms.Label NewTagCategoryLabel;
         private System.Windows.Forms.Button RemoveTagButton;
         private System.Windows.Forms.Button AdvancedActionsButton;
+        private System.Windows.Forms.Label CollectionSearchLabel;
+        private System.Windows.Forms.TextBox CollectionSearchBox;
+        private System.Windows.Forms.ListView CollectionListView;
     }
 }

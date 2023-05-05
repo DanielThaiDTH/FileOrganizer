@@ -22,8 +22,9 @@ namespace FileOrganizerUI.CodeBehind
         string fileroot;
         string root;
         FileTypeDeterminer det;
+        Bitmap blankThumbnail;
         public static Color TransparentColor = Color.FromArgb(0, 1, 0);
-        public static Color BackgroundColor = Color.WhiteSmoke;
+        public static Color BackgroundColor = Color.White;
 
         public ThumbnailProxy(ILogger logger)
         {
@@ -31,6 +32,16 @@ namespace FileOrganizerUI.CodeBehind
             fileroot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
             root = fileroot;
             det = new FileTypeDeterminer();
+            blankThumbnail = new Bitmap(48, 48);
+
+            using (Graphics g = Graphics.FromImage(blankThumbnail)) {
+                g.Clear(BackgroundColor);
+                g.DrawImage(
+                    blankThumbnail,
+                    new Rectangle(Point.Empty, blankThumbnail.Size),
+                    0, 0, blankThumbnail.Width, blankThumbnail.Height,
+                    GraphicsUnit.Pixel);
+            }
         }
 
         /// <summary>
@@ -103,6 +114,8 @@ namespace FileOrganizerUI.CodeBehind
                 logger.LogError(ex, "Thumbnail load error: " + ex.GetType().ToString());
                 logger.LogError(ex.Message);
                 logger.LogDebug(ex.StackTrace);
+                logger.LogInformation("Using blank thumbnail");
+                thumbnailData = blankThumbnail;
             }
 
             return thumbnailData;

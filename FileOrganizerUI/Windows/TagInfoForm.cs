@@ -12,7 +12,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FileOrganizerUI.Subelements
+namespace FileOrganizerUI.Windows
 {
     public partial class TagInfoForm : Form
     {
