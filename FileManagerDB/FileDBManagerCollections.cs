@@ -347,6 +347,52 @@ namespace FileDBManager
             }
         }
 
+        public List<GetCollectionType> FileCollectionSearch(string query)
+        {
+            var results = new List<GetCollectionType>();
+            string statement = createStatement("SELECT * FROM Collections WHERE Name LIKE '%?%'", query);
+
+            var com = new SQLiteCommand(statement, db);
+            var read = com.ExecuteReader();
+            if (read.HasRows) {
+                while (read.Read()) {
+                    var collection = new GetCollectionType {
+                        Name = read.GetString(read.GetOrdinal("Name")),
+                        ID = read.GetInt32(read.GetOrdinal("ID"))
+                    };
+                    results.Add(collection);
+                }
+            } else {
+                logger.LogWarning($"Could not find collection with query: {statement}");
+                read.Close();
+                com.Dispose();
+                return results;
+            }
+            read.Close();
+            com.Dispose();
+
+            foreach (var collection in results) {
+                var files = new List<GetFileCollectionAssociationType>();
+                statement = createStatement("SELECT * FROM FileCollectionAssociations WHERE CollectionID = ?", collection.ID);
+                com = new SQLiteCommand(statement, db);
+                read = com.ExecuteReader();
+                
+                while (read.HasRows && read.Read()) {
+                    files.Add(new GetFileCollectionAssociationType()
+                    {
+                        FileID = read.GetInt32(read.GetOrdinal("FileID")),
+                        CollectionID = collection.ID,
+                        Position = read.GetInt32(read.GetOrdinal("Position"))
+                    });
+                }
+
+                read.Close();
+                com.Dispose();
+            }
+
+            return results;
+        }
+
         public bool UpdateCollectionName(int id, string newName)
         {
             string statement = createStatement("UPDATE Collections SET Name=? WHERE ID = ?", newName, id);

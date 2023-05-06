@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeBehind\NaturalOrderComparer.cs" />
     <Compile Include="CodeBehind\SearchParser.cs" />
     <Compile Include="CodeBehind\ThumbnailProxy.cs" />
     <Compile Include="MainForm.cs">
@@ -138,6 +139,12 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Humanizer">
+      <Version>2.14.1</Version>
+    </PackageReference>
+    <PackageReference Include="Humanizer.Core">
+      <Version>2.14.1</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Data.Sqlite">
       <Version>7.0.2</Version>
     </PackageReference>

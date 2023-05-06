@@ -9,12 +9,13 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Configuration;
 using Microsoft.Extensions.Logging;
+using Humanizer;
 using FileOrganizerCore;
 using FileOrganizerUI.CodeBehind;
 using FileDBManager;
 using FileDBManager.Entities;
 using FileOrganizerUI.Windows;
-
+using System.IO;
 
 namespace FileOrganizerUI
 {
@@ -357,11 +358,6 @@ namespace FileOrganizerUI
         #endregion
 
         #region Functionality
-        private void UpdateMessage(string msg, Color color)
-        {
-            MessageText.Text = msg;
-            MessageText.ForeColor = color;
-        }
 
         private void SearchFiles()
         {
@@ -385,10 +381,13 @@ namespace FileOrganizerUI
 
                     FileListView.BeginUpdate();
                     FileListView.LargeImageList = imageList;
+                    var sorted = files.Result.OrderBy(f => Path.GetFileNameWithoutExtension(f.Filename), new NaturalOrderComparer())
+                                                .ToList();
 
-                    foreach (var filedata in files.Result) {
+                    foreach (var filedata in sorted) {
                         FileListView.Items.Add(new ListViewItem(filedata.Filename, filedata.Fullname));
                     }
+                    
                     FileListView.EndUpdate();
 
                     UpdateMessage($"Found {files.Result.Count} file(s)", Color.Black);
@@ -450,6 +449,17 @@ namespace FileOrganizerUI
 
             NewTagCategoryComboBox.Items.Add(DefaultCategory);
             NewTagCategoryComboBox.SelectedItem = DefaultCategory;
+        }
+
+        private void SearchCollections(string query)
+        {
+
+        }
+
+        private void UpdateMessage(string msg, Color color)
+        {
+            MessageText.Text = msg;
+            MessageText.ForeColor = color;
         }
 
         private void UpdateMessageToolTip(List<string> msgs)
