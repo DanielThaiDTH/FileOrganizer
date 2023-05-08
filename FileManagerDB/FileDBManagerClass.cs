@@ -432,9 +432,9 @@ namespace FileDBManager
                 int oldCount = results.Count;
                 results = filter.CustomFilter(results);
                 logger.LogInformation($"Results reduced from {oldCount} to {results.Count}");
-                logger.LogInformation($"Returning {results.Count} result(s)");
             }
 
+            logger.LogInformation($"Returning {results.Count} result(s)");
             return results;
         }
 

@@ -84,6 +84,6 @@ namespace FileOrganizerUI.Windows
 
         private System.Windows.Forms.Label DeleteConfirmLabel;
         private System.Windows.Forms.Button ConfirmButton;
-        private System.Windows.Forms.Button CancelButton;
+        private new System.Windows.Forms.Button CancelButton;
     }
 }

@@ -45,7 +45,7 @@ namespace FileDBManager.Test
             string path = Path.Combine("logs", "log.log");
             if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
             Log.Logger = new LoggerConfiguration()
-                //.MinimumLevel.Debug()
+                .MinimumLevel.Debug()
                 .WriteTo.File(path,  rollingInterval: RollingInterval.Day)
                 .WriteTo.Debug()
                 .CreateLogger();
@@ -1118,6 +1118,35 @@ namespace FileDBManager.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             Assert.False(fix.db.DeleteCollection("not_found"));
             Assert.False(fix.db.DeleteCollection(1000));
+        }
+
+        [Fact]
+        public void FileCollectionSearchWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddCollection("collection_search_1");
+            fix.db.AddCollection("collection_search_2");
+            fix.db.AddCollection("collection_search_3");
+            Assert.Equal(3, fix.db.FileCollectionSearch("search").Count);
+            Assert.Equal(3, fix.db.FileCollectionSearch("collection_search_").Count);
+            Assert.Single(fix.db.FileCollectionSearch("search_2"));
+        }
+
+        [Fact]
+        public void FileCollectionSearchIncludesFileIDs()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"C:\in_collection_1", "text", "aaa");
+            fix.db.AddFile(@"C:\in_collection_2", "text", "aaa");
+            fix.db.AddFile(@"C:\in_collection_3", "text", "aaa");
+            var filter = new FileSearchFilter().SetFullnameFilter(@"C:\in_collection", false);
+            var fileIDs = fix.db.GetFileMetadata(filter).ConvertAll(f => f.ID);
+            fix.db.AddCollection("collection_w_f_1", fileIDs);
+            fix.db.AddCollection("collection_w_f_2", fileIDs);
+            var collections = fix.db.FileCollectionSearch("collection_w_f_");
+            Assert.Equal(2, collections.Count);
+            Assert.All(collections[0].Files, (fc) => Assert.Contains(fc.FileID, fileIDs));
+            Assert.All(collections[1].Files, (fc) => Assert.Contains(fc.FileID, fileIDs));
         }
 
         [Fact]

@@ -77,7 +77,7 @@ namespace FileOrganizerCore
         /// <summary>
         ///     Adds files to the DB. Returns status of each 
         ///     add, which will be in the same order as the list
-        ///     of files provided.
+        ///     of files provided. Should be absolute paths.
         /// </summary>
         /// <param name="filenames"></param>
         /// <returns></returns>
@@ -373,6 +373,7 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             bool status = db.AddFileToCollection(collectionID, fileID, insertindex);
             if (!status) res.AddError(ErrorType.SQL, "Could not add file to collection");
+            res.SetResult(status);
 
             return res;
         }
@@ -382,6 +383,7 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             bool status = db.DeleteFileInCollection(collectionID, fileID);
             if (!status) res.AddError(ErrorType.SQL, $"Failed to remove file #{fileID} from #{collectionID}");
+            res.SetResult(status);
 
             return res;
         }
@@ -412,11 +414,22 @@ namespace FileOrganizerCore
             return res;
         }
 
+        public ActionResult<List<GetCollectionType>> SearchFileCollection(string query)
+        {
+            var res = new ActionResult<List<GetCollectionType>>();
+            var collections = db.FileCollectionSearch(query);
+            res.SetResult(collections);
+            ActiveCollections = collections;
+
+            return res;
+        }
+
         public ActionResult<bool> UpdateCollectionName(int id, string newName)
         {
             var res = new ActionResult<bool>();
             bool status = db.UpdateCollectionName(id, newName);
             if (!status) res.AddError(ErrorType.SQL, $"Failed to change collection name to {newName} for #{id}");
+            res.SetResult(status);
 
             return res;
         }
@@ -426,6 +439,7 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             bool status = db.UpdateCollectionName(name, newName);
             if (!status) res.AddError(ErrorType.SQL, $"Failed to rename collection {name} to {newName}");
+            res.SetResult(status);
 
             return res;
         }
@@ -435,6 +449,7 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             bool status = db.DeleteCollection(id);
             if (!status) res.AddError(ErrorType.SQL, $"Failed to delete collection #{id}");
+            res.SetResult(status);
 
             return res;
         }
@@ -444,6 +459,7 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
             bool status = db.DeleteCollection(name);
             if (!status) res.AddError(ErrorType.SQL, $"Failed to delete collection {name}");
+            res.SetResult(status);
 
             return res;
         }

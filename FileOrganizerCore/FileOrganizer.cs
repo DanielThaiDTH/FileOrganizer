@@ -33,11 +33,13 @@ namespace FileOrganizerCore
         public List<GetTagCategoryType> TagCategories { get { return tagCategories; } }
         List<GetFileMetadataType> activeFiles;
         public List<GetFileMetadataType> ActiveFiles { get { return activeFiles; } }
+        public List<GetFileMetadataType> BackupActiveFiles { get; private set; }
         List<GetTagType> activeTags;
         public List<GetTagType> ActiveTags { get { return activeTags; } set { activeTags = value; } }
         public List<GetTagType> AllTags { get; private set; }
         GetCollectionType activeCollection;
         public GetCollectionType ActiveCollection { get { return activeCollection; } }
+        public List<GetCollectionType> ActiveCollections { get; private set; }
 
         /* WIN32 API imports/definitions section */
 
@@ -344,6 +346,21 @@ namespace FileOrganizerCore
             return res;
         }
 
-        
+        /// <summary>
+        ///     Saves the current active files, so that it can be restored later. 
+        /// </summary>
+        public void SaveActiveFilesBackup()
+        {
+            BackupActiveFiles = ActiveFiles;
+        }
+
+        /// <summary>
+        ///     Restores active files from backup. Note it does not track changes made
+        ///     between backing up and restoring.
+        /// </summary>
+        public void RestoreActiveFilesFromBackup()
+        {
+            activeFiles = BackupActiveFiles;
+        }
     }
 }

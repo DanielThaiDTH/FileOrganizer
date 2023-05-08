@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Configuration;
 using Microsoft.Extensions.Logging;
-using Humanizer;
 using FileOrganizerCore;
 using FileOrganizerUI.CodeBehind;
 using FileDBManager;
@@ -83,6 +82,16 @@ namespace FileOrganizerUI
 
             AdvancedModal = new AdvancedWindow(logger, core);
 
+            CollectionSearchBox.KeyDown += CollectionSearch_Enter;
+
+            CollectionListView.View = View.List;
+            CollectionListView.MouseClick += CollectionListItem_Click;
+
+            CollectionResultAddButton.Click += CollectionResultButton_Click;
+
+            CollectionAddFileButton.Click += CollectionFileAddButton_Click;
+            CollectionPickerAddButton.Click += CollectionFilePickerButton_Click;
+
             RefreshTagCategoryComboBox();
 
             SearchBox.Focus();
@@ -148,6 +157,15 @@ namespace FileOrganizerUI
             }
         }
 
+        private void CollectionSearch_Enter(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) {
+                SearchCollections((sender as TextBox).Text);
+                CollectionAddFileButton.Enabled = false;
+                e.SuppressKeyPress = true;
+            }
+        }
+
         private void FileListItem_DoubleClick(object sender, MouseEventArgs e)
         {
             ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
@@ -201,6 +219,8 @@ namespace FileOrganizerUI
                 ViewFileTags(item);
                 RemoveTagButton.Enabled = true;
             }
+
+            AddFileToCollectionsEnableVerify();
         }
 
         private void FileListView_SelectAll(object sender, KeyEventArgs e)
@@ -355,6 +375,108 @@ namespace FileOrganizerUI
             AdvancedModal.CategoriesChanged = false;
             AdvancedModal.ShowDialog(this);
         }
+
+        private void CollectionResultButton_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(CollectionNameBox.Text.Trim())) {
+                var selectedFiles = FileListView.SelectedItems;
+                var fileIDs = new List<int>();
+                foreach (ListViewItem file in selectedFiles) {
+                    int id = core.ActiveFiles.Find(f => f.Fullname == file.ImageKey).ID;
+                    fileIDs.Add(id);
+                }
+
+                var res = core.AddCollection(CollectionNameBox.Text.Trim(), fileIDs);
+                if (res.Result) {
+                    UpdateMessage($"Added collection {CollectionNameBox.Text.Trim()}", Color.Black);
+                    CollectionNameBox.Clear();
+                } else {
+                    UpdateMessage("Failed to add collection", ErrorMsgColor);
+                    UpdateMessageToolTip(res.Messages);
+                }
+            }
+        }
+        
+        private void CollectionFilePickerButton_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(CollectionNameBox.Text.Trim())) {
+                return;
+            }
+
+            if (FileDialog.ShowDialog() == DialogResult.OK) {
+                core.SaveActiveFilesBackup();
+                List<string> filesToAdd = new List<string>();
+                FileSearchFilter filter = new FileSearchFilter();
+                List<FileSearchFilter> subfilters = new List<FileSearchFilter>();
+
+                foreach (string filename in FileDialog.FileNames) {
+                    filter.Reset().SetFullnameFilter(filename);
+                    if (core.GetFileData(filter).Result.Count == 0) {
+                        filesToAdd.Add(filename);
+                        logger.LogInformation("Opened and adding new file: " + filename);
+                    } else {
+                        logger.LogInformation($"File {filename} already in DB");
+                    }
+                    subfilters.Add(new FileSearchFilter().SetOr(true).SetFullnameFilter(filename));
+                }
+
+                core.RestoreActiveFilesFromBackup();
+                var addRes = core.AddFiles(filesToAdd);
+                filter.Reset();
+                foreach (var subfilter in subfilters) {
+                    filter.AddSubfilter(subfilter);
+                }
+                var fileData = core.GetFileData(filter);
+                var fileIds = fileData.Result.ConvertAll(f => f.ID);
+                var res = core.AddCollection(CollectionNameBox.Text.Trim(), fileIds);
+
+                if (res.HasError()) {
+                    string errMsg = "";
+                    int bad = res.Messages.Count;
+                    int good = FileDialog.FileNames.Length - bad;
+                    errMsg += $"Adding files to collection resulted in {good} successes and {bad} failures\n\n";
+                    UpdateMessage(errMsg, ErrorMsgColor);
+                    UpdateMessageToolTip(res.Messages);
+                } else {
+                    UpdateMessage($"{FileDialog.FileNames.Length} files added to collection, " +
+                        $"{filesToAdd.Count} new files added to DB", 
+                        Color.Black);
+                    MessageTooltip.SetToolTip(MessageText, MessageText.Text);
+                }
+            }
+        }
+
+        private void CollectionFileAddButton_Click(object sender, EventArgs e)
+        {
+            if (CollectionListView.SelectedItems.Count > 0 && FileListView.SelectedItems.Count > 0 ) {
+                var collection = core.ActiveCollections.Find(c => c.Name == CollectionListView.SelectedItems[0].Text);
+                var res = new ActionResult<bool>();
+                res.SetResult(true);
+               
+                foreach (ListViewItem key in FileListView.SelectedItems) {
+                    int id = core.ActiveFiles.Find(f => f.Fullname == key.ImageKey).ID;
+                    var addRes = core.AddFileToCollection(collection.ID, id);
+                    ActionResult.AppendErrors(res, addRes);
+                    if (!addRes.Result) res.SetResult(false);
+                }
+
+                if (res.Result) {
+                    UpdateMessage($"Added {FileListView.SelectedItems.Count} files to " +
+                        $"collection {CollectionListView.SelectedItems[0].Text}", 
+                        Color.Black);
+                } else {
+                    UpdateMessage("Failed to add files to collection", ErrorMsgColor);
+                    UpdateMessageToolTip(res.Messages);
+                }
+            }
+        }
+
+        private void CollectionListItem_Click(object sender, MouseEventArgs e)
+        {
+            if (FileListView.GetItemAt(e.X, e.Y) != null) {
+                AddFileToCollectionsEnableVerify();
+            }
+        }
         #endregion
 
         #region Functionality
@@ -453,7 +575,22 @@ namespace FileOrganizerUI
 
         private void SearchCollections(string query)
         {
+            if (!string.IsNullOrEmpty(CollectionSearchBox.Text.Trim())) {
+                var collections = core.SearchFileCollection(query);
+                CollectionListView.Clear();
+                foreach (var collection in collections.Result) {
+                    CollectionListView.Items.Add(new ListViewItem(collection.Name));    
+                }
+            }
+        }
 
+        private void AddFileToCollectionsEnableVerify()
+        {
+            if (FileListView.SelectedItems.Count > 0 && CollectionListView.SelectedItems.Count > 0) {
+                CollectionAddFileButton.Enabled = true;
+            } else {
+                CollectionAddFileButton.Enabled = false;
+            }
         }
 
         private void UpdateMessage(string msg, Color color)
@@ -464,6 +601,11 @@ namespace FileOrganizerUI
 
         private void UpdateMessageToolTip(List<string> msgs)
         {
+            if (msgs is null || msgs.Count == 0) {
+                logger.LogInformation("No error messages to dispaly on tooltip");
+                return;
+            }
+
             string errMsg = "";
             foreach (string msg in msgs) {
                 errMsg += msg + "\n";

@@ -347,10 +347,15 @@ namespace FileDBManager
             }
         }
 
+        /// <summary>
+        ///     Searches for file collections using a non exact query
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         public List<GetCollectionType> FileCollectionSearch(string query)
         {
             var results = new List<GetCollectionType>();
-            string statement = createStatement("SELECT * FROM Collections WHERE Name LIKE '%?%'", query);
+            string statement = createStatement("SELECT * FROM Collections WHERE Name LIKE ?", "%" + query + "%");
 
             var com = new SQLiteCommand(statement, db);
             var read = com.ExecuteReader();
@@ -388,6 +393,7 @@ namespace FileDBManager
 
                 read.Close();
                 com.Dispose();
+                collection.Files = files;
             }
 
             return results;

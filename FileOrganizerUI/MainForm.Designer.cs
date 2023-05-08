@@ -54,16 +54,16 @@ namespace FileOrganizerUI
             this.TagSearchLabel = new System.Windows.Forms.Label();
             this.TagSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionsTab = new System.Windows.Forms.TabPage();
+            this.CollectionAddFileButton = new System.Windows.Forms.Button();
+            this.AddCollectionGroup = new System.Windows.Forms.GroupBox();
+            this.CollectionPickerAddButton = new System.Windows.Forms.Button();
+            this.CollectionResultAddButton = new System.Windows.Forms.Button();
+            this.CollectionNameBox = new System.Windows.Forms.TextBox();
+            this.ColectionNameLabel = new System.Windows.Forms.Label();
             this.CollectionListView = new System.Windows.Forms.ListView();
             this.CollectionSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionSearchLabel = new System.Windows.Forms.Label();
             this.AdvancedActionsButton = new System.Windows.Forms.Button();
-            this.AddCollectionGroup = new System.Windows.Forms.GroupBox();
-            this.ColectionNameLabel = new System.Windows.Forms.Label();
-            this.CollectionNameBox = new System.Windows.Forms.TextBox();
-            this.CollectionResultAddButton = new System.Windows.Forms.Button();
-            this.CollectionPickerAddButton = new System.Windows.Forms.Button();
-            this.CollectionAddFile = new System.Windows.Forms.Button();
             this.FilePanel.SuspendLayout();
             this.SideTab.SuspendLayout();
             this.TagsTab.SuspendLayout();
@@ -310,7 +310,7 @@ namespace FileOrganizerUI
             // 
             this.CollectionsTab.BackColor = System.Drawing.Color.WhiteSmoke;
             this.CollectionsTab.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.CollectionsTab.Controls.Add(this.CollectionAddFile);
+            this.CollectionsTab.Controls.Add(this.CollectionAddFileButton);
             this.CollectionsTab.Controls.Add(this.AddCollectionGroup);
             this.CollectionsTab.Controls.Add(this.CollectionListView);
             this.CollectionsTab.Controls.Add(this.CollectionSearchBox);
@@ -322,10 +322,67 @@ namespace FileOrganizerUI
             this.CollectionsTab.TabIndex = 1;
             this.CollectionsTab.Text = "Collections";
             // 
+            // CollectionAddFileButton
+            // 
+            this.CollectionAddFileButton.Location = new System.Drawing.Point(153, 487);
+            this.CollectionAddFileButton.Name = "CollectionAddFileButton";
+            this.CollectionAddFileButton.Size = new System.Drawing.Size(75, 23);
+            this.CollectionAddFileButton.TabIndex = 5;
+            this.CollectionAddFileButton.Text = "Add File";
+            this.CollectionAddFileButton.UseVisualStyleBackColor = true;
+            // 
+            // AddCollectionGroup
+            // 
+            this.AddCollectionGroup.Controls.Add(this.CollectionPickerAddButton);
+            this.AddCollectionGroup.Controls.Add(this.CollectionResultAddButton);
+            this.AddCollectionGroup.Controls.Add(this.CollectionNameBox);
+            this.AddCollectionGroup.Controls.Add(this.ColectionNameLabel);
+            this.AddCollectionGroup.Location = new System.Drawing.Point(7, 516);
+            this.AddCollectionGroup.Name = "AddCollectionGroup";
+            this.AddCollectionGroup.Size = new System.Drawing.Size(227, 118);
+            this.AddCollectionGroup.TabIndex = 4;
+            this.AddCollectionGroup.TabStop = false;
+            this.AddCollectionGroup.Text = "Add Collection";
+            // 
+            // CollectionPickerAddButton
+            // 
+            this.CollectionPickerAddButton.Location = new System.Drawing.Point(59, 79);
+            this.CollectionPickerAddButton.Name = "CollectionPickerAddButton";
+            this.CollectionPickerAddButton.Size = new System.Drawing.Size(162, 23);
+            this.CollectionPickerAddButton.TabIndex = 3;
+            this.CollectionPickerAddButton.Text = "Add From File Picker";
+            this.CollectionPickerAddButton.UseVisualStyleBackColor = true;
+            // 
+            // CollectionResultAddButton
+            // 
+            this.CollectionResultAddButton.Location = new System.Drawing.Point(59, 50);
+            this.CollectionResultAddButton.Name = "CollectionResultAddButton";
+            this.CollectionResultAddButton.Size = new System.Drawing.Size(162, 23);
+            this.CollectionResultAddButton.TabIndex = 2;
+            this.CollectionResultAddButton.Text = "Add From Selected";
+            this.CollectionResultAddButton.UseVisualStyleBackColor = true;
+            // 
+            // CollectionNameBox
+            // 
+            this.CollectionNameBox.Location = new System.Drawing.Point(59, 22);
+            this.CollectionNameBox.Name = "CollectionNameBox";
+            this.CollectionNameBox.Size = new System.Drawing.Size(162, 22);
+            this.CollectionNameBox.TabIndex = 1;
+            // 
+            // ColectionNameLabel
+            // 
+            this.ColectionNameLabel.AutoSize = true;
+            this.ColectionNameLabel.Location = new System.Drawing.Point(7, 22);
+            this.ColectionNameLabel.Name = "ColectionNameLabel";
+            this.ColectionNameLabel.Size = new System.Drawing.Size(45, 17);
+            this.ColectionNameLabel.TabIndex = 0;
+            this.ColectionNameLabel.Text = "Name";
+            // 
             // CollectionListView
             // 
             this.CollectionListView.HideSelection = false;
             this.CollectionListView.Location = new System.Drawing.Point(6, 60);
+            this.CollectionListView.MultiSelect = false;
             this.CollectionListView.Name = "CollectionListView";
             this.CollectionListView.Size = new System.Drawing.Size(228, 421);
             this.CollectionListView.TabIndex = 3;
@@ -357,62 +414,6 @@ namespace FileOrganizerUI
             this.AdvancedActionsButton.Text = "Advanced";
             this.AdvancedActionsButton.UseVisualStyleBackColor = true;
             this.AdvancedActionsButton.Click += new System.EventHandler(this.AdvancedActions_Click);
-            // 
-            // AddCollectionGroup
-            // 
-            this.AddCollectionGroup.Controls.Add(this.CollectionPickerAddButton);
-            this.AddCollectionGroup.Controls.Add(this.CollectionResultAddButton);
-            this.AddCollectionGroup.Controls.Add(this.CollectionNameBox);
-            this.AddCollectionGroup.Controls.Add(this.ColectionNameLabel);
-            this.AddCollectionGroup.Location = new System.Drawing.Point(7, 516);
-            this.AddCollectionGroup.Name = "AddCollectionGroup";
-            this.AddCollectionGroup.Size = new System.Drawing.Size(227, 118);
-            this.AddCollectionGroup.TabIndex = 4;
-            this.AddCollectionGroup.TabStop = false;
-            this.AddCollectionGroup.Text = "Add Collection";
-            // 
-            // ColectionNameLabel
-            // 
-            this.ColectionNameLabel.AutoSize = true;
-            this.ColectionNameLabel.Location = new System.Drawing.Point(7, 22);
-            this.ColectionNameLabel.Name = "ColectionNameLabel";
-            this.ColectionNameLabel.Size = new System.Drawing.Size(45, 17);
-            this.ColectionNameLabel.TabIndex = 0;
-            this.ColectionNameLabel.Text = "Name";
-            // 
-            // CollectionNameBox
-            // 
-            this.CollectionNameBox.Location = new System.Drawing.Point(59, 22);
-            this.CollectionNameBox.Name = "CollectionNameBox";
-            this.CollectionNameBox.Size = new System.Drawing.Size(162, 22);
-            this.CollectionNameBox.TabIndex = 1;
-            // 
-            // CollectionResultAddButton
-            // 
-            this.CollectionResultAddButton.Location = new System.Drawing.Point(59, 50);
-            this.CollectionResultAddButton.Name = "CollectionResultAddButton";
-            this.CollectionResultAddButton.Size = new System.Drawing.Size(162, 23);
-            this.CollectionResultAddButton.TabIndex = 2;
-            this.CollectionResultAddButton.Text = "Add From Results";
-            this.CollectionResultAddButton.UseVisualStyleBackColor = true;
-            // 
-            // CollectionPickerAddButton
-            // 
-            this.CollectionPickerAddButton.Location = new System.Drawing.Point(59, 79);
-            this.CollectionPickerAddButton.Name = "CollectionPickerAddButton";
-            this.CollectionPickerAddButton.Size = new System.Drawing.Size(162, 23);
-            this.CollectionPickerAddButton.TabIndex = 3;
-            this.CollectionPickerAddButton.Text = "Add From File Picker";
-            this.CollectionPickerAddButton.UseVisualStyleBackColor = true;
-            // 
-            // CollectionAddFile
-            // 
-            this.CollectionAddFile.Location = new System.Drawing.Point(153, 487);
-            this.CollectionAddFile.Name = "CollectionAddFile";
-            this.CollectionAddFile.Size = new System.Drawing.Size(75, 23);
-            this.CollectionAddFile.TabIndex = 5;
-            this.CollectionAddFile.Text = "Add File";
-            this.CollectionAddFile.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -483,6 +484,6 @@ namespace FileOrganizerUI
         private System.Windows.Forms.Button CollectionResultAddButton;
         private System.Windows.Forms.TextBox CollectionNameBox;
         private System.Windows.Forms.Label ColectionNameLabel;
-        private System.Windows.Forms.Button CollectionAddFile;
+        private System.Windows.Forms.Button CollectionAddFileButton;
     }
 }

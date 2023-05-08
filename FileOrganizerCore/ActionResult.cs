@@ -29,6 +29,13 @@ namespace FileOrganizerCore
         public int Count { get { return type.Count; } }
         public List<string> Messages { get { return message; } }
 
+        /// <summary>
+        ///     Adds error messages from r2 to r1.
+        /// </summary>
+        /// <typeparam name="T1"></typeparam>
+        /// <typeparam name="T2"></typeparam>
+        /// <param name="r1"></param>
+        /// <param name="r2"></param>
         public static void AppendErrors<T1, T2>(ActionResult<T1> r1, ActionResult<T2> r2)
         {
             for (int i = 0; i < r2.Count; i++) {
