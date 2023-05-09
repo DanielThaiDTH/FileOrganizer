@@ -69,6 +69,12 @@
     <Compile Include="Windows\AdvancedWindow.Designer.cs">
       <DependentUpon>AdvancedWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="Windows\CollectionInfoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Windows\CollectionInfoForm.Designer.cs">
+      <DependentUpon>CollectionInfoForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Windows\DeleteConfirmModal.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -107,6 +113,9 @@
     </Compile>
     <EmbeddedResource Include="Windows\AdvancedWindow.resx">
       <DependentUpon>AdvancedWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Windows\CollectionInfoForm.resx">
+      <DependentUpon>CollectionInfoForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Windows\DeleteConfirmModal.resx">
       <DependentUpon>DeleteConfirmModal.cs</DependentUpon>

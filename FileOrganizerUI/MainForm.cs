@@ -25,6 +25,7 @@ namespace FileOrganizerUI
         private FileInfoForm FileInfoModal;
         private TagInfoForm TagInfoModal;
         private AdvancedWindow AdvancedModal;
+        private CollectionInfoForm CollectionInfoModal;
         private ILogger logger;
         private FileOrganizer core;
         private SearchParser parser;
@@ -86,11 +87,14 @@ namespace FileOrganizerUI
 
             CollectionListView.View = View.List;
             CollectionListView.MouseClick += CollectionListItem_Click;
+            CollectionListView.MouseDoubleClick += CollectionListItem_DoubleClick;
 
             CollectionResultAddButton.Click += CollectionResultButton_Click;
 
             CollectionAddFileButton.Click += CollectionFileAddButton_Click;
             CollectionPickerAddButton.Click += CollectionFilePickerButton_Click;
+
+            CollectionInfoModal = new CollectionInfoForm(logger, core);
 
             RefreshTagCategoryComboBox();
 
@@ -475,6 +479,20 @@ namespace FileOrganizerUI
         {
             if (FileListView.GetItemAt(e.X, e.Y) != null) {
                 AddFileToCollectionsEnableVerify();
+            }
+        }
+
+        private void CollectionListItem_DoubleClick(object sender, MouseEventArgs e)
+        {
+            ListViewItem item = CollectionListView.GetItemAt(e.X, e.Y);
+            if (item != null) {
+                var selectedCollection = core.ActiveCollections.Find(c => c.Name == item.Text);
+                if (selectedCollection != null) {
+                    core.SaveActiveFilesBackup();
+                    CollectionInfoModal.SetCollection(selectedCollection);
+                    var dialogResult = CollectionInfoModal.ShowDialog(this);
+                    core.RestoreActiveFilesFromBackup();
+                }
             }
         }
         #endregion
