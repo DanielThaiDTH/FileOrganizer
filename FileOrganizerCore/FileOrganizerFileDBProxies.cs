@@ -724,5 +724,39 @@ namespace FileOrganizerCore
 
             return result;
         }
+
+        public ActionResult<bool> SwitchFilePositionInCollection(int collectionID, int fileAID, int fileBID)
+        {
+            var result = new ActionResult<bool>();
+
+            if (fileAID == fileBID) result.SetResult(true);
+
+            var collection = db.GetFileCollection(collectionID);
+            int positionA = 0;
+            int positionB = 0;
+            try {
+                positionA = collection.Files.Find(f => f.FileID == fileAID).Position;
+                positionB = collection.Files.Find(f => f.FileID == fileBID).Position;
+            } catch (Exception e) {
+                string errMsg = "File not found in collection: " + e.Message;
+                logger.LogWarning(errMsg);
+                result.AddError(ErrorType.SQL, errMsg);
+                result.SetResult(false);
+            }
+            
+            if (!result.HasError() && positionA != positionB) {
+                bool shiftRes = true;
+                shiftRes = shiftRes && db.UpdateFilePositionInCollection(collectionID, fileAID, -1);
+                shiftRes = shiftRes && db.UpdateFilePositionInCollection(collectionID, fileBID, positionA);
+                shiftRes = shiftRes && db.UpdateFilePositionInCollection(collectionID, fileAID, positionB);
+                if (!shiftRes) {
+                    result.AddError(ErrorType.SQL, "Something went wrong when switching file positions");
+                    logger.LogWarning($"Failed to switch file positions for files {fileAID} and {fileBID} " +
+                        $"in collection {collection.Name}");
+                }
+            }
+
+            return result;
+        }
     }
 }

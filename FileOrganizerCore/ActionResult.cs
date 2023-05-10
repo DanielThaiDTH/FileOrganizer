@@ -89,6 +89,10 @@ namespace FileOrganizerCore
             return type.Contains(err);
         }
 
+        /// <summary>
+        ///     Checks if there is at least one error of any kind in the result
+        /// </summary>
+        /// <returns></returns>
         public bool HasError()
         {
             return type.Count > 0;
