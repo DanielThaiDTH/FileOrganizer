@@ -435,6 +435,20 @@ namespace FileDBManager
             return result;
         }
 
+        public bool UpdateFilePositionInCollection(int collectionID, int fileID, int position)
+        {
+            bool result;
+            string statement = createStatement("UPDATE FileCollectionAssociations SET Position = ? WHERE CollectionID = ? AND FileID = ?", 
+                position, collectionID, fileID);
+            logger.LogDebug("Updating position of file in collection with: " + statement);
+            result = ExecuteNonQuery(statement) == 1;
+
+            logger.LogInformation($"Position of file {fileID} in collection {collectionID} was set {(result ? " " : " not ")}" +
+                $" to {position}");
+
+            return result;
+        }
+
         public bool DeleteCollection(int id)
         {
             bool result;

@@ -492,6 +492,17 @@ namespace FileOrganizerUI
                     CollectionInfoModal.SetCollection(selectedCollection);
                     var dialogResult = CollectionInfoModal.ShowDialog(this);
                     core.RestoreActiveFilesFromBackup();
+
+                    if (CollectionInfoModal.IsUpdated && !CollectionInfoModal.IsDeleted) {
+                        if (CollectionInfoModal.NewName != item.Text) {
+                            item.Text = CollectionInfoModal.NewName;
+                        }
+                    } else if (dialogResult == DialogResult.No && CollectionInfoModal.IsDeleted) {
+                        core.ActiveCollections.Remove(selectedCollection);
+                        CollectionListView.Items.Remove(item);
+                    }
+
+                    CollectionInfoModal.ClearCollection();
                 }
             }
         }

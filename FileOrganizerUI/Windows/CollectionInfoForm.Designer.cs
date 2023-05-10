@@ -14,6 +14,9 @@ namespace FileOrganizerUI.Windows
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
+            if (disposing && editDispose != null) {
+                editDispose.Dispose();
+            }
             if (disposing && (components != null)) {
                 components.Dispose();
             }
@@ -37,6 +40,7 @@ namespace FileOrganizerUI.Windows
             this.CollectionFileListView = new System.Windows.Forms.ListView();
             this.UpdateButton = new System.Windows.Forms.Button();
             this.DeleteButton = new System.Windows.Forms.Button();
+            this.MessageText = new System.Windows.Forms.Label();
             this.MainLayout.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
@@ -109,7 +113,7 @@ namespace FileOrganizerUI.Windows
             | System.Windows.Forms.AnchorStyles.Left)));
             this.CollectionFileListView.HideSelection = false;
             this.CollectionFileListView.Location = new System.Drawing.Point(54, 3);
-            this.CollectionFileListView.MinimumSize = new System.Drawing.Size(0, 357);
+            this.CollectionFileListView.MinimumSize = new System.Drawing.Size(4, 357);
             this.CollectionFileListView.MultiSelect = false;
             this.CollectionFileListView.Name = "CollectionFileListView";
             this.CollectionFileListView.Size = new System.Drawing.Size(625, 357);
@@ -136,11 +140,20 @@ namespace FileOrganizerUI.Windows
             this.DeleteButton.Text = "Delete";
             this.DeleteButton.UseVisualStyleBackColor = true;
             // 
+            // MessageText
+            // 
+            this.MessageText.AutoSize = true;
+            this.MessageText.Location = new System.Drawing.Point(70, 444);
+            this.MessageText.Name = "MessageText";
+            this.MessageText.Size = new System.Drawing.Size(0, 17);
+            this.MessageText.TabIndex = 3;
+            // 
             // CollectionInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(722, 473);
+            this.Controls.Add(this.MessageText);
             this.Controls.Add(this.DeleteButton);
             this.Controls.Add(this.UpdateButton);
             this.Controls.Add(this.MainLayout);
@@ -153,6 +166,7 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel2.ResumeLayout(false);
             this.flowLayoutPanel2.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -167,5 +181,6 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.ListView CollectionFileListView;
         private System.Windows.Forms.Button UpdateButton;
         private System.Windows.Forms.Button DeleteButton;
+        private System.Windows.Forms.Label MessageText;
     }
 }

@@ -1039,6 +1039,34 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void UpdateFilePositionInCollectionWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"C:\Collection\reorderfile1", "text", "aaa");
+            var filter = new FileSearchFilter().SetFullnameFilter(@"C:\Collection\reorderfile", false);
+            var ids = fix.db.GetFileMetadata(filter).ConvertAll(f => f.ID);
+            fix.db.AddCollection("reordered_collection", ids);
+            int collectionID = fix.db.GetFileCollection("reordered_collection").ID;
+            Assert.True(fix.db.UpdateFilePositionInCollection(collectionID, ids[0], 100));
+            Assert.Equal(100, fix.db.GetFileCollection("reordered_collection").Files[0].Position);
+        }
+
+        [Fact]
+        public void UpdateFilePositionInCollectionWithUsedIdFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"C:\Collection\position_used1", "text", "aaa");
+            fix.db.AddFile(@"C:\Collection\position_used2", "text", "aaa");
+            var filter = new FileSearchFilter().SetFullnameFilter(@"C:\Collection\position_used", false);
+            var ids = fix.db.GetFileMetadata(filter).ConvertAll(f => f.ID);
+            fix.db.AddCollection("used_pos_collection", ids);
+            int collectionID = fix.db.GetFileCollection("used_pos_collection").ID;
+            Assert.False(fix.db.UpdateFilePositionInCollection(collectionID, ids[1], 1));
+            Assert.Equal(1, fix.db.GetFileCollection("used_pos_collection").Files[0].Position);
+            Assert.Equal(2, fix.db.GetFileCollection("used_pos_collection").Files[1].Position);
+        }
+
+        [Fact]
         public void DeleteFileInCollectionWorks()
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
