@@ -37,7 +37,7 @@ namespace FileOrganizerUI
             ClearOldLogs();
 
             dbLocation = ConfigurationManager.AppSettings.Get("DB");
-            logger.LogDebug("DB file: " + dbLocation);
+            logger.LogInformation("DB file: " + dbLocation);
             core = new FileOrganizer(logger, ConfigurationManager.AppSettings);
             core.StartUp();
 

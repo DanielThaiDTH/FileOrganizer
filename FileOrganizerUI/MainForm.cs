@@ -88,11 +88,19 @@ namespace FileOrganizerUI
             CollectionListView.View = View.List;
             CollectionListView.MouseClick += CollectionListItem_Click;
             CollectionListView.MouseDoubleClick += CollectionListItem_DoubleClick;
+            CollectionListView.SelectedIndexChanged += CollectionListView_SelectionChanged;
 
             CollectionResultAddButton.Click += CollectionResultButton_Click;
 
             CollectionAddFileButton.Click += CollectionFileAddButton_Click;
             CollectionPickerAddButton.Click += CollectionFilePickerButton_Click;
+
+            CollectionSymlinkButton.Enabled = false;
+            CollectionSymlinkButton.Click += CollectionSymlinkButton_Click;
+            CollectionSymlinkTooltip.SetToolTip(CollectionSymlinkButton, "Generated symlinks will have the position as filenames");
+
+            ShowCollectionFilesButton.Enabled = false;
+            ShowCollectionFilesButton.Click += ShowCollectionFilesButton_Click;
 
             CollectionInfoModal = new CollectionInfoForm(logger, core);
 
@@ -475,6 +483,17 @@ namespace FileOrganizerUI
             }
         }
 
+        private void CollectionListView_SelectionChanged(object sender, EventArgs e)
+        {
+            if (CollectionListView.SelectedItems.Count == 1) {
+                CollectionSymlinkButton.Enabled = true;
+                ShowCollectionFilesButton.Enabled = true;
+            } else {
+                CollectionSymlinkButton.Enabled = false;
+                ShowCollectionFilesButton.Enabled = false;
+            }
+        }
+
         private void CollectionListItem_Click(object sender, MouseEventArgs e)
         {
             if (FileListView.GetItemAt(e.X, e.Y) != null) {
@@ -506,6 +525,37 @@ namespace FileOrganizerUI
                 }
             }
         }
+
+        private void CollectionSymlinkButton_Click(object sender, EventArgs e)
+        {
+            if (CollectionListView.SelectedItems.Count == 1) {
+                var collection = core.ActiveCollections.Find(c => c.Name == CollectionListView.SelectedItems[0].Text);
+                var res = core.CreateSymLinksCollection(collection);
+                if (res.Result) {
+                    UpdateMessage("Symlinks created for collection " + collection.Name, Color.Black);
+                } else {
+                    UpdateMessage($"Symlink creation for collection {collection.Name} resulted in failures", ErrorMsgColor);
+                    UpdateMessageToolTip(res.Messages);
+                }
+            }
+        }
+
+        private void ShowCollectionFilesButton_Click(object sender, EventArgs e)
+        {
+            if (CollectionListView.SelectedItems.Count == 1) {
+                var collection = core.ActiveCollections.Find(c => c.Name == CollectionListView.SelectedItems[0].Text);
+                var filter = new FileSearchFilter();
+                foreach (var file in collection.Files) {
+                    var subfilter = new FileSearchFilter().SetIDFilter(file.FileID).SetOr(true);
+                    filter.AddSubfilter(subfilter);
+                }
+
+                var fileData = core.GetFileData(filter);
+                imageList.Images.Clear();
+                FileListView.Clear();
+                ShowFiles(fileData);
+            }
+        }
         #endregion
 
         #region Functionality
@@ -522,32 +572,37 @@ namespace FileOrganizerUI
                 imageList.Images.Clear();
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
-                if (!files.HasError()) {
-                    var imageSet = files.Result.FindAll(f => f.FileType == "image").ConvertAll(f => f.Fullname).ToHashSet();
-                    var thumbnailMap = thumbnailProxy.GetThumbnails(files.Result.ConvertAll(f => f.Fullname), imageSet);
-                    imageList.Images.Clear();
-                    foreach (var pair in thumbnailMap) {
-                        imageList.Images.Add(pair.Key, pair.Value);
-                    }
+                ShowFiles(files);
+            }
+        }
 
-                    FileListView.BeginUpdate();
-                    FileListView.LargeImageList = imageList;
-                    var sorted = files.Result.OrderBy(f => Path.GetFileNameWithoutExtension(f.Filename), new NaturalOrderComparer())
-                                                .ToList();
-
-                    foreach (var filedata in sorted) {
-                        FileListView.Items.Add(new ListViewItem(filedata.Filename, filedata.Fullname));
-                    }
-                    
-                    FileListView.EndUpdate();
-
-                    UpdateMessage($"Found {files.Result.Count} file(s)", Color.Black);
-                    MessageTooltip.RemoveAll();
-                } else {
-                    errMsg = "Failed to query files";
-                    UpdateMessage(errMsg, ErrorMsgColor);
-                    UpdateMessageToolTip(files.Messages);
+        private void ShowFiles(ActionResult<List<GetFileMetadataType>> fileData)
+        {
+            if (!fileData.HasError()) {
+                var imageSet = fileData.Result.FindAll(f => f.FileType == "image").ConvertAll(f => f.Fullname).ToHashSet();
+                var thumbnailMap = thumbnailProxy.GetThumbnails(fileData.Result.ConvertAll(f => f.Fullname), imageSet);
+                imageList.Images.Clear();
+                foreach (var pair in thumbnailMap) {
+                    imageList.Images.Add(pair.Key, pair.Value);
                 }
+
+                FileListView.BeginUpdate();
+                FileListView.LargeImageList = imageList;
+                var sorted = fileData.Result.OrderBy(f => Path.GetFileNameWithoutExtension(f.Filename), new NaturalOrderComparer())
+                                            .ToList();
+
+                foreach (var filedata in sorted) {
+                    FileListView.Items.Add(new ListViewItem(filedata.Filename, filedata.Fullname));
+                }
+
+                FileListView.EndUpdate();
+
+                UpdateMessage($"Found {fileData.Result.Count} file(s)", Color.Black);
+                MessageTooltip.RemoveAll();
+            } else {
+                string errMsg = "Failed to query files";
+                UpdateMessage(errMsg, ErrorMsgColor);
+                UpdateMessageToolTip(fileData.Messages);
             }
         }
 

@@ -87,34 +87,34 @@ namespace SymLinkMaker
         }
 
         /// <summary>
-        ///     Creates a symlink at the path variable, using the target source in the source variable.
+        ///     Creates a symlink at the destination variable, using the target source in the source variable.
         ///     Set if it is a directory or not in the third parameter. Path parameter is the 
         ///     destination relative to the symlink root. Source must be an absolute path.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="dest"></param>
         /// <param name="source"></param>
         /// <param name="isDirectory"></param>
         /// <returns>
         ///     Boolean indicating symlink creation status
         ///</returns>
-        public bool Make(string path, string source, bool isDirectory)
+        public bool Make(string dest, string source, bool isDirectory)
         {
-            if (path is null || source is null) {
+            if (dest is null || source is null) {
                 logger.LogWarning("Symlink path or file source is null");
                 return false;
             } else if (!Path.IsPathRooted(source)) {
                 logger.LogWarning("{0} is not a rooted path, cannot use as source", source);
                 return false;
-            } else if (Path.IsPathRooted(path)) {
-                logger.LogWarning("{0} is a rooted path, cannot use as symlink folder", path);
+            } else if (Path.IsPathRooted(dest)) {
+                logger.LogWarning("{0} is a rooted path, cannot use as symlink folder", dest);
                 return false;
             }
 
-            logger.LogInformation("Creating symbolic link at {0} with source {1}", Path.Combine(root, path), source);
-            int result = CreateSymbolicLink(Path.Combine(root, path), source, isDirectory ? SymbolicLink.Directory : SymbolicLink.File);
+            logger.LogInformation("Creating symbolic link at {0} with source {1}", Path.Combine(root, dest), source);
+            int result = CreateSymbolicLink(Path.Combine(root, dest), source, isDirectory ? SymbolicLink.Directory : SymbolicLink.File);
             if (result == 1) {
-                logger.LogInformation("Symbolic link created at {0}", Path.Combine(root, path));
-                symLinks.Add(path);
+                logger.LogInformation("Symbolic link created at {0}", Path.Combine(root, dest));
+                symLinks.Add(dest);
                 return true;
             }
 

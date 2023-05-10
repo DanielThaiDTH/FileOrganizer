@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Collections.Specialized;
+using System.Linq;
 using SymLinkMaker;
 using FileDBManager;
 using FileDBManager.Entities;
@@ -62,6 +63,8 @@ namespace FileOrganizerCore
             } else {
                 dbPath = Path.Combine(root, config.Get("DB"));
             }
+
+            
 
             db = new FileDBManagerClass(dbPath, logger);
             try {
@@ -220,6 +223,49 @@ namespace FileOrganizerCore
             }
 
             if (!res.HasError()) res.SetResult(true);
+
+            return res;
+        }
+
+        /// <summary>
+        ///     Creates symlinks of files in a collection. The files will be named with the position in the collection 
+        ///     and the extension.
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <returns></returns>
+        public ActionResult<bool> CreateSymLinksCollection(GetCollectionType collection)
+        {
+            var res = new ActionResult<bool>();
+            res.SetResult(true);
+            symlinkmaker.ClearExisting();
+            var filter = new FileSearchFilter();
+            string maxPosStr = collection.Files.Aggregate(0, (acc, curr) => curr.Position > acc ? curr.Position : acc).ToString();
+
+            foreach (var file in collection.Files) {
+                filter.Reset().SetIDFilter(file.FileID);
+                try {
+                    var filename = db.GetFileMetadata(filter)[0].Fullname;
+                    string posName = file.Position.ToString();
+                    for (int i = 0; i < maxPosStr.Length - posName.Length; i++) {
+                        posName = "0" + posName;
+                    }
+                    posName += Path.GetExtension(filename);
+
+                    bool result = symlinkmaker.Make(posName, filename, false);
+                    res.SetResult(res.Result && result);
+                    if (!result) {
+                        string errMsg = $"Failed to make symlink {posName} for {filename}";
+                        logger.LogWarning(errMsg);
+                        res.AddError(ErrorType.SymLinkCreate, errMsg);
+                    }
+                } catch (IndexOutOfRangeException ex) {
+                    logger.LogWarning($"File id {file.FileID} not found in database: " + ex.Message);
+                    logger.LogDebug(ex.StackTrace);
+                    res.AddError(ErrorType.SQL, $"File id {file.FileID} not found in database");
+                    res.SetResult(false);
+                    return res;
+                }
+            }
 
             return res;
         }

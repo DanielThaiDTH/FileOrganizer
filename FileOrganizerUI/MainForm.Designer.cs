@@ -64,6 +64,9 @@ namespace FileOrganizerUI
             this.CollectionSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionSearchLabel = new System.Windows.Forms.Label();
             this.AdvancedActionsButton = new System.Windows.Forms.Button();
+            this.ShowCollectionFilesButton = new System.Windows.Forms.Button();
+            this.CollectionSymlinkButton = new System.Windows.Forms.Button();
+            this.CollectionSymlinkTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.FilePanel.SuspendLayout();
             this.SideTab.SuspendLayout();
             this.TagsTab.SuspendLayout();
@@ -311,6 +314,8 @@ namespace FileOrganizerUI
             // 
             this.CollectionsTab.BackColor = System.Drawing.Color.WhiteSmoke;
             this.CollectionsTab.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.CollectionsTab.Controls.Add(this.CollectionSymlinkButton);
+            this.CollectionsTab.Controls.Add(this.ShowCollectionFilesButton);
             this.CollectionsTab.Controls.Add(this.CollectionAddFileButton);
             this.CollectionsTab.Controls.Add(this.AddCollectionGroup);
             this.CollectionsTab.Controls.Add(this.CollectionListView);
@@ -416,6 +421,24 @@ namespace FileOrganizerUI
             this.AdvancedActionsButton.UseVisualStyleBackColor = true;
             this.AdvancedActionsButton.Click += new System.EventHandler(this.AdvancedActions_Click);
             // 
+            // ShowCollectionFilesButton
+            // 
+            this.ShowCollectionFilesButton.Location = new System.Drawing.Point(87, 487);
+            this.ShowCollectionFilesButton.Name = "ShowCollectionFilesButton";
+            this.ShowCollectionFilesButton.Size = new System.Drawing.Size(60, 23);
+            this.ShowCollectionFilesButton.TabIndex = 6;
+            this.ShowCollectionFilesButton.Text = "Show";
+            this.ShowCollectionFilesButton.UseVisualStyleBackColor = true;
+            // 
+            // CollectionSymlinkButton
+            // 
+            this.CollectionSymlinkButton.Location = new System.Drawing.Point(6, 487);
+            this.CollectionSymlinkButton.Name = "CollectionSymlinkButton";
+            this.CollectionSymlinkButton.Size = new System.Drawing.Size(75, 23);
+            this.CollectionSymlinkButton.TabIndex = 7;
+            this.CollectionSymlinkButton.Text = "Symlinks";
+            this.CollectionSymlinkButton.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -486,5 +509,8 @@ namespace FileOrganizerUI
         private System.Windows.Forms.TextBox CollectionNameBox;
         private System.Windows.Forms.Label ColectionNameLabel;
         private System.Windows.Forms.Button CollectionAddFileButton;
+        private System.Windows.Forms.Button CollectionSymlinkButton;
+        private System.Windows.Forms.Button ShowCollectionFilesButton;
+        private System.Windows.Forms.ToolTip CollectionSymlinkTooltip;
     }
 }
