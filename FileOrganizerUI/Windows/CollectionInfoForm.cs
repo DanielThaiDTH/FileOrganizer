@@ -21,6 +21,7 @@ namespace FileOrganizerUI.Windows
         FileOrganizer core;
         GetCollectionType collection;
         SortedList<int, GetFileCollectionAssociationType> sortedFiles;
+        ToolTip MessageTooltip;
         DeleteConfirmModal DeleteModal;
         IObservable<object> editObservable;
         IDisposable editDispose;
@@ -49,6 +50,8 @@ namespace FileOrganizerUI.Windows
 
             DeleteModal = new DeleteConfirmModal();
 
+            MessageTooltip = new ToolTip();
+
             editObservable = Observable.FromEventPattern(handler =>
             {
                 NameBox.TextChanged += handler;
@@ -56,7 +59,6 @@ namespace FileOrganizerUI.Windows
             handler =>
             {
                 NameBox.TextChanged -= handler;
-                //CollectionFileListView.DragDrop += handler;
             });
         }
 
@@ -65,6 +67,7 @@ namespace FileOrganizerUI.Windows
             this.collection = collection;
             NameBox.Text = collection.Name;
             NewName = collection.Name;
+            MessageTooltip.Active = false;
 
             foreach (var file in collection.Files) {
                 sortedFiles.Add(file.Position, file);
@@ -99,6 +102,7 @@ namespace FileOrganizerUI.Windows
         {
             NameBox.Text = "";
             MessageText.Text = "";
+            MessageTooltip.Active = false;
             sortedFiles.Clear();
             CollectionFileListView.Clear();
             editDispose.Dispose();
@@ -107,18 +111,31 @@ namespace FileOrganizerUI.Windows
         #region Handlers
         private void UpdateButton_Click(object sender, EventArgs e)
         {
+            MessageTooltip.Active = false;
             ActionResult<bool> nameRes = new ActionResult<bool>();
+            nameRes.SetResult(true);
             if (NameBox.Text != collection.Name) {
                 nameRes = core.UpdateCollectionName(collection.ID, NameBox.Text);
             }
 
-            if (nameRes.Result) {
-                UpdateMessage("Updated collection name", Color.Black);
+            ActionResult<bool> reorderRes = new ActionResult<bool>();
+            reorderRes.SetResult(true);
+            if (IsFileOrderChanged()) {
+                reorderRes = UpdateFilePositions();
+            }
+
+            if (nameRes.Result && reorderRes.Result) {
+                UpdateMessage("Updated collection", Color.Black);
                 collection.Name = NameBox.Text;
                 NewName = NameBox.Text;
                 IsUpdated = true;
+                UpdateButton.Enabled = false;
             } else {
-                UpdateMessage("Failed to update collection name", MainForm.ErrorMsgColor);
+                UpdateMessage("Failures occured during collection updates", MainForm.ErrorMsgColor);
+                var tempRes = new ActionResult<bool>();
+                ActionResult.AppendErrors(tempRes, nameRes);
+                ActionResult.AppendErrors(tempRes, reorderRes);
+                UpdateMessageToolTip(tempRes.Messages);
             }
         }
 
@@ -210,9 +227,54 @@ namespace FileOrganizerUI.Windows
             return result;
         }
 
-        private void UpdateFilePositions()
+        private ActionResult<bool> UpdateFilePositions()
         {
+            var result = new ActionResult<bool>();
+            result.SetResult(true);
 
+            var fileIDList = new List<int>();
+            var filter = new FileSearchFilter();
+            foreach (ListViewItem item in CollectionFileListView.Items) {
+                filter.Reset().SetFullnameFilter(item.Text);
+                fileIDList.Add(core.GetFileData(filter).Result[0].ID);
+            }
+
+            var idToPosMap = new Dictionary<int, int>();
+            foreach (var idPosPair in sortedFiles) {
+                idToPosMap.Add(idPosPair.Value.FileID, idPosPair.Key);
+            }
+
+            for (int i = 0; i < fileIDList.Count; i++) {
+                while (fileIDList[i] != sortedFiles[i+1].FileID) {
+                    int newPos = idToPosMap[fileIDList[i]];
+                    int tempID = sortedFiles[i + 1].FileID;
+                    var res = core.SwitchFilePositionInCollection(collection.ID, fileIDList[i], sortedFiles[i + 1].FileID);
+                    sortedFiles[i + 1].FileID = fileIDList[i];
+                    sortedFiles[newPos].FileID = tempID;
+                    idToPosMap[fileIDList[i]] = i + 1;
+                    idToPosMap[sortedFiles[i + 1].FileID] = newPos;
+
+                    ActionResult.AppendErrors(result, res);
+                    result.SetResult(result.Result && res.Result);
+                }
+            }
+
+            return result;
+        }
+
+        private void UpdateMessageToolTip(List<string> msgs)
+        {
+            if (msgs is null || msgs.Count == 0) {
+                logger.LogInformation("No error messages to dispaly on tooltip");
+                return;
+            }
+
+            string errMsg = "";
+            foreach (string msg in msgs) {
+                errMsg += msg + "\n";
+            }
+            MessageTooltip.Active = true;
+            MessageTooltip.SetToolTip(MessageText, errMsg);
         }
         #endregion
     }

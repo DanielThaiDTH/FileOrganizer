@@ -444,7 +444,7 @@ namespace FileDBManager
             result = ExecuteNonQuery(statement) == 1;
 
             logger.LogInformation($"Position of file {fileID} in collection {collectionID} was set {(result ? " " : " not ")}" +
-                $" to {position}");
+                $"to {position}");
 
             return result;
         }

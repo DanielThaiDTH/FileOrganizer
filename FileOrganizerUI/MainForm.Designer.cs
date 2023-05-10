@@ -170,7 +170,8 @@ namespace FileOrganizerUI
             // 
             // AppSettingsButton
             // 
-            this.AppSettingsButton.Location = new System.Drawing.Point(1316, 20);
+            this.AppSettingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.AppSettingsButton.Location = new System.Drawing.Point(1345, 20);
             this.AppSettingsButton.Name = "AppSettingsButton";
             this.AppSettingsButton.Size = new System.Drawing.Size(75, 28);
             this.AppSettingsButton.TabIndex = 10;

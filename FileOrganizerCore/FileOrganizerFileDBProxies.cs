@@ -77,7 +77,8 @@ namespace FileOrganizerCore
         /// <summary>
         ///     Adds files to the DB. Returns status of each 
         ///     add, which will be in the same order as the list
-        ///     of files provided. Should be absolute paths.
+        ///     of files provided. Should be absolute paths. Files must 
+        ///     be able to be found in the filesystem.
         /// </summary>
         /// <param name="filenames"></param>
         /// <returns></returns>
@@ -725,6 +726,13 @@ namespace FileOrganizerCore
             return result;
         }
 
+        /// <summary>
+        ///     Switches the positions of files A and B in a collection.
+        /// </summary>
+        /// <param name="collectionID"></param>
+        /// <param name="fileAID"></param>
+        /// <param name="fileBID"></param>
+        /// <returns></returns>
         public ActionResult<bool> SwitchFilePositionInCollection(int collectionID, int fileAID, int fileBID)
         {
             var result = new ActionResult<bool>();
@@ -753,6 +761,8 @@ namespace FileOrganizerCore
                     result.AddError(ErrorType.SQL, "Something went wrong when switching file positions");
                     logger.LogWarning($"Failed to switch file positions for files {fileAID} and {fileBID} " +
                         $"in collection {collection.Name}");
+                } else {
+                    result.SetResult(true);
                 }
             }
 

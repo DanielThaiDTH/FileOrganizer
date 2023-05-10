@@ -277,5 +277,24 @@ namespace FileOrganizerCore.Test
             Assert.Null(fix.core.AllTags.Find(t => t.Name == "tag_w_category").Category);
             Assert.Equal(-1, fix.core.AllTags.Find(t => t.Name == "tag_w_category").CategoryID);
         }
+
+        [Fact]
+        public void SwitchFilePositionInCollectionWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.core.AddFiles(new List<string> { 
+                Path.Combine(fix.root, "FileManagerDB.dll.config"), 
+                Path.Combine(fix.root, "FileOrganizerCore.dll.config"), 
+                Path.Combine(fix.root, "FileOrganizerCoreTest.dll.config") 
+            });
+            var filter = new FileSearchFilter().SetFilenameFilter("dll.config", false);
+            var ids = fix.core.GetFileData(filter).Result.ConvertAll(f => f.ID);
+            fix.core.AddCollection("reordered_collection", ids);
+            var collectionID = fix.core.GetFileCollection("reordered_collection").Result.ID;
+            Assert.True(fix.core.SwitchFilePositionInCollection(collectionID, ids[0], ids[2]).Result);
+            var collection = fix.core.GetFileCollection("reordered_collection").Result;
+            Assert.Equal(3, collection.Files.Find(f => f.FileID == ids[0]).Position);
+            Assert.Equal(1, collection.Files.Find(f => f.FileID == ids[2]).Position);
+        }
     }
 }
