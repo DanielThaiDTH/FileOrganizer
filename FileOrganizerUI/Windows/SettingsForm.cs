@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Configuration;
 
 namespace FileOrganizerUI.Windows
 {
@@ -19,6 +20,7 @@ namespace FileOrganizerUI.Windows
         FolderBrowserDialog FolderBrowser;
         private Dictionary<string, FlowLayoutPanel> settingsRows;
         Label MessageText;
+
         public SettingsForm(ILogger logger, FileOrganizer core)
         {
             InitializeComponent();
@@ -26,8 +28,10 @@ namespace FileOrganizerUI.Windows
             this.logger = logger;
             FolderBrowser = new FolderBrowserDialog();
             MessageText = new Label();
+            MessageText.AutoSize = true;
             settingsRows = new Dictionary<string, FlowLayoutPanel>();
             settingsRows.Add("SymLink Folder", new FlowLayoutPanel());
+            settingsRows.Add("Save DB", new FlowLayoutPanel());
             settingsRows.Add("Message", new FlowLayoutPanel());
             LayoutSetup();
             Shown += new EventHandler((object sender, EventArgs e) => {
@@ -39,6 +43,23 @@ namespace FileOrganizerUI.Windows
         {
             logger.LogInformation("Refreshing SymLink folder in settings dialog");
             ChangeSymLinkFolder();
+        }
+
+        private void SaveButton_Click(object sender, EventArgs e)
+        {
+            logger.LogInformation("Opening DB save dialog");
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.FileName = ConfigurationManager.AppSettings.Get("DB").Replace(".db", "");
+            dlg.DefaultExt = ".db";
+            dlg.Filter = "SQLite DB File|*.db";
+            if (dlg.ShowDialog(this) == DialogResult.OK) {
+                var res = core.SaveDB(dlg.FileName);
+                if (res.Result) {
+                    UpdateMessage("Saved DB at " + dlg.FileName, Color.Black);
+                } else {
+                    UpdateMessage("Failed to save DB", MainForm.ErrorMsgColor);
+                }
+            }
         }
 
         #region Functionality
@@ -53,12 +74,18 @@ namespace FileOrganizerUI.Windows
             FolderLabel.Margin = new Padding(0, 10, 0, 0);
             FolderLabel.AutoSize = true;
 
+            Button SaveButton = new Button();
+            SaveButton.Text = "Save DB";
+            SaveButton.Click += SaveButton_Click;
+
             settingsRows["SymLink Folder"].Controls.Add(FolderButton);
             settingsRows["SymLink Folder"].Controls.Add(FolderLabel);
+            settingsRows["Save DB"].Controls.Add(SaveButton);
             settingsRows["Message"].Controls.Add(MessageText);
             settingsRows["SymLink Folder"].AutoSize = true;
             settingsRows["Message"].AutoSize = true;
             SettingsLayoutPanel.Controls.Add(settingsRows["SymLink Folder"]);
+            SettingsLayoutPanel.Controls.Add(settingsRows["Save DB"]);
             SettingsLayoutPanel.Controls.Add(settingsRows["Message"]);
         }
 

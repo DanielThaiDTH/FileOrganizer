@@ -28,6 +28,7 @@ namespace FileOrganizerCore
 
         private string root;
         private readonly string configFilename = "config.xml";
+        private string DBPath;
 
         //Recently searched tags, tag categories and searched files are kept in memory
         List<GetTagCategoryType> tagCategories;
@@ -63,8 +64,18 @@ namespace FileOrganizerCore
             } else {
                 dbPath = Path.Combine(root, config.Get("DB"));
             }
+            DBPath = dbPath;
 
-            
+            try {
+                logger.LogInformation("Creating backup of DB at " + dbPath);
+                if (File.Exists(dbPath + ".bak") && File.Exists(dbPath)) {
+                    File.Delete(dbPath + ".bak");
+                }
+                File.Copy(dbPath, dbPath + ".bak");
+            } catch (Exception ex) {
+                logger.LogWarning("Failed to back up DB");
+                logger.LogDebug(ex.StackTrace);
+            }
 
             db = new FileDBManagerClass(dbPath, logger);
             try {
@@ -387,6 +398,32 @@ namespace FileOrganizerCore
                     ActionResult.AppendErrors(res, hashRes);
                     ActionResult.AppendErrors(res, sizeRes);
                 }
+            }
+
+            return res;
+        }
+
+        public ActionResult<bool> SaveDB(string newPath)
+        {
+            var res = new ActionResult<bool>();
+            
+            try {
+                if (File.Exists(newPath)) {
+                    File.Delete(newPath);
+                }
+
+                File.Copy(DBPath, newPath);
+                res.SetResult(true);
+            } catch (UnauthorizedAccessException ex) {
+                string msg = "Not authorized to backup database file to " + newPath;
+                logger.LogError(msg);
+                logger.LogDebug(ex.StackTrace);
+                res.AddError(ErrorType.Access, msg);
+            } catch (IOException ex) {
+                string msg = "Failed to copy backup database file to " + newPath;
+                logger.LogError(msg);
+                logger.LogDebug(ex.StackTrace);
+                res.AddError(ErrorType.Path, msg);
             }
 
             return res;
