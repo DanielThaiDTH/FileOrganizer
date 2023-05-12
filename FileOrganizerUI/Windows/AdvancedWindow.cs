@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -37,6 +38,8 @@ namespace FileOrganizerUI.Windows
 
             DeleteModal = new DeleteConfirmModal();
             DeleteModal.SetMessage("Confirm deletion of tag category?");
+
+            ExportTabSetup();
         }
 
         #region Handlers
@@ -106,9 +109,69 @@ namespace FileOrganizerUI.Windows
             }
 
         }
+
+        private void ExportTypeRadioButton_Changed(object sender, EventArgs e)
+        {
+            PathCheckbox.Enabled = JSONRadioButton.Checked;
+            HashCheckbox.Enabled = JSONRadioButton.Checked;
+            RemoveSeparatorsCheckbox.Enabled = JSONRadioButton.Checked && HashCheckbox.Checked;
+            SizeCheckbox.Enabled = JSONRadioButton.Checked;
+            SizeUnitCombobox.Enabled = JSONRadioButton.Checked && SizeCheckbox.Checked;
+            FileSizeLabel.Enabled = JSONRadioButton.Checked && SizeCheckbox.Checked;
+            CreatedCheckbox.Enabled = JSONRadioButton.Checked;
+            TagCheckbox.Enabled = JSONRadioButton.Checked;
+        }
+
+        private void SizeCheckbox_Changed(object sender, EventArgs e)
+        {
+            FileSizeLabel.Enabled = JSONRadioButton.Checked && SizeCheckbox.Checked;
+            SizeUnitCombobox.Enabled = JSONRadioButton.Checked && SizeCheckbox.Checked;
+        }
+
+        private void HashCheckbox_Changed(object sender, EventArgs e)
+        {
+            RemoveSeparatorsCheckbox.Enabled = JSONRadioButton.Checked && HashCheckbox.Checked;
+        }
+
+        private void ExportAll_Click(object sender, EventArgs e)
+        {
+            core.SaveActiveFilesBackup();
+            var files = core.GetFileData().Result;
+
+            SaveFileDialog dlg = new SaveFileDialog();
+            dlg.FileName = "output";
+            dlg.DefaultExt = JSONRadioButton.Checked ? ".json" : ".txt";
+            dlg.Filter = JSONRadioButton.Checked ? "JSON File|*.json" : "Text File|*.txt";
+            if (dlg.ShowDialog(this) == DialogResult.OK) {
+                TextOutputFileWrite(files, dlg.FileName);
+
+                UpdateMessage("Output file saved", Color.Black);
+            }
+
+            core.RestoreActiveFilesFromBackup();
+        }
         #endregion
 
         #region Functionality
+        private void ExportTabSetup()
+        {
+            RemoveSeparatorsCheckbox.Enabled = false;
+            SizeUnitCombobox.Enabled = false;
+            FileSizeLabel.Enabled = false;
+            SizeUnitCombobox.Items.Add("Bytes");
+            SizeUnitCombobox.Items.Add("Kilobytes");
+            SizeUnitCombobox.Items.Add("Megabytes");
+            SizeUnitCombobox.Items.Add("Gigabytes");
+            SizeUnitCombobox.SelectedItem = "Bytes";
+
+            FullPathCheckbox.Checked = true;
+            TextRadioButton.CheckedChanged += ExportTypeRadioButton_Changed;
+            SizeCheckbox.CheckedChanged += SizeCheckbox_Changed;
+            HashCheckbox.CheckedChanged += HashCheckbox_Changed;
+
+            ExportAllButton.Click += ExportAll_Click;
+        }
+
         private void RefreshTagCategoryComboBox()
         {
             CategoryComboBox.Items.Clear();
@@ -120,6 +183,24 @@ namespace FileOrganizerUI.Windows
             CategoryComboBox.SelectedItem = DefaultCategory;
             RenameCategoryButton.Enabled = false;
             CategoryDeleteButton.Enabled = false;
+        }
+
+        private void TextOutputFileWrite(List<GetFileMetadataType> files, string filename)
+        {
+            using (StreamWriter sw = File.CreateText(filename)) {
+                foreach (var file in files) {
+                    if (FullPathCheckbox.Checked) {
+                        sw.WriteLine(file.Fullname);
+                    } else {
+                        sw.WriteLine(file.Filename);
+                    }
+                }
+            }
+        }
+
+        private void JSONOutputFileWrite(List<GetFileMetadataType> files, string filename)
+        {
+
         }
 
         private void UpdateMessage(string msg, Color color)
