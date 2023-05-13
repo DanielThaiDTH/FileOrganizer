@@ -10,6 +10,8 @@ using FileDBManager;
 using FileDBManager.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using FileOrganizerCore.JSONOutput;
+using Newtonsoft.Json;
 
 namespace FileOrganizerCore
 {
@@ -445,5 +447,86 @@ namespace FileOrganizerCore
         {
             activeFiles = BackupActiveFiles;
         }
+
+        /// <summary>
+        ///     Writes to an output text file.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="IsFullname"></param>
+        /// <param name="files"></param>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="PathTooLongException"></exception>
+        /// <exception cref="PathTooLongException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="NotSupportedException"></exception>
+        public void TextOutputFileWrite(string filename, bool IsFullname, List<GetFileMetadataType> files = null)
+        {
+            if (files is null) files = activeFiles;
+
+            using (StreamWriter sw = File.CreateText(filename)) {
+                foreach (var file in files) {
+                    if (IsFullname) {
+                        sw.WriteLine(file.Fullname);
+                    } else {
+                        sw.WriteLine(file.Filename);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Outputs a JSON file with file metadata and associated tags, which is determined by the 
+        ///     passed options file. If the file list is missing, will use the current active files.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="options"></param>
+        /// <param name="files"></param>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="PathTooLongException"></exception>
+        /// <exception cref="PathTooLongException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="NotSupportedException"></exception>
+        public void JSONOutputFileWrite(string filename, JSONOptions options, List<GetFileMetadataType> files = null)
+        {
+            if (files is null) files = activeFiles;
+
+            using (StreamWriter sw = File.CreateText(filename)) {
+                var settings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    Formatting = Formatting.Indented
+                };
+
+                List<object> outputObjs = new List<object>(); 
+                foreach (var file in files) {
+                    string hashString = options.RemoveSeparators ? file.Hash.Replace("-", "") : file.Hash;
+                    var sizeType = new {
+                        Size = options.SizeUnit == FileSizeUnit.Bytes ?
+                                    file.Size : decimal.Round((decimal)file.Size / (int)options.SizeUnit, 3),
+                        Unit = options.SizeUnit.ToString()
+                    };
+
+                    var outputObj = new
+                    {
+                        Name = options.IncludeFullName ? file.Fullname : file.Filename,
+                        Path = options.IncludePath ? file.Path : null,
+                        Hash = options.IncludeHash ? hashString : null,
+                        Size = options.IncludeFileSize ? sizeType : null,
+                        Created = options.IncludeCreatedDate ? file.Created.ToString() : null,
+                        Tags = options.IncludeTags ? db.GetTagsForFile(file.ID).ConvertAll(t => t.Name) : null
+                    };
+
+                    outputObjs.Add(outputObj);
+                }
+
+                new JsonSerializer().Serialize(sw, outputObjs);
+            }
+        }
+
+
     }
 }

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using FileOrganizerCore.JSONOutput;
 
 namespace FileOrganizerUI.Windows
 {
@@ -136,16 +137,62 @@ namespace FileOrganizerUI.Windows
         private void ExportAll_Click(object sender, EventArgs e)
         {
             core.SaveActiveFilesBackup();
-            var files = core.GetFileData().Result;
+            core.GetFileData();
 
             SaveFileDialog dlg = new SaveFileDialog();
             dlg.FileName = "output";
             dlg.DefaultExt = JSONRadioButton.Checked ? ".json" : ".txt";
             dlg.Filter = JSONRadioButton.Checked ? "JSON File|*.json" : "Text File|*.txt";
-            if (dlg.ShowDialog(this) == DialogResult.OK) {
-                TextOutputFileWrite(files, dlg.FileName);
 
-                UpdateMessage("Output file saved", Color.Black);
+            if (dlg.ShowDialog(this) == DialogResult.OK) {
+                if (JSONRadioButton.Checked) {
+                    JSONOptions options = new JSONOptions
+                    {
+                        IncludeFullName = FullPathCheckbox.Checked,
+                        IncludePath = PathCheckbox.Checked,
+                        IncludeHash = HashCheckbox.Checked,
+                        RemoveSeparators = RemoveSeparatorsCheckbox.Checked,
+                        IncludeCreatedDate = CreatedCheckbox.Checked,
+                        IncludeFileSize = SizeCheckbox.Checked,
+                        SizeUnit = FileSizeUnit.Bytes,
+                        IncludeTags = TagCheckbox.Checked
+                    };
+
+                    string sizeOption = (string)SizeUnitCombobox.SelectedItem;
+                    if (sizeOption == "Bytes") {
+                        options.SizeUnit = FileSizeUnit.Bytes;
+                    } else if (sizeOption == "Kilobytes") {
+                        options.SizeUnit = FileSizeUnit.Kilobytes;
+                    } else if (sizeOption == "Megabytes") {
+                        options.SizeUnit = FileSizeUnit.Megabytes;
+                    } else if (sizeOption == "Gigabytes") {
+                        options.SizeUnit = FileSizeUnit.Gigabytes;
+                    }
+
+                    try {
+                        core.JSONOutputFileWrite(dlg.FileName, options);
+                    } catch (Exception ex) {
+                        logger.LogWarning("Failed to output file due to " + ex.Message);
+                        logger.LogDebug(ex.StackTrace);
+                        UpdateMessage("Failed to write JSON file", MainForm.ErrorMsgColor);
+                    }
+
+                    UpdateMessage("Output JSON file saved", Color.Black);
+
+                } else {
+
+                    try {
+                        core.TextOutputFileWrite(dlg.FileName, FullPathCheckbox.Checked);
+                    }
+                    catch (Exception ex) {
+                        logger.LogWarning("Failed to output file due to " + ex.Message);
+                        logger.LogDebug(ex.StackTrace);
+                        UpdateMessage("Failed to write text file", MainForm.ErrorMsgColor);
+                    }
+
+                    UpdateMessage("Output text file saved", Color.Black);
+
+                }
             }
 
             core.RestoreActiveFilesFromBackup();
@@ -183,24 +230,6 @@ namespace FileOrganizerUI.Windows
             CategoryComboBox.SelectedItem = DefaultCategory;
             RenameCategoryButton.Enabled = false;
             CategoryDeleteButton.Enabled = false;
-        }
-
-        private void TextOutputFileWrite(List<GetFileMetadataType> files, string filename)
-        {
-            using (StreamWriter sw = File.CreateText(filename)) {
-                foreach (var file in files) {
-                    if (FullPathCheckbox.Checked) {
-                        sw.WriteLine(file.Fullname);
-                    } else {
-                        sw.WriteLine(file.Filename);
-                    }
-                }
-            }
-        }
-
-        private void JSONOutputFileWrite(List<GetFileMetadataType> files, string filename)
-        {
-
         }
 
         private void UpdateMessage(string msg, Color color)
