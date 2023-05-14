@@ -20,18 +20,23 @@ namespace FileOrganizerUI
 {
     public partial class MainForm : Form
     {
+        private ILogger logger;
+        private FileOrganizer core;
+        
         private OpenFileDialog FileDialog;
         private SettingsForm SettingsDialog;
         private FileInfoForm FileInfoModal;
         private TagInfoForm TagInfoModal;
         private AdvancedWindow AdvancedModal;
         private CollectionInfoForm CollectionInfoModal;
-        private ILogger logger;
-        private FileOrganizer core;
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
+        
         private int selectedFileID = -1;
+        private Queue<string> searchHistory;
+        private HashSet<string> searchSet;
+        private readonly int HistoryLimit = 10;
 
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
         private static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
@@ -50,7 +55,12 @@ namespace FileOrganizerUI
             SettingsDialog = new SettingsForm(logger, core);
 
             SearchBox.KeyDown += new KeyEventHandler(Search_Enter);
-            
+            SearchBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            SearchBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            SearchBox.AutoCompleteCustomSource = new AutoCompleteStringCollection();
+            searchHistory = new Queue<string>();
+            searchSet = new HashSet<string>();
+
             FilePanel.AutoScroll = true;
             FileListView.MultiSelect = true;
             FileListView.View = View.Tile;
@@ -58,6 +68,7 @@ namespace FileOrganizerUI
             FileListView.MouseDoubleClick += FileListItem_DoubleClick;
             FileListView.MouseClick += FileListItem_Click;
             FileListView.KeyDown += FileListView_SelectAll;
+            FileListView.SelectedIndexChanged += FileListView_SelectionChanged;
 
             imageList = new ImageList();
             imageList.ImageSize = new Size(32, 32);
@@ -66,13 +77,20 @@ namespace FileOrganizerUI
             FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
             TagSearchBox.KeyDown += TagSearch_Enter;
+            TagSearchBox.AutoCompleteMode = AutoCompleteMode.Suggest;
+            TagSearchBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            var tagSource = new AutoCompleteStringCollection();
+            tagSource.AddRange(core.AllTags.ConvertAll(t => t.Name).ToArray());
+            TagSearchBox.AutoCompleteCustomSource = tagSource;
 
             TagListView.MultiSelect = true;
             TagListView.View = View.List;
             TagListView.MouseDoubleClick += TagListItem_DoubleClick;
+            TagListView.SelectedIndexChanged += TagListView_SelectionChanged;
 
             AddNewTagButton.Click += AddNewTagButton_Click;
 
+            AssignTagButton.Enabled = false;
             AssignTagButton.Click += AssignTag_Click;
 
             RemoveTagButton.Enabled = false;
@@ -231,8 +249,12 @@ namespace FileOrganizerUI
                 ViewFileTags(item);
                 RemoveTagButton.Enabled = true;
             }
+        }
 
+        private void FileListView_SelectionChanged(object sender, EventArgs e)
+        {
             AddFileToCollectionsEnableVerify();
+            AssignTagsToFileVerify();
         }
 
         private void FileListView_SelectAll(object sender, KeyEventArgs e)
@@ -342,6 +364,11 @@ namespace FileOrganizerUI
             }
         }
 
+        private void TagListView_SelectionChanged(object sender, EventArgs e)
+        {
+            AssignTagsToFileVerify();
+        }
+
         private void TagListItem_DoubleClick(object sender, MouseEventArgs e)
         {
             ListViewItem item = TagListView.GetItemAt(e.X, e.Y);
@@ -358,6 +385,9 @@ namespace FileOrganizerUI
                                 foreach (ListViewItem tag in TagListView.Items) {
                                     if (tag.Text == selectedTag.Name) {
                                         tag.Text = core.AllTags.Find(t => t.ID == selectedTag.ID).Name;
+                                        TagSearchBox.AutoCompleteCustomSource.Add(tag.Text);
+                                        TagSearchBox.AutoCompleteCustomSource.Remove(selectedTag.Name);
+                                        selectedTag.Name = tag.Text;
                                     }
                                 }
                             }
@@ -372,7 +402,10 @@ namespace FileOrganizerUI
                                 remItem = tag;
                             }
                         }
-                        if (remItem != null) TagListView.Items.Remove(remItem);
+                        if (remItem != null) {
+                            TagListView.Items.Remove(remItem);
+                            TagSearchBox.AutoCompleteCustomSource.Remove(selectedTag.Name);
+                        }
 
                         TagInfoModal.ClearTagInfo();
                     }
@@ -573,6 +606,14 @@ namespace FileOrganizerUI
                 var files = core.GetFileData(parser.Filter);
                 FileListView.Clear();
                 ShowFiles(files);
+
+                if (!searchSet.Contains(SearchBox.Text.Trim())) {
+                    searchHistory.Enqueue(SearchBox.Text.Trim());
+                    SearchBox.AutoCompleteCustomSource.Add(SearchBox.Text.Trim());
+                    if (searchHistory.Count > HistoryLimit) {
+                        SearchBox.AutoCompleteCustomSource.Remove(searchHistory.Dequeue());
+                    }
+                }
             }
         }
 
@@ -640,10 +681,17 @@ namespace FileOrganizerUI
                         TagListView.Items.Add(new ListViewItem(tag.Name));
                     }
                     selectedFileID = selectedFile.ID;
+                    UpdateMessage($"Viewing tags for {selectedFile.Filename}", Color.Black);
                 } else {
                     logger.LogError($"File {item.ImageKey} was missing from cached search results");
+                    UpdateMessage("File missing from results", ErrorMsgColor);
                 }
             }
+        }
+
+        private void AssignTagsToFileVerify()
+        {
+            AssignTagButton.Enabled = TagListView.SelectedItems.Count > 0 && FileListView.SelectedItems.Count > 0;
         }
 
         private void RefreshTagCategoryComboBox()
