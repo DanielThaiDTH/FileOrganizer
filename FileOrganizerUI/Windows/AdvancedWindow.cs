@@ -137,8 +137,52 @@ namespace FileOrganizerUI.Windows
         private void ExportAll_Click(object sender, EventArgs e)
         {
             core.SaveActiveFilesBackup();
-            core.GetFileData();
+            WriteOutputFile(core.GetFileData().Result);
+            core.RestoreActiveFilesFromBackup();
+        }
 
+        private void ExportResults_Click(object sender, EventArgs e)
+        {
+            WriteOutputFile(core.ActiveFiles);
+        }
+        #endregion
+
+        #region Functionality
+        private void ExportTabSetup()
+        {
+            RemoveSeparatorsCheckbox.Enabled = false;
+            SizeUnitCombobox.Enabled = false;
+            FileSizeLabel.Enabled = false;
+            SizeUnitCombobox.Items.Add("Bytes");
+            SizeUnitCombobox.Items.Add("Kilobytes");
+            SizeUnitCombobox.Items.Add("Megabytes");
+            SizeUnitCombobox.Items.Add("Gigabytes");
+            SizeUnitCombobox.SelectedItem = "Bytes";
+
+            FullPathCheckbox.Checked = true;
+            TextRadioButton.CheckedChanged += ExportTypeRadioButton_Changed;
+            SizeCheckbox.CheckedChanged += SizeCheckbox_Changed;
+            HashCheckbox.CheckedChanged += HashCheckbox_Changed;
+
+            ExportAllButton.Click += ExportAll_Click;
+            ExportResultsButton.Click += ExportResults_Click;
+        }
+
+        private void RefreshTagCategoryComboBox()
+        {
+            CategoryComboBox.Items.Clear();
+            foreach (var category in core.TagCategories) {
+                CategoryComboBox.Items.Add(category);
+            }
+
+            CategoryComboBox.Items.Add(DefaultCategory);
+            CategoryComboBox.SelectedItem = DefaultCategory;
+            RenameCategoryButton.Enabled = false;
+            CategoryDeleteButton.Enabled = false;
+        }
+
+        private void WriteOutputFile(List<GetFileMetadataType> files)
+        {
             SaveFileDialog dlg = new SaveFileDialog();
             dlg.FileName = "output";
             dlg.DefaultExt = JSONRadioButton.Checked ? ".json" : ".txt";
@@ -170,8 +214,9 @@ namespace FileOrganizerUI.Windows
                     }
 
                     try {
-                        core.JSONOutputFileWrite(dlg.FileName, options);
-                    } catch (Exception ex) {
+                        core.JSONOutputFileWrite(dlg.FileName, options, files);
+                    }
+                    catch (Exception ex) {
                         logger.LogWarning("Failed to output file due to " + ex.Message);
                         logger.LogDebug(ex.StackTrace);
                         UpdateMessage("Failed to write JSON file", MainForm.ErrorMsgColor);
@@ -182,7 +227,7 @@ namespace FileOrganizerUI.Windows
                 } else {
 
                     try {
-                        core.TextOutputFileWrite(dlg.FileName, FullPathCheckbox.Checked);
+                        core.TextOutputFileWrite(dlg.FileName, FullPathCheckbox.Checked, files);
                     }
                     catch (Exception ex) {
                         logger.LogWarning("Failed to output file due to " + ex.Message);
@@ -194,42 +239,6 @@ namespace FileOrganizerUI.Windows
 
                 }
             }
-
-            core.RestoreActiveFilesFromBackup();
-        }
-        #endregion
-
-        #region Functionality
-        private void ExportTabSetup()
-        {
-            RemoveSeparatorsCheckbox.Enabled = false;
-            SizeUnitCombobox.Enabled = false;
-            FileSizeLabel.Enabled = false;
-            SizeUnitCombobox.Items.Add("Bytes");
-            SizeUnitCombobox.Items.Add("Kilobytes");
-            SizeUnitCombobox.Items.Add("Megabytes");
-            SizeUnitCombobox.Items.Add("Gigabytes");
-            SizeUnitCombobox.SelectedItem = "Bytes";
-
-            FullPathCheckbox.Checked = true;
-            TextRadioButton.CheckedChanged += ExportTypeRadioButton_Changed;
-            SizeCheckbox.CheckedChanged += SizeCheckbox_Changed;
-            HashCheckbox.CheckedChanged += HashCheckbox_Changed;
-
-            ExportAllButton.Click += ExportAll_Click;
-        }
-
-        private void RefreshTagCategoryComboBox()
-        {
-            CategoryComboBox.Items.Clear();
-            foreach (var category in core.TagCategories) {
-                CategoryComboBox.Items.Add(category);
-            }
-
-            CategoryComboBox.Items.Add(DefaultCategory);
-            CategoryComboBox.SelectedItem = DefaultCategory;
-            RenameCategoryButton.Enabled = false;
-            CategoryDeleteButton.Enabled = false;
         }
 
         private void UpdateMessage(string msg, Color color)

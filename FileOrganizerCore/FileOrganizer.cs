@@ -523,7 +523,8 @@ namespace FileOrganizerCore
                     outputObjs.Add(outputObj);
                 }
 
-                new JsonSerializer().Serialize(sw, outputObjs);
+                JsonSerializer serializer = JsonSerializer.Create(settings);
+                serializer.Serialize(sw, outputObjs);
             }
         }
 
