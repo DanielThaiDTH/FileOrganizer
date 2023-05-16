@@ -373,7 +373,18 @@ namespace FileOrganizerCore
         {
             var res = new ActionResult<bool>();
             bool status = db.AddFileToCollection(collectionID, fileID, insertindex);
-            if (!status) res.AddError(ErrorType.SQL, "Could not add file to collection");
+            if (status) {
+                var collection = ActiveCollections.Find(c => c.ID == collectionID);
+                if (collection != null) {
+                    var updatedCollection = db.GetFileCollection(collectionID);
+                    collection.Files = updatedCollection.Files;
+                    logger.LogInformation("Updating file association of collection in cached list");
+                } else {
+                    logger.LogInformation("Collection not in cached list, not updating");
+                }
+            } else {
+                res.AddError(ErrorType.SQL, "Could not add file to collection");
+            }
             res.SetResult(status);
 
             return res;

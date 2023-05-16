@@ -28,6 +28,7 @@ namespace FileOrganizerUI.Windows
 
         public bool IsDeleted { get; private set; }
         public bool IsUpdated { get; private set; }
+        public bool IsFilesChanged { get; private set; }
         public string NewName { get; private set; }
 
 
@@ -43,6 +44,7 @@ namespace FileOrganizerUI.Windows
             CollectionFileListView.ItemDrag += CollectionListView_ItemDrag;
             CollectionFileListView.DragOver += CollectionListView_DragOver;
             CollectionFileListView.DragDrop += CollectionListView_DragDrop;
+            CollectionFileListView.KeyDown += CollectionListView_DeletePress;
 
             UpdateButton.Click += UpdateButton_Click;
 
@@ -89,6 +91,7 @@ namespace FileOrganizerUI.Windows
 
             IsDeleted = false;
             IsUpdated = false;
+            IsFilesChanged = false;
             UpdateButton.Enabled = false;
 
             editDispose = editObservable.Subscribe(args =>
@@ -122,6 +125,7 @@ namespace FileOrganizerUI.Windows
             reorderRes.SetResult(true);
             if (IsFileOrderChanged()) {
                 reorderRes = UpdateFilePositions();
+                IsFilesChanged = true;
             }
 
             if (nameRes.Result && reorderRes.Result) {
@@ -204,6 +208,17 @@ namespace FileOrganizerUI.Windows
 
             UpdateButton.Enabled = NameBox.Text != collection.Name || IsFileOrderChanged();
         }
+
+        private void CollectionListView_DeletePress(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete) {
+                foreach (ListViewItem item in CollectionFileListView.SelectedItems) {
+                    CollectionFileListView.Items.Remove(item);
+                }
+
+                UpdateButton.Enabled = NameBox.Text != collection.Name || IsFileOrderChanged();
+            }
+        }
         #endregion
 
         #region Functionality
@@ -213,18 +228,23 @@ namespace FileOrganizerUI.Windows
             MessageText.ForeColor = color;
         }
 
+        /// <summary>
+        ///     Checks if files in file list has been changed from the DB order. Checks 
+        ///     both position and any files were removed.
+        /// </summary>
+        /// <returns></returns>
         private bool IsFileOrderChanged()
         {
             bool result = false;
 
             FileSearchFilter filter = new FileSearchFilter();
-            for (int i = 0; i < collection.Files.Count && !result; i++) {
+            for (int i = 0; i < sortedFiles.Count && !result; i++) {
                 filter.Reset().SetIDFilter(sortedFiles[i+1].FileID);
                 string name = core.GetFileData(filter).Result[0].Fullname;
                 result = name != CollectionFileListView.Items[i].Text;
             }
 
-            return result;
+            return result || CollectionFileListView.Items.Count < sortedFiles.Count;
         }
 
         private ActionResult<bool> UpdateFilePositions()
@@ -249,6 +269,8 @@ namespace FileOrganizerUI.Windows
                     int newPos = idToPosMap[fileIDList[i]];
                     int tempID = sortedFiles[i + 1].FileID;
                     var res = core.SwitchFilePositionInCollection(collection.ID, fileIDList[i], sortedFiles[i + 1].FileID);
+
+                    //Update sorted files and file id to position map
                     sortedFiles[i + 1].FileID = fileIDList[i];
                     sortedFiles[newPos].FileID = tempID;
                     idToPosMap[fileIDList[i]] = i + 1;
@@ -256,6 +278,21 @@ namespace FileOrganizerUI.Windows
 
                     ActionResult.AppendErrors(result, res);
                     result.SetResult(result.Result && res.Result);
+                }
+            }
+
+            //Delete removed files
+            if (fileIDList.Count < sortedFiles.Count) {
+                var toDeleteList = new List<int>();
+                foreach (var pair in sortedFiles) {
+                    if (!fileIDList.Any(i => i == pair.Value.FileID)) {
+                        core.DeleteFileInCollection(collection.ID, pair.Value.FileID);
+                        toDeleteList.Add(pair.Key);
+                    }
+                }
+
+                foreach (int key in toDeleteList) {
+                    sortedFiles.Remove(key);
                 }
             }
 

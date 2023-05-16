@@ -36,7 +36,7 @@ namespace FileOrganizerUI
         private int selectedFileID = -1;
         private Queue<string> searchHistory;
         private HashSet<string> searchSet;
-        private readonly int HistoryLimit = 10;
+        private readonly int HistoryLimit = 50;
 
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
         private static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
@@ -102,6 +102,11 @@ namespace FileOrganizerUI
             AdvancedModal = new AdvancedWindow(logger, core);
 
             CollectionSearchBox.KeyDown += CollectionSearch_Enter;
+            CollectionSearchBox.AutoCompleteMode = AutoCompleteMode.Suggest;
+            CollectionSearchBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+            var collectionSource = new AutoCompleteStringCollection();
+            collectionSource.AddRange(core.SearchFileCollection("").Result.ConvertAll(c => c.Name).ToArray());
+            CollectionSearchBox.AutoCompleteCustomSource = collectionSource;
 
             CollectionListView.View = View.List;
             CollectionListView.MouseClick += CollectionListItem_Click;
@@ -435,6 +440,7 @@ namespace FileOrganizerUI
                 if (res.Result) {
                     UpdateMessage($"Added collection {CollectionNameBox.Text.Trim()}", Color.Black);
                     CollectionNameBox.Clear();
+                    CollectionNameBox.AutoCompleteCustomSource.Add(CollectionNameBox.Text.Trim());
                 } else {
                     UpdateMessage("Failed to add collection", ErrorMsgColor);
                     UpdateMessageToolTip(res.Messages);
@@ -547,11 +553,18 @@ namespace FileOrganizerUI
 
                     if (CollectionInfoModal.IsUpdated && !CollectionInfoModal.IsDeleted) {
                         if (CollectionInfoModal.NewName != item.Text) {
+                            CollectionSearchBox.AutoCompleteCustomSource.Remove(item.Text);
+                            CollectionSearchBox.AutoCompleteCustomSource.Add(CollectionInfoModal.NewName);
                             item.Text = CollectionInfoModal.NewName;
+                        }
+                        if (CollectionInfoModal.IsFilesChanged) {
+                            core.ActiveCollections.Remove(selectedCollection);
+                            core.ActiveCollections.Add(core.GetFileCollection(selectedCollection.ID).Result);
                         }
                     } else if (dialogResult == DialogResult.No && CollectionInfoModal.IsDeleted) {
                         core.ActiveCollections.Remove(selectedCollection);
                         CollectionListView.Items.Remove(item);
+                        CollectionSearchBox.AutoCompleteCustomSource.Remove(item.Text);
                     }
 
                     CollectionInfoModal.ClearCollection();
