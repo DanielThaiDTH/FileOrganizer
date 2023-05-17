@@ -621,6 +621,89 @@ namespace FileDBManager
             return result;
         }
 
+        /// <summary>
+        ///     Returns the path ID. THe path must be an exact match. If not found, 
+        ///     returns -1.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public int GetPathID(string path)
+        {
+            int pathID = -1;
+            if (string.IsNullOrWhiteSpace(path) || !Path.IsPathRooted(path)) {
+                logger.LogWarning($"{path} not found because it is invalid.");
+                return pathID;
+            }
+
+            string statement = createStatement("SELECT ID FROM FilePaths WHERE Path = ?", path);
+            logger.LogDebug($"Searching for path with query: {statement}");
+
+            var com = new SQLiteCommand(statement, db);
+            var reader = com.ExecuteReader();
+            if (reader.HasRows) {
+                reader.Read();
+                pathID = reader.GetInt32(reader.GetOrdinal("ID"));
+            }
+
+            reader.Close();
+            com.Dispose();
+            
+            if (pathID != -1) {
+                logger.LogInformation($"ID of {pathID} found for path {path}");
+            } else {
+                logger.LogInformation($"Path {path} not found");
+            }
+
+            return pathID;
+        }
+
+        /// <summary>
+        ///     Changes the file path of a file. If the new path does not exist, 
+        ///     will add it to the DB first.
+        /// </summary>
+        /// <param name="fileID"></param>
+        /// <param name="newPath"></param>
+        /// <returns></returns>
+        public bool ChangeFilePath(int fileID, string newPath)
+        {
+            if (string.IsNullOrWhiteSpace(newPath) || !Path.IsPathRooted(newPath)) {
+                logger.LogWarning($"Could not change the path of file {fileID} to {newPath} because it is an invalid path");
+                return false;
+            }
+
+            int pathID;
+
+            //Get Path ID segment, adding new path in necessary
+            string statement = createStatement("SELECT * FROM FilePaths WHERE Path = ?", newPath);
+            var com = new SQLiteCommand(statement, db);
+            var reader = com.ExecuteReader();
+            if (reader.HasRows) {
+                reader.Read();
+                pathID = reader.GetInt32(reader.GetOrdinal("ID"));
+                reader.Close();
+                com.Dispose();
+            } else {
+                logger.LogInformation($"Path {newPath} not in DB, adding");
+                reader.Close();
+                com.Dispose();
+                statement = createStatement("INSERT INTO FilePaths (Path) VALUES (?)", newPath);
+                ExecuteNonQuery(statement);
+                statement = createStatement("SELECT * FROM FilePaths WHERE Path = ?", newPath);
+                com = new SQLiteCommand(statement, db);
+                reader = com.ExecuteReader();
+                reader.Read();
+                pathID = reader.GetInt32(reader.GetOrdinal("ID"));
+                reader.Close();
+                com.Dispose();
+            }
+
+            statement = createStatement("UPDATE Files SET PathID = ? WHERE ID = ?", pathID, fileID);
+            bool result = ExecuteNonQuery(statement) == 1;
+            logger.LogInformation($"Path for file {fileID} was {(result ? "" : " not")} updated to {newPath}");
+            
+            return result;
+        }
+
         /* End Misc Section */
 
         public void CloseConnection()

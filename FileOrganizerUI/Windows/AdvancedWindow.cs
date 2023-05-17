@@ -20,6 +20,7 @@ namespace FileOrganizerUI.Windows
         ILogger logger;
         FileOrganizer core;
         DeleteConfirmModal DeleteModal;
+        ToolTip MessageTooltip;
         public bool CategoriesChanged { get; set; } = false;
         static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
 
@@ -28,6 +29,7 @@ namespace FileOrganizerUI.Windows
             InitializeComponent();
             this.logger = logger;
             this.core = core;
+            MessageTooltip = new ToolTip();
 
             VisibleChanged += RefreshCategoryDropdownOnVisible;
             
@@ -41,6 +43,7 @@ namespace FileOrganizerUI.Windows
             DeleteModal.SetMessage("Confirm deletion of tag category?");
 
             ExportTabSetup();
+            UpdateTabSetup();
         }
 
         #region Handlers
@@ -145,6 +148,33 @@ namespace FileOrganizerUI.Windows
         {
             WriteOutputFile(core.ActiveFiles);
         }
+
+        private void UpdateResultsPath_Click(object sender, EventArgs e)
+        {
+            ActionResult<bool> combinedRes = new ActionResult<bool>();
+            combinedRes.SetResult(true);
+            foreach (var file in core.ActiveFiles) {
+                var res = core.ChangePathForFile(file.ID, NewPathBox.Text.Trim());
+                combinedRes.SetResult(combinedRes.Result && res.Result);
+                if (!res.Result) ActionResult.AppendErrors(combinedRes, res);
+            }
+
+            if (combinedRes.Result) {
+                UpdateMessage("Path for file in results updated to " + NewPathBox.Text.Trim(), Color.Black);
+            } else {
+                UpdateMessage("Errors occured when changing path for files", MainForm.ErrorMsgColor);
+                UpdateMessageToolTip(combinedRes.Messages);
+            }
+        }
+
+        private void NewPathBox_TextChange(object sender, EventArgs e)
+        {
+            if (Path.IsPathRooted(NewPathBox.Text.Trim())) {
+                UpdateResultsPathsButton.Enabled = true;
+            } else {
+                UpdateResultsPathsButton.Enabled = false;
+            }
+        }
         #endregion
 
         #region Functionality
@@ -166,6 +196,14 @@ namespace FileOrganizerUI.Windows
 
             ExportAllButton.Click += ExportAll_Click;
             ExportResultsButton.Click += ExportResults_Click;
+        }
+
+        private void UpdateTabSetup()
+        {
+            UpdateResultsPathsButton.Click += UpdateResultsPath_Click;
+            UpdateResultsPathsButton.Enabled = false;
+
+            NewPathBox.TextChanged += NewPathBox_TextChange;
         }
 
         private void RefreshTagCategoryComboBox()
@@ -245,6 +283,20 @@ namespace FileOrganizerUI.Windows
         {
             MessageLabel.Text = msg;
             MessageLabel.ForeColor = color;
+        }
+
+        private void UpdateMessageToolTip(List<string> msgs)
+        {
+            if (msgs is null || msgs.Count == 0) {
+                logger.LogInformation("No error messages to dispaly on tooltip");
+                return;
+            }
+
+            string errMsg = "";
+            foreach (string msg in msgs) {
+                errMsg += msg + "\n";
+            }
+            MessageTooltip.SetToolTip(MessageLabel, errMsg);
         }
         #endregion
     }

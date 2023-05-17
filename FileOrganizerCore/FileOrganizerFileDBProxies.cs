@@ -812,5 +812,34 @@ namespace FileOrganizerCore
 
             return result;
         }
+
+        /// <summary>
+        ///     Changes the path for a file. If the path does not currently exist in the DB, 
+        ///     will add it.
+        /// </summary>
+        /// <param name="fileID"></param>
+        /// <param name="newPath"></param>
+        /// <returns></returns>
+        public ActionResult<bool> ChangePathForFile(int fileID, string newPath)
+        {
+            ActionResult<bool> result = new ActionResult<bool>();
+            var file = db.GetFileMetadata(fileID);
+            
+            if (file is null) {
+                result.SetResult(false);
+                result.AddError(ErrorType.SQL, "File not found");
+                return result;
+            } else if (file.Path == newPath) {
+                result.SetResult(false);
+                result.AddError(ErrorType.Misc, "Path is already set, no changes made");
+                return result;
+            }
+
+            bool isChanged = db.ChangeFilePath(file.ID, newPath);
+            result.SetResult(isChanged);
+            if (!isChanged) result.AddError(ErrorType.SQL, $"Unable to change path of {file.Filename} to {newPath}");
+
+            return result;
+        }
     }
 }

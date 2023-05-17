@@ -61,9 +61,20 @@ namespace FileOrganizerUI.Windows
             this.AddCateboryBox = new System.Windows.Forms.TextBox();
             this.AddButton = new System.Windows.Forms.Button();
             this.AdvancedTabs = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.ImportTab = new System.Windows.Forms.TabPage();
             this.DoneButton = new System.Windows.Forms.Button();
             this.MessageLabel = new System.Windows.Forms.Label();
+            this.UpdateTab = new System.Windows.Forms.TabPage();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.PathGroup = new System.Windows.Forms.GroupBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.OldPathBox = new System.Windows.Forms.TextBox();
+            this.NewPathBox = new System.Windows.Forms.TextBox();
+            this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
+            this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
+            this.UpdatePathsButton = new System.Windows.Forms.Button();
+            this.UpdateResultsPathsButton = new System.Windows.Forms.Button();
             this.ExportTab.SuspendLayout();
             this.ExportOptionsGroup.SuspendLayout();
             this.ExportTypeGroup.SuspendLayout();
@@ -73,6 +84,10 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.AdvancedTabs.SuspendLayout();
+            this.UpdateTab.SuspendLayout();
+            this.PathGroup.SuspendLayout();
+            this.flowLayoutPanel4.SuspendLayout();
+            this.flowLayoutPanel5.SuspendLayout();
             this.SuspendLayout();
             // 
             // ExportTab
@@ -401,6 +416,8 @@ namespace FileOrganizerUI.Windows
             // 
             this.AdvancedTabs.Controls.Add(this.CategoriesTab);
             this.AdvancedTabs.Controls.Add(this.ExportTab);
+            this.AdvancedTabs.Controls.Add(this.ImportTab);
+            this.AdvancedTabs.Controls.Add(this.UpdateTab);
             this.AdvancedTabs.Controls.Add(this.tabPage1);
             this.AdvancedTabs.Location = new System.Drawing.Point(13, 13);
             this.AdvancedTabs.Name = "AdvancedTabs";
@@ -408,15 +425,15 @@ namespace FileOrganizerUI.Windows
             this.AdvancedTabs.Size = new System.Drawing.Size(799, 462);
             this.AdvancedTabs.TabIndex = 0;
             // 
-            // tabPage1
+            // ImportTab
             // 
-            this.tabPage1.BackColor = System.Drawing.SystemColors.Control;
-            this.tabPage1.Location = new System.Drawing.Point(4, 25);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(791, 433);
-            this.tabPage1.TabIndex = 2;
-            this.tabPage1.Text = "Other";
+            this.ImportTab.BackColor = System.Drawing.SystemColors.Control;
+            this.ImportTab.Location = new System.Drawing.Point(4, 25);
+            this.ImportTab.Name = "ImportTab";
+            this.ImportTab.Padding = new System.Windows.Forms.Padding(3);
+            this.ImportTab.Size = new System.Drawing.Size(791, 433);
+            this.ImportTab.TabIndex = 2;
+            this.ImportTab.Text = "Import";
             // 
             // DoneButton
             // 
@@ -435,6 +452,110 @@ namespace FileOrganizerUI.Windows
             this.MessageLabel.Name = "MessageLabel";
             this.MessageLabel.Size = new System.Drawing.Size(0, 17);
             this.MessageLabel.TabIndex = 2;
+            // 
+            // UpdateTab
+            // 
+            this.UpdateTab.BackColor = System.Drawing.SystemColors.Control;
+            this.UpdateTab.Controls.Add(this.PathGroup);
+            this.UpdateTab.Location = new System.Drawing.Point(4, 25);
+            this.UpdateTab.Name = "UpdateTab";
+            this.UpdateTab.Padding = new System.Windows.Forms.Padding(3);
+            this.UpdateTab.Size = new System.Drawing.Size(791, 433);
+            this.UpdateTab.TabIndex = 3;
+            this.UpdateTab.Text = "Update";
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.BackColor = System.Drawing.SystemColors.Control;
+            this.tabPage1.Location = new System.Drawing.Point(4, 25);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(791, 433);
+            this.tabPage1.TabIndex = 4;
+            this.tabPage1.Text = "Other";
+            // 
+            // PathGroup
+            // 
+            this.PathGroup.Controls.Add(this.UpdateResultsPathsButton);
+            this.PathGroup.Controls.Add(this.UpdatePathsButton);
+            this.PathGroup.Controls.Add(this.flowLayoutPanel5);
+            this.PathGroup.Controls.Add(this.flowLayoutPanel4);
+            this.PathGroup.Location = new System.Drawing.Point(7, 7);
+            this.PathGroup.Name = "PathGroup";
+            this.PathGroup.Size = new System.Drawing.Size(778, 122);
+            this.PathGroup.TabIndex = 0;
+            this.PathGroup.TabStop = false;
+            this.PathGroup.Text = "Path";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 6);
+            this.label1.Margin = new System.Windows.Forms.Padding(3, 6, 8, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(63, 17);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Old Path";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(3, 6);
+            this.label3.Margin = new System.Windows.Forms.Padding(3, 6, 3, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(68, 17);
+            this.label3.TabIndex = 1;
+            this.label3.Text = "New Path";
+            // 
+            // OldPathBox
+            // 
+            this.OldPathBox.Location = new System.Drawing.Point(77, 3);
+            this.OldPathBox.Name = "OldPathBox";
+            this.OldPathBox.Size = new System.Drawing.Size(625, 22);
+            this.OldPathBox.TabIndex = 2;
+            // 
+            // NewPathBox
+            // 
+            this.NewPathBox.Location = new System.Drawing.Point(77, 3);
+            this.NewPathBox.Name = "NewPathBox";
+            this.NewPathBox.Size = new System.Drawing.Size(625, 22);
+            this.NewPathBox.TabIndex = 3;
+            // 
+            // flowLayoutPanel4
+            // 
+            this.flowLayoutPanel4.Controls.Add(this.label1);
+            this.flowLayoutPanel4.Controls.Add(this.OldPathBox);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(9, 21);
+            this.flowLayoutPanel4.Name = "flowLayoutPanel4";
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(763, 29);
+            this.flowLayoutPanel4.TabIndex = 4;
+            // 
+            // flowLayoutPanel5
+            // 
+            this.flowLayoutPanel5.Controls.Add(this.label3);
+            this.flowLayoutPanel5.Controls.Add(this.NewPathBox);
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(9, 57);
+            this.flowLayoutPanel5.Name = "flowLayoutPanel5";
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(763, 27);
+            this.flowLayoutPanel5.TabIndex = 5;
+            // 
+            // UpdatePathsButton
+            // 
+            this.UpdatePathsButton.Location = new System.Drawing.Point(635, 94);
+            this.UpdatePathsButton.Name = "UpdatePathsButton";
+            this.UpdatePathsButton.Size = new System.Drawing.Size(75, 23);
+            this.UpdatePathsButton.TabIndex = 6;
+            this.UpdatePathsButton.Text = "Update";
+            this.UpdatePathsButton.UseVisualStyleBackColor = true;
+            // 
+            // UpdateResultsPathsButton
+            // 
+            this.UpdateResultsPathsButton.Location = new System.Drawing.Point(508, 94);
+            this.UpdateResultsPathsButton.Name = "UpdateResultsPathsButton";
+            this.UpdateResultsPathsButton.Size = new System.Drawing.Size(121, 23);
+            this.UpdateResultsPathsButton.TabIndex = 7;
+            this.UpdateResultsPathsButton.Text = "Update Results";
+            this.UpdateResultsPathsButton.UseVisualStyleBackColor = true;
             // 
             // AdvancedWindow
             // 
@@ -462,6 +583,12 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel3.ResumeLayout(false);
             this.flowLayoutPanel3.PerformLayout();
             this.AdvancedTabs.ResumeLayout(false);
+            this.UpdateTab.ResumeLayout(false);
+            this.PathGroup.ResumeLayout(false);
+            this.flowLayoutPanel4.ResumeLayout(false);
+            this.flowLayoutPanel4.PerformLayout();
+            this.flowLayoutPanel5.ResumeLayout(false);
+            this.flowLayoutPanel5.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -487,7 +614,7 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.Label MessageLabel;
         private System.Windows.Forms.TextBox AddCateboryBox;
         private System.Windows.Forms.Button AddButton;
-        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage ImportTab;
         private System.Windows.Forms.GroupBox ExportTypeGroup;
         private System.Windows.Forms.RadioButton TextRadioButton;
         private System.Windows.Forms.RadioButton JSONRadioButton;
@@ -505,5 +632,16 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button ExportResultsButton;
         private System.Windows.Forms.Button ExportAllButton;
+        private System.Windows.Forms.TabPage UpdateTab;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.GroupBox PathGroup;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox NewPathBox;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel4;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox OldPathBox;
+        private System.Windows.Forms.Button UpdateResultsPathsButton;
+        private System.Windows.Forms.Button UpdatePathsButton;
     }
 }
