@@ -170,6 +170,17 @@ namespace FileOrganizerCore
             return UpdateFileData(newInfo, filter);
         }
 
+        public ActionResult<int> GetPathID(string path)
+        {
+            ActionResult<int> res = new ActionResult<int>();
+            res.SetResult(db.GetPathID(path));
+            if (res.Result == -1) {
+                res.AddError(ErrorType.SQL, $"Path {path} not found");
+            }
+
+            return res;
+        }
+
         /// <summary>
         ///     Also updates the TagCategories property.
         /// </summary>

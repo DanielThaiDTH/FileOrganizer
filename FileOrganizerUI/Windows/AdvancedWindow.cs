@@ -23,6 +23,8 @@ namespace FileOrganizerUI.Windows
         ToolTip MessageTooltip;
         public bool CategoriesChanged { get; set; } = false;
         static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
+        Action<string, string> Notify;
+
 
         public AdvancedWindow(ILogger logger, FileOrganizer core)
         {
@@ -44,6 +46,16 @@ namespace FileOrganizerUI.Windows
 
             ExportTabSetup();
             UpdateTabSetup();
+        }
+
+        public void Subscribe(Action<string, string> subscription)
+        {
+            Notify = subscription;
+        }
+
+        public void Unsubscribe()
+        {
+            Notify = null;
         }
 
         #region Handlers
@@ -160,6 +172,13 @@ namespace FileOrganizerUI.Windows
             }
 
             if (combinedRes.Result) {
+                int pathID = core.GetPathID(NewPathBox.Text.Trim()).Result;
+                foreach (var file in core.ActiveFiles) {
+                    if (Notify != null) Notify(file.Path, NewPathBox.Text.Trim());
+                    file.PathID = pathID;
+                    file.Path = NewPathBox.Text.Trim();
+                }
+
                 UpdateMessage("Path for file in results updated to " + NewPathBox.Text.Trim(), Color.Black);
             } else {
                 UpdateMessage("Errors occured when changing path for files", MainForm.ErrorMsgColor);
