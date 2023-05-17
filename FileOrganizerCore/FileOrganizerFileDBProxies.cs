@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using FileDBManager.Entities;
+using System.Linq;
 
 namespace FileOrganizerCore
 {
@@ -98,13 +99,39 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        ///     Deletes a file and also removes it from collections.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public ActionResult<bool> DeleteFile(int id)
         {
             var res = new ActionResult<bool>();
 
+            //Save positions of the file in each collection that has it, then 
+            //delete it from that collection. Positions are saved in case it file deletion will fail
+            var affectedCollections = new Dictionary<int, Dictionary<int, int>>();
+            foreach (var collection in db.FileCollectionSearch("")) {
+                if (collection.Files.Any(f => f.FileID == id)) {
+                    logger.LogInformation($"Removing file from collection {collection.Name}");
+                    var savedPosition = new Dictionary<int, int>();
+                    savedPosition.Add(id, collection.Files.Find(f => f.FileID == id).Position);
+                    affectedCollections.Add(collection.ID, savedPosition);
+                    db.DeleteFileInCollection(collection.ID, id);
+                }
+            }
+
             bool status = db.DeleteFileMetadata(id);
+
+
             if (!status) {
                 res.AddError(ErrorType.SQL, $"Failed deleting {id}");
+                logger.LogDebug("Reverting file removal from collections");
+                foreach (var col_pair in affectedCollections) {
+                    foreach (var pos_pair in col_pair.Value) {
+                        db.AddFileToCollection(col_pair.Key, pos_pair.Key, pos_pair.Value);
+                    }
+                }
             }
 
             res.SetResult(status);
@@ -426,6 +453,12 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        ///     Searches for multiple collections matching the query. Empty query will 
+        ///     return all collections.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
         public ActionResult<List<GetCollectionType>> SearchFileCollection(string query)
         {
             var res = new ActionResult<List<GetCollectionType>>();

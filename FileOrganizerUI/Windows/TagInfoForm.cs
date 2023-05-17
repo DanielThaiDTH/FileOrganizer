@@ -14,14 +14,20 @@ using System.Windows.Forms;
 
 namespace FileOrganizerUI.Windows
 {
+    /// <summary>
+    ///     Form for modifying tag. Assigned GetTagType will be modified on update (excluding name).
+    /// </summary>
     public partial class TagInfoForm : Form
     {
         ILogger logger;
         FileOrganizer core;
         static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
+        
         public bool IsUpdated;
         public bool IsDeleted;
         public bool NameUpdated { get; private set; }
+        public bool CategoryUpdated { get; private set; }
+
         public GetTagType Info { get; private set; }
         DeleteConfirmModal DeleteModal;
         IObservable<object> editObservable;
@@ -33,9 +39,6 @@ namespace FileOrganizerUI.Windows
             this.logger = logger;
             this.core = core;
             RefreshTagCategoryComboBox();
-            IsUpdated = false;
-            IsDeleted = false;
-            NameUpdated = false;
 
             UpdateButton.Click += UpdateButton_Click;
             UpdateButton.Enabled = false;
@@ -66,6 +69,7 @@ namespace FileOrganizerUI.Windows
             IsUpdated = false;
             IsDeleted = false;
             NameUpdated = false;
+            CategoryUpdated = false;
             UpdateButton.Enabled = false;
             NameBox.Text = info.Name;
             DescriptionBox.Text = info.Description;
@@ -93,13 +97,14 @@ namespace FileOrganizerUI.Windows
             IsUpdated = false;
             IsDeleted = false;
             NameUpdated = false;
+            CategoryUpdated = false;
             updateCheck.Dispose();
             MessageLabel.Text = "";
         }
 
         private void UpdateButton_Click(object sender, EventArgs e)
         {
-            if (NameBox.Text != Info.Name) {
+            if (NameBox.Text.Trim() != Info.Name) {
                 UpdateName();
             }
 
@@ -152,9 +157,18 @@ namespace FileOrganizerUI.Windows
             MessageLabel.ForeColor = color;
         }
 
+        private string SelectedCategoryText()
+        {
+            if ((CategoryComboBox.SelectedItem as GetTagCategoryType).ID == -1) {
+                return "";
+            } else {
+                return (CategoryComboBox.SelectedItem as GetTagCategoryType).Name;
+            }
+        }
+
         private void UpdateName()
         {
-            var nameRes = core.UpdateTagName(NameBox.Text, Info.ID);
+            var nameRes = core.UpdateTagName(NameBox.Text.Trim(), Info.ID);
             if (nameRes.Result) {
                 IsUpdated = true;
                 NameUpdated = true;
@@ -166,7 +180,7 @@ namespace FileOrganizerUI.Windows
         private void UpdateCategory()
         {
             int newCategoryID;
-            logger.LogDebug("Selected category option: " + CategoryComboBox.SelectedText);
+            logger.LogDebug("Selected category option: " + SelectedCategoryText());
             if (CategoryComboBox.SelectedItem.Equals(DefaultCategory)) {
                 newCategoryID = -1;
             } else {
@@ -176,6 +190,9 @@ namespace FileOrganizerUI.Windows
             var categoryRes = core.UpdateTagCategory(Info.ID, newCategoryID);
             if (categoryRes.Result) {
                 IsUpdated = true;
+                CategoryUpdated = true;
+                Info.Category = SelectedCategoryText();
+                Info.CategoryID = newCategoryID;
             } else {
                 UpdateMessage(categoryRes.GetErrorMessage(0), MainForm.ErrorMsgColor);
             }
@@ -186,6 +203,7 @@ namespace FileOrganizerUI.Windows
             var descRes = core.UpdateTagDescription(Info.ID, DescriptionBox.Text);
             if (descRes.Result) {
                 IsUpdated = true;
+                Info.Description = DescriptionBox.Text;
             } else {
                 UpdateMessage(descRes.GetErrorMessage(0), MainForm.ErrorMsgColor);
             }

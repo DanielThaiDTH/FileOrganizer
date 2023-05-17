@@ -54,6 +54,8 @@ namespace FileOrganizerUI
             this.TagSearchLabel = new System.Windows.Forms.Label();
             this.TagSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionsTab = new System.Windows.Forms.TabPage();
+            this.CollectionSymlinkButton = new System.Windows.Forms.Button();
+            this.ShowCollectionFilesButton = new System.Windows.Forms.Button();
             this.CollectionAddFileButton = new System.Windows.Forms.Button();
             this.AddCollectionGroup = new System.Windows.Forms.GroupBox();
             this.CollectionPickerAddButton = new System.Windows.Forms.Button();
@@ -64,8 +66,6 @@ namespace FileOrganizerUI
             this.CollectionSearchBox = new System.Windows.Forms.TextBox();
             this.CollectionSearchLabel = new System.Windows.Forms.Label();
             this.AdvancedActionsButton = new System.Windows.Forms.Button();
-            this.ShowCollectionFilesButton = new System.Windows.Forms.Button();
-            this.CollectionSymlinkButton = new System.Windows.Forms.Button();
             this.CollectionSymlinkTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.FilePanel.SuspendLayout();
             this.SideTab.SuspendLayout();
@@ -90,7 +90,7 @@ namespace FileOrganizerUI
             // 
             this.MessageText.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.MessageText.AutoSize = true;
-            this.MessageText.Location = new System.Drawing.Point(446, 591);
+            this.MessageText.Location = new System.Drawing.Point(297, 588);
             this.MessageText.MaximumSize = new System.Drawing.Size(1200, 0);
             this.MessageText.Name = "MessageText";
             this.MessageText.Size = new System.Drawing.Size(0, 17);
@@ -328,6 +328,24 @@ namespace FileOrganizerUI
             this.CollectionsTab.TabIndex = 1;
             this.CollectionsTab.Text = "Collections";
             // 
+            // CollectionSymlinkButton
+            // 
+            this.CollectionSymlinkButton.Location = new System.Drawing.Point(6, 487);
+            this.CollectionSymlinkButton.Name = "CollectionSymlinkButton";
+            this.CollectionSymlinkButton.Size = new System.Drawing.Size(75, 23);
+            this.CollectionSymlinkButton.TabIndex = 7;
+            this.CollectionSymlinkButton.Text = "Symlinks";
+            this.CollectionSymlinkButton.UseVisualStyleBackColor = true;
+            // 
+            // ShowCollectionFilesButton
+            // 
+            this.ShowCollectionFilesButton.Location = new System.Drawing.Point(87, 487);
+            this.ShowCollectionFilesButton.Name = "ShowCollectionFilesButton";
+            this.ShowCollectionFilesButton.Size = new System.Drawing.Size(60, 23);
+            this.ShowCollectionFilesButton.TabIndex = 6;
+            this.ShowCollectionFilesButton.Text = "Show";
+            this.ShowCollectionFilesButton.UseVisualStyleBackColor = true;
+            // 
             // CollectionAddFileButton
             // 
             this.CollectionAddFileButton.Location = new System.Drawing.Point(153, 487);
@@ -420,24 +438,6 @@ namespace FileOrganizerUI
             this.AdvancedActionsButton.Text = "Advanced";
             this.AdvancedActionsButton.UseVisualStyleBackColor = true;
             this.AdvancedActionsButton.Click += new System.EventHandler(this.AdvancedActions_Click);
-            // 
-            // ShowCollectionFilesButton
-            // 
-            this.ShowCollectionFilesButton.Location = new System.Drawing.Point(87, 487);
-            this.ShowCollectionFilesButton.Name = "ShowCollectionFilesButton";
-            this.ShowCollectionFilesButton.Size = new System.Drawing.Size(60, 23);
-            this.ShowCollectionFilesButton.TabIndex = 6;
-            this.ShowCollectionFilesButton.Text = "Show";
-            this.ShowCollectionFilesButton.UseVisualStyleBackColor = true;
-            // 
-            // CollectionSymlinkButton
-            // 
-            this.CollectionSymlinkButton.Location = new System.Drawing.Point(6, 487);
-            this.CollectionSymlinkButton.Name = "CollectionSymlinkButton";
-            this.CollectionSymlinkButton.Size = new System.Drawing.Size(75, 23);
-            this.CollectionSymlinkButton.TabIndex = 7;
-            this.CollectionSymlinkButton.Text = "Symlinks";
-            this.CollectionSymlinkButton.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 

@@ -177,6 +177,7 @@ namespace FileOrganizerUI.Windows
             DeleteModal.Text = "Delete " + fileInfo.Fullname;
             var result = DeleteModal.ShowDialog(this);
             if (result == DialogResult.Yes) {
+
                 var deleteResult = core.DeleteFile(fileInfo.ID);
                 if (deleteResult.Result) {
                     logger.LogInformation("Closing info screen for deleted file " + fileInfo.Fullname);

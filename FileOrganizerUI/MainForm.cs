@@ -84,6 +84,7 @@ namespace FileOrganizerUI
             TagSearchBox.AutoCompleteCustomSource = tagSource;
 
             TagListView.MultiSelect = true;
+            TagListView.ShowItemToolTips = true;
             TagListView.View = View.List;
             TagListView.MouseDoubleClick += TagListItem_DoubleClick;
             TagListView.SelectedIndexChanged += TagListView_SelectionChanged;
@@ -237,6 +238,15 @@ namespace FileOrganizerUI
                         core.ActiveFiles.RemoveAll(f => f.ID == selectedFile.ID);
                         FileListView.LargeImageList.Images.RemoveByKey(selectedFile.Fullname);
                         FileListView.EndUpdate();
+                        
+                        foreach (var collection in core.ActiveCollections) {
+                            if (collection.Files.Any(f => f.FileID == selectedFile.ID)) {
+                                core.SaveActiveFilesBackup();
+                                var refreshedCollection = core.GetFileCollection(collection.ID).Result;
+                                collection.Files = refreshedCollection.Files;
+                            }
+                        }
+                        UpdateMessage("File removed", Color.Black);
                     }
 
                 } else {
@@ -386,6 +396,9 @@ namespace FileOrganizerUI
                         || dialogResult == DialogResult.None || dialogResult == DialogResult.Abort) {
                         if (TagInfoModal.IsUpdated) {
                             core.GetTags();
+                            UpdateMessage("Tag updated", Color.Black);
+                            List<string> tooltipMsgs = new List<string>();
+                            
                             if (TagInfoModal.NameUpdated) {
                                 foreach (ListViewItem tag in TagListView.Items) {
                                     if (tag.Text == selectedTag.Name) {
@@ -393,9 +406,19 @@ namespace FileOrganizerUI
                                         TagSearchBox.AutoCompleteCustomSource.Add(tag.Text);
                                         TagSearchBox.AutoCompleteCustomSource.Remove(selectedTag.Name);
                                         selectedTag.Name = tag.Text;
+                                        break;
                                     }
                                 }
+
+                                tooltipMsgs.Add("Updated tag name");
                             }
+
+                            if (TagInfoModal.CategoryUpdated) {
+                                item.ToolTipText = selectedTag.Category;
+                                tooltipMsgs.Add("Updated category to " + selectedTag.Category);
+                            }
+
+                            UpdateMessageToolTip(tooltipMsgs);
 
                             TagInfoModal.ClearTagInfo();
                         }
@@ -678,7 +701,9 @@ namespace FileOrganizerUI
                 core.ActiveTags = tags;
                 TagListView.Clear();
                 foreach (var tag in tags) {
-                    TagListView.Items.Add(new ListViewItem(tag.Name));
+                    var item = new ListViewItem(tag.Name);
+                    item.ToolTipText = tag.Category;
+                    TagListView.Items.Add(item);
                 }
             }
         }
@@ -720,12 +745,10 @@ namespace FileOrganizerUI
 
         private void SearchCollections(string query)
         {
-            if (!string.IsNullOrEmpty(CollectionSearchBox.Text.Trim())) {
-                var collections = core.SearchFileCollection(query);
-                CollectionListView.Clear();
-                foreach (var collection in collections.Result) {
-                    CollectionListView.Items.Add(new ListViewItem(collection.Name));    
-                }
+            var collections = core.SearchFileCollection(query);
+            CollectionListView.Clear();
+            foreach (var collection in collections.Result) {
+                CollectionListView.Items.Add(new ListViewItem(collection.Name));
             }
         }
 

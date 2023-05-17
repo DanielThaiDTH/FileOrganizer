@@ -348,7 +348,8 @@ namespace FileDBManager
         }
 
         /// <summary>
-        ///     Searches for file collections using a non exact query
+        ///     Searches for file collections using a non exact query. Empty string will 
+        ///     return all collections.
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
