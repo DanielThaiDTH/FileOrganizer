@@ -1177,5 +1177,31 @@ namespace FileDBManager.Test
             Assert.Empty(fix.db.GetFileMetadata(new FileSearchFilter().SetPathFilter(@"O:\oldpath")));
             Assert.Equal(2, fix.db.GetFileMetadata(new FileSearchFilter().SetPathFilter(@"N:\newpath")).Count);
         }
+
+        [Fact]
+        public void ChangeFilePathWorksOnlyOnFile()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"Y:\oldpath\changed_filepath", "bin", "aaa");
+            fix.db.AddFile(@"Y:\oldpath\unchanged_filepath", "bin", "aaa");
+            var filter = new FileSearchFilter().SetFullnameFilter(@"Y:\oldpath\changed_filepath");
+            var info = fix.db.GetFileMetadata(filter)[0];
+            Assert.True(fix.db.ChangeFilePath(info.ID, @"Y:\newpath"));
+            Assert.Single(fix.db.GetFileMetadata(filter.Reset().SetFullnameFilter(@"Y:\newpath\changed_filepath")));
+            Assert.Single(fix.db.GetFileMetadata(filter.Reset().SetFullnameFilter(@"Y:\oldpath\unchanged_filepath")));
+        }
+
+        [Fact]
+        public void ChangeFilePathAddsNewPathIfNotExisting()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddFile(@"Y:\oldpath\seenpath", "bin", "aaa");
+            var filter = new FileSearchFilter().SetFullnameFilter(@"Y:\oldpath\seenpath");
+            var info = fix.db.GetFileMetadata(filter)[0];
+            Assert.Equal(-1, fix.db.GetPathID(@"Y:\unused_path"));
+            fix.db.ChangeFilePath(info.ID, @"Y:\unused_path");
+            Assert.NotEqual(-1, fix.db.GetPathID(@"Y:\unused_path"));
+        }
+
     }
 }
