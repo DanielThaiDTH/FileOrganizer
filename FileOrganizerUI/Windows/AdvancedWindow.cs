@@ -178,10 +178,6 @@ namespace FileOrganizerUI.Windows
                     file.Path = NewPathBox.Text.Trim();
                 }
 
-                foreach (var file in core.ActiveFiles) {
-                    logger.LogDebug("AW Fullname: " + file.Fullname);
-                }
-
                 if (ResultPathNotify != null) ResultPathNotify(null, NewPathBox.Text.Trim());
 
                 UpdateMessage("Path for file in results updated to " + NewPathBox.Text.Trim(), Color.Black);

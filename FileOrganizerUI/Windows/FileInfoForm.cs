@@ -10,11 +10,12 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Drawing;
 using Microsoft.Extensions.Logging;
 using FileDBManager;
 using FileDBManager.Entities;
 using FileOrganizerCore;
-using System.Diagnostics;
 
 namespace FileOrganizerUI.Windows
 {
@@ -23,13 +24,17 @@ namespace FileOrganizerUI.Windows
         ILogger logger;
         GetFileMetadataType fileInfo;
         FileOrganizer core;
+        Bitmap image;
+        
         private Dictionary<string, FlowLayoutPanel> detailLines;
         private Dictionary<string, FlowLayoutPanel> specialDetailLines;
+        
         Button HashRefreshButton;
         Button UpdateButton;
         Button CloseButton;
         Button DeleteButton;
         Label StatusMessage;
+
         IObservable<object> editObservable;
         IDisposable editDispose;
         DeleteConfirmModal DeleteModal;
@@ -62,6 +67,11 @@ namespace FileOrganizerUI.Windows
 
         public void SetFileInfo(GetFileMetadataType file)
         {
+            if (file is null) {
+                logger.LogError("File info form open failure: File provided is null");
+                throw new ArgumentNullException("File info form open failure: File provided is null");
+            }
+
             fileInfo = file;
             this.Text = file.Fullname;
             detailLines["Filename"].Controls[1].Text = file.Filename;
@@ -73,6 +83,19 @@ namespace FileOrganizerUI.Windows
             detailLines["Size"].Controls[1].Text = file.Size.ToString();
             specialDetailLines["Created"].Controls[1].Text = file.Created.ToString("yyyy-MM-dd");
             UpdateMessage("", Color.Black);
+
+            //Refer to FileOrganizerCore to see that file extensions are images
+            if (file.FileType == "image") {
+                try {
+                    image = new Bitmap(fileInfo.Fullname);
+                    PictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+                    PictureBox.Size = new Size(960, 540);
+                    PictureBox.Image = image;
+                } catch {
+                    logger.LogWarning($"Image file {fileInfo.Fullname} not found");
+                    UpdateMessage("File not found, cannot display image", MainForm.ErrorMsgColor);
+                }
+            }
 
             editDispose = editObservable.Subscribe((args) => {
                 bool changed = detailLines.Any(dl => 
@@ -101,6 +124,11 @@ namespace FileOrganizerUI.Windows
             specialDetailLines["Created"].Controls[1].Text = "";
             specialDetailLines["Created"].Controls[1].KeyDown -= PreventInput;
             UpdateButton.DialogResult = DialogResult.Abort;
+            if (image != null) {
+                image.Dispose();
+                image = null;
+                PictureBox.Image = null;
+            }
         }
 
         private void PreventInput(object sender, KeyEventArgs e)

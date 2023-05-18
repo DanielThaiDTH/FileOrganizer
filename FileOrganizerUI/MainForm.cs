@@ -55,7 +55,6 @@ namespace FileOrganizerUI
             SettingsDialog = new SettingsForm(logger, core);
 
             SearchBox.KeyDown += new KeyEventHandler(Search_Enter);
-            //SearchBox.TabIndex = -100;
             SearchBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             SearchBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
             SearchBox.AutoCompleteCustomSource = new AutoCompleteStringCollection();
@@ -209,9 +208,6 @@ namespace FileOrganizerUI
             ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
             if (item != null) {
                 logger.LogInformation($"Item with key of {item.ImageKey} was selected");
-                foreach (var file in core.ActiveFiles) {
-                    logger.LogDebug("Fullname: " + file.Fullname);
-                }
                 var selectedFile = core.ActiveFiles.Find(f => f.Fullname == item.ImageKey);
                 if (selectedFile != null) {
                     FileInfoModal.SetFileInfo(selectedFile);
