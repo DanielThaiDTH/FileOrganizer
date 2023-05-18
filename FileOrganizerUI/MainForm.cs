@@ -15,6 +15,7 @@ using FileDBManager;
 using FileDBManager.Entities;
 using FileOrganizerUI.Windows;
 using System.IO;
+using System.Security.Principal;
 
 namespace FileOrganizerUI
 {
@@ -37,6 +38,7 @@ namespace FileOrganizerUI
         private Queue<string> searchHistory;
         private HashSet<string> searchSet;
         private readonly int HistoryLimit = 50;
+        private bool isAdmin;
 
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
         private static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
@@ -88,6 +90,15 @@ namespace FileOrganizerUI
             TagListView.View = View.List;
             TagListView.MouseDoubleClick += TagListItem_DoubleClick;
             TagListView.SelectedIndexChanged += TagListView_SelectionChanged;
+
+            //Enable/Disable symlink buttons depending on presence of admin rights
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent()) {
+                var principal = new WindowsPrincipal(identity);
+                isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+                CreateSymLinksButton.Enabled = isAdmin;
+                CollectionSymlinkButton.Enabled = isAdmin;
+                UpdateMessage("Symlink features disabled due to lack of admin rights", ErrorMsgColor);
+            }
 
             AddNewTagButton.Click += AddNewTagButton_Click;
 
@@ -456,6 +467,10 @@ namespace FileOrganizerUI
         {
             AdvancedModal.CategoriesChanged = false;
             AdvancedModal.ShowDialog(this);
+            if (AdvancedModal.CategoriesChanged) {
+                core.GetTagCategories();
+                RefreshTagCategoryComboBox();
+            }
         }
 
         private void CollectionResultButton_Click(object sender, EventArgs e)
@@ -557,7 +572,7 @@ namespace FileOrganizerUI
         private void CollectionListView_SelectionChanged(object sender, EventArgs e)
         {
             if (CollectionListView.SelectedItems.Count == 1) {
-                CollectionSymlinkButton.Enabled = true;
+                CollectionSymlinkButton.Enabled = true && isAdmin;
                 ShowCollectionFilesButton.Enabled = true;
             } else {
                 CollectionSymlinkButton.Enabled = false;
@@ -707,9 +722,9 @@ namespace FileOrganizerUI
         {
             if (!string.IsNullOrWhiteSpace(query)) {
                 var tags = core.AllTags.FindAll(t => t.Name.ToLowerInvariant().Contains(query.ToLowerInvariant()));
-                core.ActiveTags = tags;
+                core.ActiveTags = tags.OrderBy(t => ((t.Category != null) ? t.Category : "") + " " + t.Name).ToList();
                 TagListView.Clear();
-                foreach (var tag in tags) {
+                foreach (var tag in core.ActiveTags) {
                     var item = new ListViewItem(tag.Name);
                     item.ToolTipText = tag.Category;
                     TagListView.Items.Add(item);
@@ -722,10 +737,13 @@ namespace FileOrganizerUI
             if (item != null) {
                 var selectedFile = core.ActiveFiles.Find(it => it.Fullname == item.ImageKey);
                 if (selectedFile != null) {
-                    var fileTags = core.GetTagsForFile(selectedFile.ID);
+                    var fileTags = core.GetTagsForFile(selectedFile.ID).Result;
+                    core.ActiveTags = fileTags.OrderBy(t => ((t.Category != null) ? t.Category : "") + " " + t.Name).ToList();
                     TagListView.Clear();
-                    foreach (var tag in fileTags.Result) {
-                        TagListView.Items.Add(new ListViewItem(tag.Name));
+                    foreach (var tag in core.ActiveTags) {
+                        var tagItem = new ListViewItem(tag.Name);
+                        tagItem.ToolTipText = tag.Category;
+                        TagListView.Items.Add(tagItem);
                     }
                     selectedFileID = selectedFile.ID;
                     UpdateMessage($"Viewing tags for {selectedFile.Filename}", Color.Black);
@@ -819,6 +837,5 @@ namespace FileOrganizerUI
 
         #endregion
 
-        
     }
 }
