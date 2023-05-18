@@ -11,7 +11,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.Drawing;
 using Microsoft.Extensions.Logging;
 using FileDBManager;
 using FileDBManager.Entities;

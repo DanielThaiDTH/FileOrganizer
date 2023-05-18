@@ -4,6 +4,8 @@ using System.Xml;
 using Xunit;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using System.Configuration;
+using System.Reflection;
 
 namespace SymLinkMaker.Test
 {
@@ -20,11 +22,13 @@ namespace SymLinkMaker.Test
 
     public class TestFixture : IDisposable
     {
-        string root = TestLoader.GetNodeValue("DataRoot");
+        string root;// = ConfigurationManager.AppSettings.Get("DataRoot");//TestLoader.GetNodeValue("DataRoot");
         HashSet<string> seen;
         public TestLogger logger;
         public TestFixture()
         {
+            string exeRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
+            root = Path.Combine(exeRoot, ConfigurationManager.AppSettings.Get("DataRoot"));
             seen = new HashSet<string>();
             logger = new TestLogger("logs", LogLevel.Information);
         }
@@ -52,12 +56,25 @@ namespace SymLinkMaker.Test
     public class Test : IClassFixture<TestFixture>
     {
         TestFixture fix;
-        string root = TestLoader.GetNodeValue("DataRoot");
-        string source = TestLoader.GetNodeValue("DataSource");
+        string exeRoot = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
+        string root;
+        string source;
 
         public Test(TestFixture fix)
         {
+            root = Path.Combine(exeRoot, ConfigurationManager.AppSettings.Get("DataRoot"));
+            source = Path.Combine(exeRoot, ConfigurationManager.AppSettings.Get("DataSource"));
             this.fix = fix;
+            fix.logger.LogInformation(root);
+            fix.logger.LogInformation(source);
+            fix.logger.LogInformation(exeRoot);
+
+            if (!Directory.Exists(root)) {
+                throw new DirectoryNotFoundException("Destination directory is not found. Did you forget the post-build event?");
+            }
+            if (!File.Exists(source)) {
+                throw new FileNotFoundException("Data source is not found. did you forget the post-build event?");
+            }
         }
 
         [Fact]

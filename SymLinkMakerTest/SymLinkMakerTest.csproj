@@ -20,4 +20,12 @@
     <ProjectReference Include="..\SymLinkMaker\SymLinkMaker.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo d | xcopy /Y /E &quot;$(ProjectDir)TestFiles\SymLinks&quot; &quot;$(ProjectDir)$(OutDir)SymLinks&quot;&#xD;&#xA;echo d | xcopy /Y /E &quot;$(ProjectDir)TestFiles\SymLinksSource&quot; &quot;$(ProjectDir)$(OutDir)SymLinksSource&quot;" />
+  </Target>
+
 </Project>
