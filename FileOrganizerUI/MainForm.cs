@@ -329,7 +329,8 @@ namespace FileOrganizerUI
 
                 var addRes = core.AddTag(NewTagNameBox.Text.Trim(), category);
                 if (addRes.Result) {
-                    UpdateMessage($"Tag {NewTagNameBox.Text} added.", Color.Black);
+                    UpdateMessage($"Tag {NewTagNameBox.Text.Trim()} added.", Color.Black);
+                    TagSearchBox.AutoCompleteCustomSource.Add(NewTagNameBox.Text.Trim());
                     NewTagCategoryComboBox.SelectedItem = DefaultCategory;
                     NewTagNameBox.Clear();
                 } else {
