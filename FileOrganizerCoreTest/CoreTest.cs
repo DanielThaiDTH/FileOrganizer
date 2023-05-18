@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using FileDBManager.Entities;
 using System.Data;
 using System.Data.SQLite;
+using System.Configuration;
 
 namespace FileOrganizerCore.Test
 {
@@ -32,10 +33,14 @@ namespace FileOrganizerCore.Test
                 .WriteTo.Debug()
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
-            var configLoader = new ConfigLoader("config.xml", logger);
-            if (File.Exists(configLoader.GetNodeValue("DB"))) {
-                File.Delete(configLoader.GetNodeValue("DB"));
+            
+            if (File.Exists(ConfigurationManager.AppSettings.Get("DB"))) {
+                File.Delete(ConfigurationManager.AppSettings.Get("DB"));
             }
+
+            if (!Directory.Exists("symlink")) Directory.CreateDirectory("symlink");
+            if (!Directory.Exists("symlink")) Directory.CreateDirectory("symlink2");
+
             core = new FileOrganizer(logger);
             det = new FileTypeDeterminer();
             root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");

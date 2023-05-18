@@ -131,10 +131,16 @@ namespace FileOrganizerUI
 
             RefreshTagCategoryComboBox();
 
-            SearchBox.Focus();
+            FormClosed += null;
         }
 
         #region Handlers
+        private void Form_Closed(object sender, EventArgs e)
+        {
+            logger.LogInformation("Closing program");
+            core.Stop();
+        }
+
         private void OpenFilePicker_Click(object sender, EventArgs e)
         {
             if (FileDialog.ShowDialog() == DialogResult.OK) {
