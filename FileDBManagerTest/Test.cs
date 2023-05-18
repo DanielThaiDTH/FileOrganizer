@@ -14,23 +14,10 @@ using Microsoft.Extensions.Logging;
 using FileDBManager.Entities;
 using System.Data;
 using System.Data.SQLite;
+using System.Configuration;
 
 namespace FileDBManager.Test
 {
-    public static class TestLoader
-    {
-        public static string testConfigPath = @"..\..\TestData.xml";
-        public static string GetNodeValue(string nodeName)
-        {
-            var xml = new XPathDocument(testConfigPath);
-            var XMLNav = xml.CreateNavigator();
-            var nodeList = XMLNav.Select("//" + nodeName);
-            foreach (XPathNavigator n in nodeList) {
-                return n.Value;
-            }
-            return null;
-        }
-    }
     
     public class TestFixture : IDisposable
     {
@@ -39,8 +26,9 @@ namespace FileDBManager.Test
         
         public TestFixture()
         {
-            if (File.Exists(TestLoader.GetNodeValue("TestDB"))) {
-                File.Delete(TestLoader.GetNodeValue("TestDB"));
+            string dbPath = ConfigurationManager.AppSettings.Get("TestDB");
+            if (File.Exists(dbPath)) {
+                File.Delete(dbPath);
             }
             string path = Path.Combine("logs", "log.log");
             if (!Directory.Exists("logs")) Directory.CreateDirectory("logs");
@@ -50,8 +38,8 @@ namespace FileDBManager.Test
                 .WriteTo.Debug()
                 .CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
-            Log.Information(Path.GetFullPath(TestLoader.GetNodeValue("TestDB")));
-            db = new FileDBManagerClass(TestLoader.GetNodeValue("TestDB"), logger);
+            Log.Information(Path.GetFullPath(dbPath));
+            db = new FileDBManagerClass(dbPath, logger);
         }
 
         public void Dispose()
