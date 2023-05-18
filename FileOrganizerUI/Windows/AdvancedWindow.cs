@@ -23,7 +23,7 @@ namespace FileOrganizerUI.Windows
         ToolTip MessageTooltip;
         public bool CategoriesChanged { get; set; } = false;
         static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
-        Action<string, string> Notify;
+        Action<string, string> ResultPathNotify;
 
 
         public AdvancedWindow(ILogger logger, FileOrganizer core)
@@ -48,14 +48,14 @@ namespace FileOrganizerUI.Windows
             UpdateTabSetup();
         }
 
-        public void Subscribe(Action<string, string> subscription)
+        public void ResultPathSubscribe(Action<string, string> subscription)
         {
-            Notify = subscription;
+            ResultPathNotify = subscription;
         }
 
-        public void Unsubscribe()
+        public void ResultPathUnsubscribe()
         {
-            Notify = null;
+            ResultPathNotify = null;
         }
 
         #region Handlers
@@ -174,10 +174,15 @@ namespace FileOrganizerUI.Windows
             if (combinedRes.Result) {
                 int pathID = core.GetPathID(NewPathBox.Text.Trim()).Result;
                 foreach (var file in core.ActiveFiles) {
-                    if (Notify != null) Notify(file.Path, NewPathBox.Text.Trim());
                     file.PathID = pathID;
                     file.Path = NewPathBox.Text.Trim();
                 }
+
+                foreach (var file in core.ActiveFiles) {
+                    logger.LogDebug("AW Fullname: " + file.Fullname);
+                }
+
+                if (ResultPathNotify != null) ResultPathNotify(null, NewPathBox.Text.Trim());
 
                 UpdateMessage("Path for file in results updated to " + NewPathBox.Text.Trim(), Color.Black);
             } else {
@@ -188,9 +193,13 @@ namespace FileOrganizerUI.Windows
 
         private void NewPathBox_TextChange(object sender, EventArgs e)
         {
-            if (Path.IsPathRooted(NewPathBox.Text.Trim())) {
-                UpdateResultsPathsButton.Enabled = true;
-            } else {
+            try {
+                if (Path.IsPathRooted(NewPathBox.Text.Trim())) {
+                    UpdateResultsPathsButton.Enabled = true;
+                } else {
+                    UpdateResultsPathsButton.Enabled = false;
+                }
+            } catch {
                 UpdateResultsPathsButton.Enabled = false;
             }
         }

@@ -101,6 +101,7 @@ namespace FileOrganizerUI
             TagInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
 
             AdvancedModal = new AdvancedWindow(logger, core);
+            AdvancedModal.ResultPathSubscribe(UpdateResultImageKeys);
 
             CollectionSearchBox.KeyDown += CollectionSearch_Enter;
             CollectionSearchBox.AutoCompleteMode = AutoCompleteMode.Suggest;
@@ -206,7 +207,11 @@ namespace FileOrganizerUI
         {
             ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
             if (item != null) {
-                var selectedFile = core.ActiveFiles.Find(it => it.Fullname == item.ImageKey);
+                logger.LogInformation($"Item with key of {item.ImageKey} was selected");
+                foreach (var file in core.ActiveFiles) {
+                    logger.LogDebug("Fullname: " + file.Fullname);
+                }
+                var selectedFile = core.ActiveFiles.Find(f => f.Fullname == item.ImageKey);
                 if (selectedFile != null) {
                     FileInfoModal.SetFileInfo(selectedFile);
                     var dialogResult = FileInfoModal.ShowDialog(this);
@@ -244,6 +249,7 @@ namespace FileOrganizerUI
                                 core.SaveActiveFilesBackup();
                                 var refreshedCollection = core.GetFileCollection(collection.ID).Result;
                                 collection.Files = refreshedCollection.Files;
+                                core.RestoreActiveFilesFromBackup();
                             }
                         }
                         UpdateMessage("File removed", Color.Black);
@@ -758,6 +764,33 @@ namespace FileOrganizerUI
                 CollectionAddFileButton.Enabled = true;
             } else {
                 CollectionAddFileButton.Enabled = false;
+            }
+        }
+
+        private void UpdateResultImageKeys(string oldPath, string newPath)
+        {
+            if (string.IsNullOrEmpty(oldPath)) {
+                logger.LogInformation("Replacing all image keys with new path");
+                foreach (var imageKey in FileListView.LargeImageList.Images.Keys) {
+                    var tokens = imageKey.Split('\\');
+                    string filename = tokens[tokens.Length - 1];
+                    string newImageKey = newPath + "\\" + filename;
+
+                    logger.LogDebug($"Changing image key of {imageKey} to {newImageKey}");
+                    int index = FileListView.LargeImageList.Images.IndexOfKey(imageKey);
+                    FileListView.LargeImageList.Images.SetKeyName(index, newImageKey);
+                }
+
+                foreach (ListViewItem item in FileListView.Items) {
+                    var tokens = item.ImageKey.Split('\\');
+                    string filename = tokens[tokens.Length - 1];
+                    string newImageKey = newPath + "\\" + filename;
+
+                    logger.LogDebug($"Changing image key of item from {item.ImageKey} to {newImageKey}");
+                    item.ImageKey = newImageKey;
+                }
+            } else {
+                logger.LogInformation("Replacing all image keys with old path to new path");
             }
         }
 
