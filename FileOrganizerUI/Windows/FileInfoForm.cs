@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using FileDBManager;
 using FileDBManager.Entities;
 using FileOrganizerCore;
+using System.Diagnostics;
 
 namespace FileOrganizerUI.Windows
 {
@@ -54,6 +55,9 @@ namespace FileOrganizerUI.Windows
             DeleteModal = new DeleteConfirmModal();
             DeleteModal.FormBorderStyle = FormBorderStyle.FixedDialog;
             LayoutSetup();
+
+            //Right panel setup
+            OpenFileButton.Click += OpenFile_Click;
         }
 
         public void SetFileInfo(GetFileMetadataType file)
@@ -104,6 +108,23 @@ namespace FileOrganizerUI.Windows
             if (e.KeyCode != Keys.Left && e.KeyCode != Keys.Right
                 && e.KeyCode != Keys.Home && e.KeyCode != Keys.End) {
                 e.SuppressKeyPress = true;
+            }
+        }
+
+        private void OpenFile_Click(object sender, EventArgs e)
+        {
+            if (fileInfo is null) return;
+
+            using (Process ps = new Process()) {
+                ps.StartInfo.FileName = fileInfo.Fullname;
+                ps.StartInfo.UseShellExecute = true;
+                try {
+                    ps.Start();
+                } catch (Exception ex) {
+                    logger.LogWarning($"File {fileInfo.Fullname} unable to be opened: {ex.Message}");
+                    logger.LogDebug(ex.StackTrace);
+                    UpdateMessage($"File {fileInfo.Fullname} unable to be opened: {ex.Message}", MainForm.ErrorMsgColor);
+                }
             }
         }
 

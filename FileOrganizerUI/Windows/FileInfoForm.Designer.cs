@@ -36,6 +36,9 @@ namespace FileOrganizerUI.Windows
         private void InitializeComponent()
         {
             this.MainVPanel = new System.Windows.Forms.FlowLayoutPanel();
+            this.RightPanel = new System.Windows.Forms.Panel();
+            this.OpenFileButton = new System.Windows.Forms.Button();
+            this.RightPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainVPanel
@@ -51,14 +54,37 @@ namespace FileOrganizerUI.Windows
             this.MainVPanel.TabIndex = 0;
             this.MainVPanel.WrapContents = false;
             // 
+            // RightPanel
+            // 
+            this.RightPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.RightPanel.AutoScroll = true;
+            this.RightPanel.Controls.Add(this.OpenFileButton);
+            this.RightPanel.Location = new System.Drawing.Point(738, 13);
+            this.RightPanel.Name = "RightPanel";
+            this.RightPanel.Size = new System.Drawing.Size(696, 482);
+            this.RightPanel.TabIndex = 1;
+            // 
+            // OpenFileButton
+            // 
+            this.OpenFileButton.Location = new System.Drawing.Point(4, 4);
+            this.OpenFileButton.Name = "OpenFileButton";
+            this.OpenFileButton.Size = new System.Drawing.Size(75, 23);
+            this.OpenFileButton.TabIndex = 0;
+            this.OpenFileButton.Text = "Open";
+            this.OpenFileButton.UseVisualStyleBackColor = true;
+            // 
             // FileInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1441, 500);
+            this.Controls.Add(this.RightPanel);
             this.Controls.Add(this.MainVPanel);
             this.Name = "FileInfoForm";
             this.Text = "FileInfoForm";
+            this.RightPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -66,5 +92,7 @@ namespace FileOrganizerUI.Windows
         #endregion
 
         private System.Windows.Forms.FlowLayoutPanel MainVPanel;
+        private System.Windows.Forms.Panel RightPanel;
+        private System.Windows.Forms.Button OpenFileButton;
     }
 }

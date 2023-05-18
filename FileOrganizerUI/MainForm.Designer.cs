@@ -82,7 +82,7 @@ namespace FileOrganizerUI
             this.OpenFilePicker.Location = new System.Drawing.Point(1258, 591);
             this.OpenFilePicker.Name = "OpenFilePicker";
             this.OpenFilePicker.Size = new System.Drawing.Size(65, 32);
-            this.OpenFilePicker.TabIndex = 0;
+            this.OpenFilePicker.TabIndex = 13;
             this.OpenFilePicker.Text = "Add";
             this.OpenFilePicker.UseVisualStyleBackColor = true;
             this.OpenFilePicker.Click += new System.EventHandler(this.OpenFilePicker_Click);
@@ -124,7 +124,7 @@ namespace FileOrganizerUI
             this.SearchBox.Location = new System.Drawing.Point(464, 22);
             this.SearchBox.Name = "SearchBox";
             this.SearchBox.Size = new System.Drawing.Size(683, 26);
-            this.SearchBox.TabIndex = 5;
+            this.SearchBox.TabIndex = 0;
             // 
             // Search
             // 
