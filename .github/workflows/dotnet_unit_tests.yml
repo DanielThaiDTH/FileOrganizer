@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Restore Packages
-      run: dotnet restore FileManagerDB && dotnet restore FileDBManagerTest && dotnet restore SymLinkMaker && dotnet restore SymLinkMakerTest && dotnet restore FileOrganizerCore && dotnet restore FileOrganizerCoreTest && dotnet restore FileOrganizerUI
+      run: msbuild /t:Restore FileManagerDB\FileManagerDB.csproj && msbuild /t:Restore FileDBManagerTest\FileDBManagerTest.csproj && msbuild /t:Restore SymLinkMaker\SymLinkMaker.csproj && msbuild /t:Restore SymLinkMakerTest\SymLinkMakerTest.csproj && msbuild /t:Restore FileOrganizerCore\FileOrganizerCore.csproj && msbuild /t:Restore FileOrganizerCoreTest\FileOrganizerCoreTest.csproj && msbuild /t:Restore FileOrganizerUI\FileOrganizerUI.csproj
     - name: Build
       run: dotnet build
     - name: Test
