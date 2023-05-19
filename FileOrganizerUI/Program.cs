@@ -27,10 +27,6 @@ namespace FileOrganizerUI
         [STAThread]
         static void Main()
         {
-            //Log.Logger = new LoggerConfiguration()
-            //    .MinimumLevel.Debug()
-            //    .WriteTo.File("log.log", rollingInterval: RollingInterval.Day)
-            //    .CreateLogger();
             Log.Logger = GetLogConfig().CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
             bool hasLogsDurationSetting = int.TryParse(ConfigurationManager.AppSettings.Get("LogsKeepDuration"), out logKeepDate);
@@ -41,6 +37,7 @@ namespace FileOrganizerUI
             logger.LogInformation("DB file: " + dbLocation);
             core = new FileOrganizer(logger, ConfigurationManager.AppSettings);
             core.StartUp();
+            core.AutoHash = ConfigurationManager.AppSettings.Get("AutoHash") == "true";
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

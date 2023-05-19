@@ -32,6 +32,8 @@ namespace FileOrganizerCore
         private readonly string configFilename = "config.xml";
         private string DBPath;
 
+        public bool AutoHash { get; set; }
+
         //Recently searched tags, tag categories and searched files are kept in memory
         List<GetTagCategoryType> tagCategories;
         public List<GetTagCategoryType> TagCategories { get { return tagCategories; } }

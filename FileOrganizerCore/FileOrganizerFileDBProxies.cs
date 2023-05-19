@@ -59,7 +59,7 @@ namespace FileOrganizerCore
                 res.AddError(ErrorType.Path, "Internal path error");
             } else if (File.Exists(filename)) {
                 var created = new DateTimeOptional(File.GetCreationTime(filename));
-                string hash = Utilities.Hasher.HashFile(filename, res);
+                string hash = AutoHash ? Utilities.Hasher.HashFile(filename, res) : "";
                 string type = typeDet.FromFilename(filename);
                 long size = GetFileSize(filename, res);
                 bool status = db.AddFile(filename, type, hash, altname, size, created);
