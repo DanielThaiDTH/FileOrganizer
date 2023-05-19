@@ -27,10 +27,11 @@ namespace FileOrganizerUI
         [STAThread]
         static void Main()
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .WriteTo.File("log.log", rollingInterval: RollingInterval.Day)
-                .CreateLogger();
+            //Log.Logger = new LoggerConfiguration()
+            //    .MinimumLevel.Debug()
+            //    .WriteTo.File("log.log", rollingInterval: RollingInterval.Day)
+            //    .CreateLogger();
+            Log.Logger = GetLogConfig().CreateLogger();
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
             bool hasLogsDurationSetting = int.TryParse(ConfigurationManager.AppSettings.Get("LogsKeepDuration"), out logKeepDate);
             if (!hasLogsDurationSetting) logKeepDate = 7;
@@ -74,6 +75,25 @@ namespace FileOrganizerUI
                 }
             }
             
+        }
+
+        static LoggerConfiguration GetLogConfig()
+        {
+            LoggerConfiguration config = new LoggerConfiguration();
+            string level = ConfigurationManager.AppSettings.Get("LogLevel");
+            if (string.IsNullOrWhiteSpace(level) || level.Trim().ToLowerInvariant() == "debug") {
+                config = config.MinimumLevel.Debug();
+            } else if (level.Trim().ToLowerInvariant() == "info" || level.Trim().ToLowerInvariant() == "information") {
+                config = config.MinimumLevel.Information();
+            } else if (level.Trim().ToLowerInvariant() == "warning") {
+                config = config.MinimumLevel.Warning();
+            } else if (level.Trim().ToLowerInvariant() == "error") {
+                config = config.MinimumLevel.Error();
+            } else {
+                config = config.MinimumLevel.Debug();
+            }
+
+            return config.WriteTo.File("log.log", rollingInterval: RollingInterval.Day);
         }
     }
 }

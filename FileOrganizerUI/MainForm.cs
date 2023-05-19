@@ -479,7 +479,7 @@ namespace FileOrganizerUI
 
         private void CollectionResultButton_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(CollectionNameBox.Text.Trim())) {
+            if (!string.IsNullOrWhiteSpace(CollectionNameBox.Text)) {
                 var selectedFiles = FileListView.SelectedItems;
                 var fileIDs = new List<int>();
                 foreach (ListViewItem file in selectedFiles) {
@@ -501,7 +501,7 @@ namespace FileOrganizerUI
         
         private void CollectionFilePickerButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(CollectionNameBox.Text.Trim())) {
+            if (string.IsNullOrWhiteSpace(CollectionNameBox.Text)) {
                 return;
             }
 
