@@ -558,7 +558,7 @@ namespace FileOrganizerUI.Windows
             // 
             this.DoneButton.Location = new System.Drawing.Point(729, 482);
             this.DoneButton.Name = "DoneButton";
-            this.DoneButton.Size = new System.Drawing.Size(75, 23);
+            this.DoneButton.Size = new System.Drawing.Size(75, 31);
             this.DoneButton.TabIndex = 1;
             this.DoneButton.Text = "Done";
             this.DoneButton.UseVisualStyleBackColor = true;
@@ -635,7 +635,8 @@ namespace FileOrganizerUI.Windows
             // ColorBox
             // 
             this.ColorBox.Enabled = false;
-            this.ColorBox.Location = new System.Drawing.Point(136, 3);
+            this.ColorBox.Location = new System.Drawing.Point(136, 6);
+            this.ColorBox.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.ColorBox.Name = "ColorBox";
             this.ColorBox.Size = new System.Drawing.Size(100, 22);
             this.ColorBox.TabIndex = 1;
@@ -660,7 +661,8 @@ namespace FileOrganizerUI.Windows
             // 
             // ColorPictureBox
             // 
-            this.ColorPictureBox.Location = new System.Drawing.Point(242, 3);
+            this.ColorPictureBox.Location = new System.Drawing.Point(242, 6);
+            this.ColorPictureBox.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
             this.ColorPictureBox.Name = "ColorPictureBox";
             this.ColorPictureBox.Size = new System.Drawing.Size(27, 22);
             this.ColorPictureBox.TabIndex = 4;

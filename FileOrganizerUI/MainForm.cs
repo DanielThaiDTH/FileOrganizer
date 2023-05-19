@@ -145,7 +145,7 @@ namespace FileOrganizerUI
 
             RefreshTagCategoryComboBox();
 
-            FormClosed += null;
+            FormClosed += Form_Closed;
         }
 
         #region Handlers
