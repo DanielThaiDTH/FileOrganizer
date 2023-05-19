@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using FileDBManager.Entities;
 using System.Linq;
+using System.Drawing;
 
 namespace FileOrganizerCore
 {
@@ -249,6 +250,22 @@ namespace FileOrganizerCore
 
             if (!status) {
                 res.AddError(ErrorType.SQL, $"Failed to change tag category {id} name to {newName}");
+            } else {
+                tagCategories = db.GetAllTagCategories();
+            }
+
+            res.SetResult(status);
+            return res;
+        }
+
+        public ActionResult<bool> UpdateTagCategoryColor(int id, Color color)
+        {
+            var res = new ActionResult<bool>();
+
+            bool status = db.UpdateTagCategoryColor(id, color.ToArgb());
+
+            if (!status) {
+                res.AddError(ErrorType.SQL, $"Failed to change tag category {id} color to #{color.ToArgb().ToString("X")}");
             } else {
                 tagCategories = db.GetAllTagCategories();
             }

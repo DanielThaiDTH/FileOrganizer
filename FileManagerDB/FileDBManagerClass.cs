@@ -38,6 +38,7 @@ namespace FileDBManager
 
             //Updates
             UpdateTable(Tag.TableName, Tag.Columns, new List<string> { "Description" });
+            UpdateTable(TagCategory.TableName, TagCategory.Columns, new List<string> { "Color" });
 
             ExecuteNonQuery("PRAGMA foreign_keys=ON");
         }

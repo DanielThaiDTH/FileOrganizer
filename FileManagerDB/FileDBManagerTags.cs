@@ -49,7 +49,8 @@ namespace FileDBManager
                 categories.Add(new GetTagCategoryType()
                 {
                     ID = read.GetInt32(read.GetOrdinal("ID")),
-                    Name = read.GetString(read.GetOrdinal("Name"))
+                    Name = read.GetString(read.GetOrdinal("Name")),
+                    Color = read.GetInt32(read.GetOrdinal("Color"))
                 });
             }
 
@@ -86,6 +87,19 @@ namespace FileDBManager
 
             return result;
         }
+
+        public bool UpdateTagCategoryColor(int id, int argb)
+        {
+            bool result;
+
+            string statement = createStatement("UPDATE TagCategories SET Color = ? WHERE ID = ?", argb, id);
+            result = ExecuteNonQuery(statement) == 1;
+
+            logger.LogInformation($"Tag category {id} color was {(result ? "" : "not")} changed to #{argb.ToString("X")}");
+
+            return result;
+        }
+
 
 
         /// <summary>
@@ -226,7 +240,7 @@ namespace FileDBManager
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
                     newTag.CategoryID = -1;
                     newTag.Category = null;
-                    logger.LogDebug("No catagory for tag " + newTag.Name);
+                    logger.LogDebug("No category for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
                     newTag.Category = read.GetString(5);
@@ -268,7 +282,7 @@ namespace FileDBManager
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
                     newTag.CategoryID = -1;
                     newTag.Category = null;
-                    logger.LogDebug("No catagory for tag " + newTag.Name);
+                    logger.LogDebug("No category for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
                     newTag.Category = read.GetString(7);
@@ -350,7 +364,7 @@ namespace FileDBManager
         }
 
         /// <summary>
-        ///     Updates tag catagory for a given tag.
+        ///     Updates tag category for a given tag.
         /// </summary>
         /// <param name="tagID"></param>
         /// <param name="categoryID"></param>
@@ -374,7 +388,7 @@ namespace FileDBManager
         }
 
         /// <summary>
-        ///     Updates tag catagory for a given tag selected using the tag name.
+        ///     Updates tag category for a given tag selected using the tag name.
         /// </summary>
         /// <param name="tagID"></param>
         /// <param name="categoryID"></param>

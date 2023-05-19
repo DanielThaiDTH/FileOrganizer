@@ -68,6 +68,7 @@ namespace FileDBManager
     {
         public int ID { get; set; }
         public string Name { get; set; }
+        public int Color { get; set; }
 
         public bool Equals(GetTagCategoryType other)
         {

@@ -89,10 +89,11 @@ namespace FileOrganizerUI
             // 
             // MessageText
             // 
-            this.MessageText.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.MessageText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.MessageText.AutoSize = true;
             this.MessageText.Location = new System.Drawing.Point(297, 588);
-            this.MessageText.MaximumSize = new System.Drawing.Size(1200, 0);
+            this.MessageText.MaximumSize = new System.Drawing.Size(1100, 0);
             this.MessageText.Name = "MessageText";
             this.MessageText.Size = new System.Drawing.Size(0, 17);
             this.MessageText.TabIndex = 1;

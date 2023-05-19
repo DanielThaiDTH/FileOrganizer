@@ -38,6 +38,7 @@ namespace FileOrganizerUI
         private Queue<string> searchHistory;
         private HashSet<string> searchSet;
         private readonly int HistoryLimit = 50;
+        private HashSet<string> categoryIcons;
         private bool isAdmin;
 
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
@@ -88,8 +89,10 @@ namespace FileOrganizerUI
             TagListView.MultiSelect = true;
             TagListView.ShowItemToolTips = true;
             TagListView.View = View.List;
+            TagListView.SmallImageList = new ImageList();
             TagListView.MouseDoubleClick += TagListItem_DoubleClick;
             TagListView.SelectedIndexChanged += TagListView_SelectionChanged;
+            categoryIcons = new HashSet<string>();
 
             //Enable/Disable symlink buttons depending on presence of admin rights
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent()) {
@@ -723,13 +726,8 @@ namespace FileOrganizerUI
         {
             if (!string.IsNullOrWhiteSpace(query)) {
                 var tags = core.AllTags.FindAll(t => t.Name.ToLowerInvariant().Contains(query.ToLowerInvariant()));
-                core.ActiveTags = tags.OrderBy(t => ((t.Category != null) ? t.Category : "") + " " + t.Name).ToList();
-                TagListView.Clear();
-                foreach (var tag in core.ActiveTags) {
-                    var item = new ListViewItem(tag.Name);
-                    item.ToolTipText = tag.Category;
-                    TagListView.Items.Add(item);
-                }
+                ShowTags(tags);
+                UpdateMessage($"Found {tags.Count} tags", Color.Black);
             }
         }
 
@@ -739,13 +737,7 @@ namespace FileOrganizerUI
                 var selectedFile = core.ActiveFiles.Find(it => it.Fullname == item.ImageKey);
                 if (selectedFile != null) {
                     var fileTags = core.GetTagsForFile(selectedFile.ID).Result;
-                    core.ActiveTags = fileTags.OrderBy(t => ((t.Category != null) ? t.Category : "") + " " + t.Name).ToList();
-                    TagListView.Clear();
-                    foreach (var tag in core.ActiveTags) {
-                        var tagItem = new ListViewItem(tag.Name);
-                        tagItem.ToolTipText = tag.Category;
-                        TagListView.Items.Add(tagItem);
-                    }
+                    ShowTags(fileTags);
                     selectedFileID = selectedFile.ID;
                     UpdateMessage($"Viewing tags for {selectedFile.Filename}", Color.Black);
                 } else {
@@ -753,6 +745,33 @@ namespace FileOrganizerUI
                     UpdateMessage("File missing from results", ErrorMsgColor);
                 }
             }
+        }
+
+        private void ShowTags(List<GetTagType> tags)
+        {
+            core.ActiveTags = tags.OrderBy(t => ((t.Category != null) ? t.Category : "") + " " + t.Name).ToList();
+            TagListView.Items.Clear();
+
+            foreach (var tag in core.ActiveTags) {
+                Color categoryColor = Color.FromArgb(-1);
+                var category = core.TagCategories.Find(tc => tc.ID == tag.CategoryID);
+                if (category != null) {
+                    categoryColor = Color.FromArgb(category.Color);
+                }
+                string categoryString = categoryColor.ToArgb().ToString("X");
+
+                if (!categoryIcons.Contains(categoryString)) {
+                    Image icon = CategoryIconGenerator.Make(categoryColor);
+                    categoryIcons.Add(categoryString);
+                    TagListView.SmallImageList.Images.Add(categoryString, icon);
+                }
+
+                var item = new ListViewItem(tag.Name, categoryString);
+                item.ToolTipText = tag.Category;
+                TagListView.Items.Add(item);
+            }
+
+            AssignTagButton.Enabled = false;
         }
 
         private void AssignTagsToFileVerify()

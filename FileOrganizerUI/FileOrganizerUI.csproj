@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeBehind\CategoryIconGenerator.cs" />
     <Compile Include="CodeBehind\NaturalOrderComparer.cs" />
     <Compile Include="CodeBehind\SearchParser.cs" />
     <Compile Include="CodeBehind\ThumbnailProxy.cs" />

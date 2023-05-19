@@ -21,9 +21,13 @@ namespace FileOrganizerUI.Windows
         FileOrganizer core;
         DeleteConfirmModal DeleteModal;
         ToolTip MessageTooltip;
+
+        Color selectedColor;
+        
         public bool CategoriesChanged { get; set; } = false;
         static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
         Action<string, string> ResultPathNotify;
+
 
 
         public AdvancedWindow(ILogger logger, FileOrganizer core)
@@ -43,6 +47,17 @@ namespace FileOrganizerUI.Windows
 
             DeleteModal = new DeleteConfirmModal();
             DeleteModal.SetMessage("Confirm deletion of tag category?");
+
+            CategoryColorComboBox.SelectedIndexChanged += ColorCategoryCombobox_SelectChange;
+
+            OpenColorDialogButton.Click += OpenColorPicker_Click;
+            OpenColorDialogButton.Enabled = false;
+            selectedColor = Color.FromArgb(-1);
+            ColorBox.Text = selectedColor.ToArgb().ToString("X");
+            ColorPictureBox.BackColor = selectedColor;
+            
+            UpdateColorButton.Enabled = false;
+            UpdateColorButton.Click += UpdateColorButton_Click;
 
             ExportTabSetup();
             UpdateTabSetup();
@@ -94,6 +109,35 @@ namespace FileOrganizerUI.Windows
             }
         }
 
+        private void ColorCategoryCombobox_SelectChange(object sender, EventArgs e)
+        {
+            OpenColorDialogButton.Enabled = CategoryColorComboBox.SelectedIndex != -1;
+            UpdateColorButton.Enabled = false;
+            
+            if (CategoryColorComboBox.SelectedIndex != -1) {
+                var category = CategoryColorComboBox.SelectedItem as GetTagCategoryType;
+                selectedColor = Color.FromArgb(category.Color);
+                ColorBox.Text = category.Color.ToString("X");
+            } else {
+                selectedColor = Color.FromArgb(-1);
+                ColorBox.Text = selectedColor.ToArgb().ToString("X");
+            }
+            ColorPictureBox.BackColor = selectedColor;
+        }
+
+        private void OpenColorPicker_Click(object sender, EventArgs e)
+        {
+            ColorDialog dlg = new ColorDialog();
+            dlg.Color = selectedColor;
+
+            if (dlg.ShowDialog(this) == DialogResult.OK) {
+                selectedColor = dlg.Color;
+                ColorBox.Text = selectedColor.ToArgb().ToString("X");
+                ColorPictureBox.BackColor = selectedColor;
+                UpdateColorButton.Enabled = IsColorDifferent();
+            }
+        }
+
         private void AddButton_Click(object sender, EventArgs e)
         {
             var res = core.AddTagCategory(AddCateboryBox.Text.Trim());
@@ -125,6 +169,21 @@ namespace FileOrganizerUI.Windows
             }
 
         }
+
+        private void UpdateColorButton_Click(object sender, EventArgs e)
+        {
+            var category = CategoryColorComboBox.SelectedItem as GetTagCategoryType;
+            var res = core.UpdateTagCategoryColor(category.ID, selectedColor);
+            if (res.Result) {
+                UpdateMessage($"Color for tag category {category.Name} changed to #{selectedColor.ToArgb().ToString("X")}", Color.Black);
+                CategoriesChanged = true;
+                category.Color = selectedColor.ToArgb();
+                UpdateColorButton.Enabled = false;
+            } else {
+                UpdateMessage("Failed to update category color for " + category.Name, MainForm.ErrorMsgColor);
+            }
+        }
+
 
         private void ExportTypeRadioButton_Changed(object sender, EventArgs e)
         {
@@ -241,6 +300,23 @@ namespace FileOrganizerUI.Windows
             CategoryComboBox.SelectedItem = DefaultCategory;
             RenameCategoryButton.Enabled = false;
             CategoryDeleteButton.Enabled = false;
+
+            CategoryColorComboBox.Items.Clear();
+            foreach (var category in core.TagCategories) {
+                CategoryColorComboBox.Items.Add(category);
+            }
+
+            CategoryColorComboBox.SelectedIndex = -1;
+            OpenColorDialogButton.Enabled = false;
+        }
+
+        private bool IsColorDifferent()
+        {
+            if (CategoryColorComboBox.SelectedIndex != -1) {
+                return selectedColor.ToArgb() != (CategoryColorComboBox.SelectedItem as GetTagCategoryType).Color;
+            } else {
+                return false;
+            }
         }
 
         private void WriteOutputFile(List<GetFileMetadataType> files)
