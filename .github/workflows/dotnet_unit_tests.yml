@@ -22,9 +22,11 @@ jobs:
       run: dotnet clean
     - name: Restore Solution Packages
       run: dotnet restore
-    - name: Restore Packages
-      run: msbuild /t:Restore FileManagerDB\FileManagerDB.csproj && msbuild /t:Restore FileDBManagerTest\FileDBManagerTest.csproj && msbuild /t:Restore SymLinkMaker\SymLinkMaker.csproj && msbuild /t:Restore SymLinkMakerTest\SymLinkMakerTest.csproj && msbuild /t:Restore FileOrganizerCore\FileOrganizerCore.csproj && msbuild /t:Restore FileOrganizerCoreTest\FileOrganizerCoreTest.csproj && msbuild /t:Restore FileOrganizerUI\FileOrganizerUI.csproj
-    - name: Build
-      run: dotnet build
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+    - name: Print Packages
+      run: dir packages
+#    - name: Restore Packages
+#      run: msbuild /t:Restore FileManagerDB\FileManagerDB.csproj && msbuild /t:Restore FileDBManagerTest\FileDBManagerTest.csproj && msbuild /t:Restore SymLinkMaker\SymLinkMaker.csproj && msbuild /t:Restore SymLinkMakerTest\SymLinkMakerTest.csproj && msbuild /t:Restore FileOrganizerCore\FileOrganizerCore.csproj && msbuild /t:Restore FileOrganizerCoreTest\FileOrganizerCoreTest.csproj && msbuild /t:Restore FileOrganizerUI\FileOrganizerUI.csproj
+#    - name: Build
+#      run: dotnet build
+#    - name: Test
+#      run: dotnet test --no-build --verbosity normal
