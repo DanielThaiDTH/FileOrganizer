@@ -21,7 +21,7 @@ jobs:
     - name: Clean project
       run: dotnet clean
     - name: Restore Solution Packages
-      run: dotnet restore
+      run: Update-Package -Reinstall
     - name: Print Packages
       run: dir
 #    - name: Restore Packages
