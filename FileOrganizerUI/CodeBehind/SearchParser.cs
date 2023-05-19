@@ -245,11 +245,8 @@ namespace FileOrganizerUI.CodeBehind
                                 subFilter.SetAltnameFilter(tempStore, currentExact);
                                 break;
                         }
-                        if (filterStack.Count > 0) {
-                            filterStack.Peek().AddSubfilter(subFilter);
-                        } else {
-                            queryFilter.AddSubfilter(subFilter);
-                        }
+
+                        queryFilter.AddSubfilter(subFilter);
                         subFilter = new FileSearchFilter().SetOr(true);
                         currentExact = false;
                         currentType = FilterType.Filename;
@@ -265,9 +262,10 @@ namespace FileOrganizerUI.CodeBehind
 
                     tempStore = "";
                     if (next == State.Sub) {
-                        filterStack.Push(subFilter);
+                        filterStack.Push(queryFilter);
                         stateStack.Push(State.Base);
                         next = State.Base;
+                        queryFilter = new FileSearchFilter().SetOr(currentExact).SetNot(currentState == State.Not);
                         subFilter = new FileSearchFilter().SetOr(true);
                         currentExact = false;
                         currentType = FilterType.Filename;
@@ -277,7 +275,14 @@ namespace FileOrganizerUI.CodeBehind
                             errMsg = $"Missing opening bracket";
                             break;
                         }
-                        filterStack.Pop();
+                        
+                        if (!subFilter.IsEmpty || (subFilter.IsEmpty && !subFilter.IsBaseFilter))
+                            queryFilter.AddSubfilter(subFilter);
+
+                        if (!queryFilter.IsEmpty || (queryFilter.IsEmpty && !queryFilter.IsBaseFilter)) 
+                            filterStack.Peek().AddSubfilter(queryFilter);
+
+                        queryFilter = filterStack.Pop();
                         next = stateStack.Pop();
                         subFilter = new FileSearchFilter().SetOr(true);
                         currentExact = false;
@@ -293,6 +298,8 @@ namespace FileOrganizerUI.CodeBehind
                     } else if (next == State.Not) {
                         subFilter.SetNot(true);
                     } else if (next == State.Base) {
+                        if (!subFilter.IsEmpty || (subFilter.IsEmpty && !subFilter.IsBaseFilter)) 
+                            queryFilter.AddSubfilter(subFilter);
                         subFilter = new FileSearchFilter().SetOr(true);
                         currentExact = false;
                         currentType = FilterType.Filename;

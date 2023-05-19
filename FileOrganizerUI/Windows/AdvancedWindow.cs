@@ -73,6 +73,11 @@ namespace FileOrganizerUI.Windows
             ResultPathNotify = null;
         }
 
+        public void Refresh()
+        {
+            RefreshTagCategoryComboBox();
+        }
+
         #region Handlers
         private void DoneButton_Click(object sender, EventArgs e)
         {
@@ -301,12 +306,12 @@ namespace FileOrganizerUI.Windows
             RenameCategoryButton.Enabled = false;
             CategoryDeleteButton.Enabled = false;
 
+            CategoryColorComboBox.SelectedIndex = -1;
             CategoryColorComboBox.Items.Clear();
             foreach (var category in core.TagCategories) {
                 CategoryColorComboBox.Items.Add(category);
             }
 
-            CategoryColorComboBox.SelectedIndex = -1;
             OpenColorDialogButton.Enabled = false;
         }
 

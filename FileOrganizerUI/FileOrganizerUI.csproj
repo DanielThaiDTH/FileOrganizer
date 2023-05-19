@@ -243,6 +243,6 @@ del $(ProjectDir)publish\*.pdb
 del $(ProjectDir)publish\*.log
 del $(ProjectDir)publish\info.db*
 cd $(ProjectDir)publish
-zip -r FileOrganizer.zip *</PostBuildEvent>
+::zip -r FileOrganizer.zip *</PostBuildEvent>
   </PropertyGroup>
 </Project>

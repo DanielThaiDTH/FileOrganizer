@@ -470,6 +470,7 @@ namespace FileOrganizerUI
         private void AdvancedActions_Click(object sender, EventArgs e)
         {
             AdvancedModal.CategoriesChanged = false;
+            AdvancedModal.Refresh();
             AdvancedModal.ShowDialog(this);
             if (AdvancedModal.CategoriesChanged) {
                 core.GetTagCategories();
