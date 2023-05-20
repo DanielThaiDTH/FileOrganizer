@@ -42,6 +42,7 @@ namespace FileOrganizerCore.Test
             if (!Directory.Exists("symlink")) Directory.CreateDirectory("symlink2");
 
             core = new FileOrganizer(logger);
+            core.AutoHash = true;
             det = new FileTypeDeterminer();
             root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
             var result = core.StartUp();
