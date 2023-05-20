@@ -147,7 +147,14 @@ namespace SymLinkMaker
                 logger.LogWarning("IsSymLink called with null path");
                 return false;
             } else if (Path.IsPathRooted(path)) {
-                logger.LogWarning("IsSymLink failed because a root path was given");
+                logger.LogWarning("IsSymLink failed because a root path was given " + path);
+                return false;
+            } 
+
+            try {
+                File.GetAttributes(Path.Combine(root, path));
+            } catch {
+                logger.LogWarning(Path.Combine(root, path) + " is missing or inaccessible, not a symlink");
                 return false;
             }
 

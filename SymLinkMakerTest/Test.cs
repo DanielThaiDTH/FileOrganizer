@@ -146,6 +146,13 @@ namespace SymLinkMaker.Test
         }
 
         [Fact]
+        public void IsSymLinkReturnsFalseForNonexistent()
+        {
+            SymLinkMaker sym = new SymLinkMaker(root, fix.logger);
+            Assert.False(sym.IsSymLink("notfound"));
+        }
+
+        [Fact]
         public void IsSymLinkReturnsTrueWithSymLink()
         {
             SymLinkMaker sym = new SymLinkMaker(root, fix.logger);

@@ -40,7 +40,7 @@ namespace FileOrganizerCore.Test
             }
 
             if (!Directory.Exists("symlink")) Directory.CreateDirectory("symlink");
-            if (!Directory.Exists("symlink")) Directory.CreateDirectory("symlink2");
+            if (!Directory.Exists("symlink2")) Directory.CreateDirectory("symlink2");
 
             core = new FileOrganizer(logger);
             core.AutoHash = true;
