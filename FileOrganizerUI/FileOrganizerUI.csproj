@@ -236,7 +236,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>del /Q $(ProjectDir)publish
+    <PostBuildEvent>IF NOT EXIST $(ProjectDir)publish md $(ProjectDir)publish
+del /Q $(ProjectDir)publish
 xcopy /Y /S $(ProjectDir)$(OutDir) $(ProjectDir)publish
 del $(ProjectDir)publish\*.pdb
 del $(ProjectDir)publish\*.log
