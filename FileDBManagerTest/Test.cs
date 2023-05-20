@@ -27,6 +27,7 @@ namespace FileDBManager.Test
         public TestFixture()
         {
             string dbPath = ConfigurationManager.AppSettings.Get("TestDB");
+            if (!Directory.Exists("test_data")) Directory.CreateDirectory("test_data");
             if (File.Exists(dbPath)) {
                 File.Delete(dbPath);
             }
