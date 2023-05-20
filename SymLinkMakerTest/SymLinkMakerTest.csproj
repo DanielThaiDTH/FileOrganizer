@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
     <IsPackable>false</IsPackable>
-	<XunitConsole Condition=" '$(OS)' == 'Windows_NT' ">&quot;$(XunitConsole472Path)&quot;</XunitConsole>
-	<XunitConsole Condition=" '$(OS)' != 'Windows_NT' ">mono &quot;$(XunitConsole472Path)&quot;</XunitConsole>
+	<XunitConsole Condition=" '$(OS)' == 'Windows_NT' ">"$(XunitConsole472Path)"</XunitConsole>
+	<XunitConsole Condition=" '$(OS)' != 'Windows_NT' ">mono "$(XunitConsole472Path)"</XunitConsole>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,12 +31,10 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="echo d | xcopy /Y /E &quot;$(ProjectDir)TestFiles\SymLinks&quot; &quot;$(ProjectDir)$(OutDir)SymLinks&quot;&#xD;&#xA;echo d | xcopy /Y /E &quot;$(ProjectDir)TestFiles\SymLinksSource&quot; &quot;$(ProjectDir)$(OutDir)SymLinksSource&quot;" />
+    <Exec Command="echo d | xcopy /Y /E &quot;$(ProjectDir)TestFiles\SymLinks&quot; &quot;$(ProjectDir)$(OutDir)SymLinks&quot;&#xD;&#xA;echo d | xcopy /Y /E &quot;$(ProjectDir)TestFiles\SymLinksSource&quot; &quot;$(ProjectDir)$(OutDir)SymLinksSource&quot;&#xD;&#xA;if not exist $(ProjectDir)$(OutDir)SymLinks\real md $(ProjectDir)$(OutDir)SymLinks\real" />
   </Target>
 
   <Target Name="Test" DependsOnTargets="Build">
-	<Exec
-      Command="$(XunitConsole) $(TargetFileName)"
-      WorkingDirectory="$(TargetDir)" />
+	<Exec Command="$(XunitConsole) $(TargetFileName)" WorkingDirectory="$(TargetDir)" />
   </Target>
 </Project>
