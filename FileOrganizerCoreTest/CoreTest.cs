@@ -35,6 +35,7 @@ namespace FileOrganizerCore.Test
             logger = new SerilogLoggerFactory(Log.Logger).CreateLogger<IServiceProvider>();
             
             if (File.Exists(ConfigurationManager.AppSettings.Get("DB"))) {
+                logger.LogInformation("Deleting" + ConfigurationManager.AppSettings.Get("DB"));
                 File.Delete(ConfigurationManager.AppSettings.Get("DB"));
             }
 
@@ -45,6 +46,7 @@ namespace FileOrganizerCore.Test
             core.AutoHash = true;
             det = new FileTypeDeterminer();
             root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
+            logger.LogInformation(root);
             var result = core.StartUp();
             if (!result.Result) {
                 logger.LogError("Unable to start up core: " + result.GetErrorMessage(0));
@@ -110,12 +112,12 @@ namespace FileOrganizerCore.Test
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var files = new List<string>() { Path.Combine(fix.root, "config.xml"),
-                Path.Combine(fix.root, "Serilog.xml") };
+                Path.Combine(fix.root, "other.xml") };
             var res = fix.core.CreateSymLinksFilenames(files);
             Assert.True(res.Result);
             Assert.Equal(0, res.Count);
             Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "config.xml")));
-            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "Serilog.xml")));
+            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "other.xml")));
             fix.core.ClearSymLinks();
         }
 
@@ -172,14 +174,14 @@ namespace FileOrganizerCore.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var files = new List<string>() { 
                 Path.Combine(fix.root, "config.xml"), 
-                Path.Combine(fix.root, "Serilog.xml") 
+                Path.Combine(fix.root, "other.xml") 
             };
             var addRes = fix.core.AddFiles(files);
             Assert.All(addRes.Result, r => Assert.True(r));
             var filedata = fix.core.GetFileData().Result;
             var res = fix.core.CreateSymLinksFromActiveFiles();
             Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "config.xml")));
-            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "Serilog.xml")));
+            Assert.True(File.Exists(Path.Combine(fix.root, "symlink", "other.xml")));
             fix.core.ClearSymLinks();
             foreach (var f in filedata) {
                 fix.core.DeleteFile(f.ID);
@@ -234,7 +236,7 @@ namespace FileOrganizerCore.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var files = new List<string>() {
                 Path.Combine(fix.root, "config.xml"),
-                Path.Combine(fix.root, "Serilog.xml")
+                Path.Combine(fix.root, "other.xml")
             };
             fix.core.AddFiles(files);
             var fileData = fix.core.GetFileData().Result;
@@ -242,14 +244,14 @@ namespace FileOrganizerCore.Test
             var res = fix.core.GetFileData();
             Assert.False(res.HasError());
             Assert.Contains(res.Result, fd => fd.Filename == "config.xml");
-            Assert.Contains(res.Result, fd => fd.Filename == "Serilog.xml");
+            Assert.Contains(res.Result, fd => fd.Filename == "other.xml");
             Assert.Equal(2, res.Result.Count);
             Assert.Subset(
                 new HashSet<FileDBManager.GetFileMetadataType>(res.Result.ToArray()), 
                 new HashSet<FileDBManager.GetFileMetadataType>(fix.core.ActiveFiles.ToArray())
                 );
             fix.core.DeleteFile(Path.Combine(fix.root, "config.xml"));
-            fix.core.DeleteFile(Path.Combine(fix.root, "Serilog.xml"));
+            fix.core.DeleteFile(Path.Combine(fix.root, "other.xml"));
         }
 
         [Fact]
@@ -258,13 +260,14 @@ namespace FileOrganizerCore.Test
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             var files = new List<string>() {
                 Path.Combine(fix.root, "config.xml"),
-                Path.Combine(fix.root, "Serilog.xml")
+                Path.Combine(fix.root, "other.xml")
             };
             fix.core.AddFiles(files);
             Assert.True(fix.core.DeleteFile(Path.Combine(fix.root, "config.xml")).Result);
-            Assert.True(fix.core.DeleteFile(Path.Combine(fix.root, "Serilog.xml")).Result);
+            Assert.True(fix.core.DeleteFile(Path.Combine(fix.root, "other.xml")).Result);
             Assert.Empty(fix.core.GetFileData().Result);
             fix.core.AddFiles(files);
+
             var fileData = fix.core.GetFileData().Result;
             var idList = fileData.ConvertAll(fd => fd.ID);
             foreach (int id in idList) {
@@ -289,18 +292,25 @@ namespace FileOrganizerCore.Test
         {
             Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
             fix.core.AddFiles(new List<string> { 
-                Path.Combine(fix.root, "FileManagerDB.dll.config"), 
-                Path.Combine(fix.root, "FileOrganizerCore.dll.config"), 
-                Path.Combine(fix.root, "FileOrganizerCoreTest.dll.config") 
+                Path.Combine(fix.root, "other.xml"), 
+                Path.Combine(fix.root, "temp.txt"), 
+                Path.Combine(fix.root, "config.xml") 
             });
-            var filter = new FileSearchFilter().SetFilenameFilter("dll.config", false);
-            var ids = fix.core.GetFileData(filter).Result.ConvertAll(f => f.ID);
+            //var filter = new FileSearchFilter().SetFilenameFilter(".xml", false);
+            var ids = fix.core.GetFileData().Result.ConvertAll(f => f.ID);
             fix.core.AddCollection("reordered_collection", ids);
             var collectionID = fix.core.GetFileCollection("reordered_collection").Result.ID;
             Assert.True(fix.core.SwitchFilePositionInCollection(collectionID, ids[0], ids[2]).Result);
             var collection = fix.core.GetFileCollection("reordered_collection").Result;
             Assert.Equal(3, collection.Files.Find(f => f.FileID == ids[0]).Position);
             Assert.Equal(1, collection.Files.Find(f => f.FileID == ids[2]).Position);
+
+            var fileData = fix.core.GetFileData().Result;
+            var idList = fileData.ConvertAll(fd => fd.ID);
+            foreach (int id in idList) {
+                Assert.True(fix.core.DeleteFile(id).Result);
+            }
+            Assert.Empty(fix.core.GetFileData().Result);
         }
     }
 }
