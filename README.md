@@ -2,6 +2,10 @@
 
 A WinfForms file organizer application that can tag files, search up known files, categorize files and create symlinks to files.
 
+## Building
+
+This application uses the .NET Framework version `>=4.7.2`. To build it, you either need Visual Studio 2019 or above, or you need to have MSBuild installed and on your PATH. First restore the packages with `msbuild -t:Restore`, then build with `msbuild`.
+
 ## Usage
 
 To let the organizer know about files to manage, start by opening the application and then clicking on `Add files`. Select the files you wish to add through the file picker. Basic information like the location, name, creation date and hash is automatically added. 
@@ -22,12 +26,10 @@ This program also generates logs in the same folder as the executable.
 
 ## Testing
 
-Testing of the application will require the ability to create symlinks, so elevated permissions will be required. Run the test with `dotnet test`.
+The command to test the FileDBManager is `msbuild  FileDBManagerTest\FileDBManagerTest.csproj -t:Test`.
 
-The default command to test the FileDBManager is `dotnet test FileDBManagerTest\FileDBManagerTest.csproj -v n --runtime win-x64`.
-There is a TestDataTemplate.xml config file. Copy it and modify it to refer to the test db location. Name it TestData.xml in the same folder.
-
-The command to test the SymLinkMaker is `dotnet test SymLinkMakerTest\SymLinkMakerTest.csproj -v n --runtime win-x64`. You 
+The command to test the SymLinkMaker is `msbuild SymLinkMakerTest\SymLinkMakerTest.csproj -t:Test`. You 
 must run this in admin mode due to file access requirements.
 
-The command to test the FileOrganizerCore is `dotnet test FileOrganizerCoreTest\FileOrganizerCoreTest.csproj -v n --runtime win-x64`. You must have a config.xml file in the folder with the executable. Copy the one in the test folder root. Requires a symlink and symlink2 folder in the executable root for testing. Requires admin access for tests to pass.
+The command to test the FileOrganizerCore is `msbuild FileOrganizerCoreTest\FileOrganizerCoreTest.csproj -t:Test`. You also need admin 
+access here.
