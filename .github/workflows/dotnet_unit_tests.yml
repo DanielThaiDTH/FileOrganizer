@@ -19,14 +19,17 @@ jobs:
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
     - name: Clean project
-      run: dotnet clean
-    - name: Restore Solution Packages
-      run: Update-Package -Reinstall
+      run: msbuild -t:Clean
     - name: Print Packages
       run: dir
-#    - name: Restore Packages
+    - name: Restore Packages
+      run: msbuild /t:Restore
 #      run: msbuild /t:Restore FileManagerDB\FileManagerDB.csproj && msbuild /t:Restore FileDBManagerTest\FileDBManagerTest.csproj && msbuild /t:Restore SymLinkMaker\SymLinkMaker.csproj && msbuild /t:Restore SymLinkMakerTest\SymLinkMakerTest.csproj && msbuild /t:Restore FileOrganizerCore\FileOrganizerCore.csproj && msbuild /t:Restore FileOrganizerCoreTest\FileOrganizerCoreTest.csproj && msbuild /t:Restore FileOrganizerUI\FileOrganizerUI.csproj
-#    - name: Build
-#      run: dotnet build
-#    - name: Test
-#      run: dotnet test --no-build --verbosity normal
+    - name: Build
+      run: msbuild
+    - name: FileDBManager Tests
+      run: msbuild FileDBManagerTest\FileDBManagerTest.csproj -t:Test
+    - name: SymLinkMaker Tests
+      run: msbuild SymLinkMakerTest\SymLinkMakerTest.csproj -t:Test
+    - name: FileOrganizerCore Tests
+      run: msbuild FileOrganizerCoreTest\FileOrganizerCoreTest.csproj -t:Test
