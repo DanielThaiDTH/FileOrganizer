@@ -67,6 +67,15 @@ namespace FileDBManager.Test
         }
 
         [Fact]
+        public void UpdateOfFileMetadataPathUpdatesFullname()
+        {
+            fix.logger.LogInformation($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var file = new GetFileMetadataType() { ID = 1, Filename="filename", Path=@"C:\", PathID=1 };
+            file.Path = @"D:\";
+            Assert.Equal(@"D:\filename", file.Fullname);
+        }
+
+        [Fact]
         public void AddFileForNewFileReturnsTrue()
         {
             Log.Information("TEST: AddFileForNewFileReturnsTrue");

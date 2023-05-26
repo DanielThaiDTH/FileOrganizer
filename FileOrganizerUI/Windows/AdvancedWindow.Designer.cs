@@ -60,6 +60,16 @@ namespace FileOrganizerUI.Windows
             this.DescriptionLabel = new System.Windows.Forms.Label();
             this.AddCateboryBox = new System.Windows.Forms.TextBox();
             this.AddButton = new System.Windows.Forms.Button();
+            this.UpdateColorGroup = new System.Windows.Forms.GroupBox();
+            this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
+            this.ColorLabel = new System.Windows.Forms.Label();
+            this.ColorBox = new System.Windows.Forms.TextBox();
+            this.ColorPictureBox = new System.Windows.Forms.PictureBox();
+            this.OpenColorDialogButton = new System.Windows.Forms.Button();
+            this.UpdateColorButton = new System.Windows.Forms.Button();
+            this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
+            this.CatagoryComboLabel = new System.Windows.Forms.Label();
+            this.CategoryColorComboBox = new System.Windows.Forms.ComboBox();
             this.AdvancedTabs = new System.Windows.Forms.TabControl();
             this.ImportTab = new System.Windows.Forms.TabPage();
             this.UpdateTab = new System.Windows.Forms.TabPage();
@@ -75,16 +85,6 @@ namespace FileOrganizerUI.Windows
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.DoneButton = new System.Windows.Forms.Button();
             this.MessageLabel = new System.Windows.Forms.Label();
-            this.UpdateColorGroup = new System.Windows.Forms.GroupBox();
-            this.CategoryColorComboBox = new System.Windows.Forms.ComboBox();
-            this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
-            this.CatagoryComboLabel = new System.Windows.Forms.Label();
-            this.flowLayoutPanel7 = new System.Windows.Forms.FlowLayoutPanel();
-            this.ColorLabel = new System.Windows.Forms.Label();
-            this.ColorBox = new System.Windows.Forms.TextBox();
-            this.OpenColorDialogButton = new System.Windows.Forms.Button();
-            this.UpdateColorButton = new System.Windows.Forms.Button();
-            this.ColorPictureBox = new System.Windows.Forms.PictureBox();
             this.ExportTab.SuspendLayout();
             this.ExportOptionsGroup.SuspendLayout();
             this.ExportTypeGroup.SuspendLayout();
@@ -93,15 +93,15 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
+            this.UpdateColorGroup.SuspendLayout();
+            this.flowLayoutPanel7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ColorPictureBox)).BeginInit();
+            this.flowLayoutPanel6.SuspendLayout();
             this.AdvancedTabs.SuspendLayout();
             this.UpdateTab.SuspendLayout();
             this.PathGroup.SuspendLayout();
             this.flowLayoutPanel5.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
-            this.UpdateColorGroup.SuspendLayout();
-            this.flowLayoutPanel6.SuspendLayout();
-            this.flowLayoutPanel7.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ColorPictureBox)).BeginInit();
             this.SuspendLayout();
             // 
             // ExportTab
@@ -427,6 +427,102 @@ namespace FileOrganizerUI.Windows
             this.AddButton.Text = "Add";
             this.AddButton.UseVisualStyleBackColor = true;
             // 
+            // UpdateColorGroup
+            // 
+            this.UpdateColorGroup.Controls.Add(this.flowLayoutPanel7);
+            this.UpdateColorGroup.Controls.Add(this.flowLayoutPanel6);
+            this.UpdateColorGroup.Location = new System.Drawing.Point(3, 109);
+            this.UpdateColorGroup.Name = "UpdateColorGroup";
+            this.UpdateColorGroup.Size = new System.Drawing.Size(650, 119);
+            this.UpdateColorGroup.TabIndex = 3;
+            this.UpdateColorGroup.TabStop = false;
+            this.UpdateColorGroup.Text = "Update Tag Category Color";
+            // 
+            // flowLayoutPanel7
+            // 
+            this.flowLayoutPanel7.Controls.Add(this.ColorLabel);
+            this.flowLayoutPanel7.Controls.Add(this.ColorBox);
+            this.flowLayoutPanel7.Controls.Add(this.ColorPictureBox);
+            this.flowLayoutPanel7.Controls.Add(this.OpenColorDialogButton);
+            this.flowLayoutPanel7.Controls.Add(this.UpdateColorButton);
+            this.flowLayoutPanel7.Location = new System.Drawing.Point(7, 65);
+            this.flowLayoutPanel7.Name = "flowLayoutPanel7";
+            this.flowLayoutPanel7.Size = new System.Drawing.Size(637, 33);
+            this.flowLayoutPanel7.TabIndex = 2;
+            // 
+            // ColorLabel
+            // 
+            this.ColorLabel.AutoSize = true;
+            this.ColorLabel.Location = new System.Drawing.Point(3, 6);
+            this.ColorLabel.Margin = new System.Windows.Forms.Padding(3, 6, 89, 0);
+            this.ColorLabel.Name = "ColorLabel";
+            this.ColorLabel.Size = new System.Drawing.Size(41, 17);
+            this.ColorLabel.TabIndex = 0;
+            this.ColorLabel.Text = "Color";
+            // 
+            // ColorBox
+            // 
+            this.ColorBox.Enabled = false;
+            this.ColorBox.Location = new System.Drawing.Point(136, 6);
+            this.ColorBox.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
+            this.ColorBox.Name = "ColorBox";
+            this.ColorBox.Size = new System.Drawing.Size(100, 22);
+            this.ColorBox.TabIndex = 1;
+            // 
+            // ColorPictureBox
+            // 
+            this.ColorPictureBox.Location = new System.Drawing.Point(242, 6);
+            this.ColorPictureBox.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
+            this.ColorPictureBox.Name = "ColorPictureBox";
+            this.ColorPictureBox.Size = new System.Drawing.Size(27, 22);
+            this.ColorPictureBox.TabIndex = 4;
+            this.ColorPictureBox.TabStop = false;
+            // 
+            // OpenColorDialogButton
+            // 
+            this.OpenColorDialogButton.Location = new System.Drawing.Point(275, 3);
+            this.OpenColorDialogButton.Name = "OpenColorDialogButton";
+            this.OpenColorDialogButton.Size = new System.Drawing.Size(110, 30);
+            this.OpenColorDialogButton.TabIndex = 2;
+            this.OpenColorDialogButton.Text = "Choose Color";
+            this.OpenColorDialogButton.UseVisualStyleBackColor = true;
+            // 
+            // UpdateColorButton
+            // 
+            this.UpdateColorButton.Location = new System.Drawing.Point(391, 3);
+            this.UpdateColorButton.Name = "UpdateColorButton";
+            this.UpdateColorButton.Size = new System.Drawing.Size(75, 30);
+            this.UpdateColorButton.TabIndex = 3;
+            this.UpdateColorButton.Text = "Update";
+            this.UpdateColorButton.UseVisualStyleBackColor = true;
+            // 
+            // flowLayoutPanel6
+            // 
+            this.flowLayoutPanel6.Controls.Add(this.CatagoryComboLabel);
+            this.flowLayoutPanel6.Controls.Add(this.CategoryColorComboBox);
+            this.flowLayoutPanel6.Location = new System.Drawing.Point(7, 22);
+            this.flowLayoutPanel6.Name = "flowLayoutPanel6";
+            this.flowLayoutPanel6.Size = new System.Drawing.Size(637, 36);
+            this.flowLayoutPanel6.TabIndex = 1;
+            // 
+            // CatagoryComboLabel
+            // 
+            this.CatagoryComboLabel.AutoSize = true;
+            this.CatagoryComboLabel.Location = new System.Drawing.Point(3, 6);
+            this.CatagoryComboLabel.Margin = new System.Windows.Forms.Padding(3, 6, 65, 0);
+            this.CatagoryComboLabel.Name = "CatagoryComboLabel";
+            this.CatagoryComboLabel.Size = new System.Drawing.Size(65, 17);
+            this.CatagoryComboLabel.TabIndex = 0;
+            this.CatagoryComboLabel.Text = "Category";
+            // 
+            // CategoryColorComboBox
+            // 
+            this.CategoryColorComboBox.FormattingEnabled = true;
+            this.CategoryColorComboBox.Location = new System.Drawing.Point(136, 3);
+            this.CategoryColorComboBox.Name = "CategoryColorComboBox";
+            this.CategoryColorComboBox.Size = new System.Drawing.Size(423, 24);
+            this.CategoryColorComboBox.TabIndex = 0;
+            // 
             // AdvancedTabs
             // 
             this.AdvancedTabs.Controls.Add(this.CategoriesTab);
@@ -469,7 +565,7 @@ namespace FileOrganizerUI.Windows
             this.PathGroup.Controls.Add(this.flowLayoutPanel4);
             this.PathGroup.Location = new System.Drawing.Point(7, 7);
             this.PathGroup.Name = "PathGroup";
-            this.PathGroup.Size = new System.Drawing.Size(778, 122);
+            this.PathGroup.Size = new System.Drawing.Size(778, 130);
             this.PathGroup.TabIndex = 0;
             this.PathGroup.TabStop = false;
             this.PathGroup.Text = "Path";
@@ -478,7 +574,7 @@ namespace FileOrganizerUI.Windows
             // 
             this.UpdateResultsPathsButton.Location = new System.Drawing.Point(508, 94);
             this.UpdateResultsPathsButton.Name = "UpdateResultsPathsButton";
-            this.UpdateResultsPathsButton.Size = new System.Drawing.Size(121, 23);
+            this.UpdateResultsPathsButton.Size = new System.Drawing.Size(121, 30);
             this.UpdateResultsPathsButton.TabIndex = 7;
             this.UpdateResultsPathsButton.Text = "Update Results";
             this.UpdateResultsPathsButton.UseVisualStyleBackColor = true;
@@ -487,7 +583,7 @@ namespace FileOrganizerUI.Windows
             // 
             this.UpdatePathsButton.Location = new System.Drawing.Point(635, 94);
             this.UpdatePathsButton.Name = "UpdatePathsButton";
-            this.UpdatePathsButton.Size = new System.Drawing.Size(75, 23);
+            this.UpdatePathsButton.Size = new System.Drawing.Size(75, 30);
             this.UpdatePathsButton.TabIndex = 6;
             this.UpdatePathsButton.Text = "Update";
             this.UpdatePathsButton.UseVisualStyleBackColor = true;
@@ -572,102 +668,6 @@ namespace FileOrganizerUI.Windows
             this.MessageLabel.Size = new System.Drawing.Size(0, 17);
             this.MessageLabel.TabIndex = 2;
             // 
-            // UpdateColorGroup
-            // 
-            this.UpdateColorGroup.Controls.Add(this.flowLayoutPanel7);
-            this.UpdateColorGroup.Controls.Add(this.flowLayoutPanel6);
-            this.UpdateColorGroup.Location = new System.Drawing.Point(3, 109);
-            this.UpdateColorGroup.Name = "UpdateColorGroup";
-            this.UpdateColorGroup.Size = new System.Drawing.Size(650, 119);
-            this.UpdateColorGroup.TabIndex = 3;
-            this.UpdateColorGroup.TabStop = false;
-            this.UpdateColorGroup.Text = "Update Tag Category Color";
-            // 
-            // CategoryColorComboBox
-            // 
-            this.CategoryColorComboBox.FormattingEnabled = true;
-            this.CategoryColorComboBox.Location = new System.Drawing.Point(136, 3);
-            this.CategoryColorComboBox.Name = "CategoryColorComboBox";
-            this.CategoryColorComboBox.Size = new System.Drawing.Size(423, 24);
-            this.CategoryColorComboBox.TabIndex = 0;
-            // 
-            // flowLayoutPanel6
-            // 
-            this.flowLayoutPanel6.Controls.Add(this.CatagoryComboLabel);
-            this.flowLayoutPanel6.Controls.Add(this.CategoryColorComboBox);
-            this.flowLayoutPanel6.Location = new System.Drawing.Point(7, 22);
-            this.flowLayoutPanel6.Name = "flowLayoutPanel6";
-            this.flowLayoutPanel6.Size = new System.Drawing.Size(637, 36);
-            this.flowLayoutPanel6.TabIndex = 1;
-            // 
-            // CatagoryComboLabel
-            // 
-            this.CatagoryComboLabel.AutoSize = true;
-            this.CatagoryComboLabel.Location = new System.Drawing.Point(3, 6);
-            this.CatagoryComboLabel.Margin = new System.Windows.Forms.Padding(3, 6, 65, 0);
-            this.CatagoryComboLabel.Name = "CatagoryComboLabel";
-            this.CatagoryComboLabel.Size = new System.Drawing.Size(65, 17);
-            this.CatagoryComboLabel.TabIndex = 0;
-            this.CatagoryComboLabel.Text = "Category";
-            // 
-            // flowLayoutPanel7
-            // 
-            this.flowLayoutPanel7.Controls.Add(this.ColorLabel);
-            this.flowLayoutPanel7.Controls.Add(this.ColorBox);
-            this.flowLayoutPanel7.Controls.Add(this.ColorPictureBox);
-            this.flowLayoutPanel7.Controls.Add(this.OpenColorDialogButton);
-            this.flowLayoutPanel7.Controls.Add(this.UpdateColorButton);
-            this.flowLayoutPanel7.Location = new System.Drawing.Point(7, 65);
-            this.flowLayoutPanel7.Name = "flowLayoutPanel7";
-            this.flowLayoutPanel7.Size = new System.Drawing.Size(637, 33);
-            this.flowLayoutPanel7.TabIndex = 2;
-            // 
-            // ColorLabel
-            // 
-            this.ColorLabel.AutoSize = true;
-            this.ColorLabel.Location = new System.Drawing.Point(3, 6);
-            this.ColorLabel.Margin = new System.Windows.Forms.Padding(3, 6, 89, 0);
-            this.ColorLabel.Name = "ColorLabel";
-            this.ColorLabel.Size = new System.Drawing.Size(41, 17);
-            this.ColorLabel.TabIndex = 0;
-            this.ColorLabel.Text = "Color";
-            // 
-            // ColorBox
-            // 
-            this.ColorBox.Enabled = false;
-            this.ColorBox.Location = new System.Drawing.Point(136, 6);
-            this.ColorBox.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
-            this.ColorBox.Name = "ColorBox";
-            this.ColorBox.Size = new System.Drawing.Size(100, 22);
-            this.ColorBox.TabIndex = 1;
-            // 
-            // OpenColorDialogButton
-            // 
-            this.OpenColorDialogButton.Location = new System.Drawing.Point(275, 3);
-            this.OpenColorDialogButton.Name = "OpenColorDialogButton";
-            this.OpenColorDialogButton.Size = new System.Drawing.Size(110, 30);
-            this.OpenColorDialogButton.TabIndex = 2;
-            this.OpenColorDialogButton.Text = "Choose Color";
-            this.OpenColorDialogButton.UseVisualStyleBackColor = true;
-            // 
-            // UpdateColorButton
-            // 
-            this.UpdateColorButton.Location = new System.Drawing.Point(391, 3);
-            this.UpdateColorButton.Name = "UpdateColorButton";
-            this.UpdateColorButton.Size = new System.Drawing.Size(75, 30);
-            this.UpdateColorButton.TabIndex = 3;
-            this.UpdateColorButton.Text = "Update";
-            this.UpdateColorButton.UseVisualStyleBackColor = true;
-            // 
-            // ColorPictureBox
-            // 
-            this.ColorPictureBox.Location = new System.Drawing.Point(242, 6);
-            this.ColorPictureBox.Margin = new System.Windows.Forms.Padding(3, 6, 3, 3);
-            this.ColorPictureBox.Name = "ColorPictureBox";
-            this.ColorPictureBox.Size = new System.Drawing.Size(27, 22);
-            this.ColorPictureBox.TabIndex = 4;
-            this.ColorPictureBox.TabStop = false;
-            // 
             // AdvancedWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -693,6 +693,12 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel2.PerformLayout();
             this.flowLayoutPanel3.ResumeLayout(false);
             this.flowLayoutPanel3.PerformLayout();
+            this.UpdateColorGroup.ResumeLayout(false);
+            this.flowLayoutPanel7.ResumeLayout(false);
+            this.flowLayoutPanel7.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ColorPictureBox)).EndInit();
+            this.flowLayoutPanel6.ResumeLayout(false);
+            this.flowLayoutPanel6.PerformLayout();
             this.AdvancedTabs.ResumeLayout(false);
             this.UpdateTab.ResumeLayout(false);
             this.PathGroup.ResumeLayout(false);
@@ -700,12 +706,6 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel5.PerformLayout();
             this.flowLayoutPanel4.ResumeLayout(false);
             this.flowLayoutPanel4.PerformLayout();
-            this.UpdateColorGroup.ResumeLayout(false);
-            this.flowLayoutPanel6.ResumeLayout(false);
-            this.flowLayoutPanel6.PerformLayout();
-            this.flowLayoutPanel7.ResumeLayout(false);
-            this.flowLayoutPanel7.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ColorPictureBox)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

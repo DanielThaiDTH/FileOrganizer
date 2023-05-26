@@ -470,7 +470,7 @@ namespace FileOrganizerUI
         private void AdvancedActions_Click(object sender, EventArgs e)
         {
             AdvancedModal.CategoriesChanged = false;
-            AdvancedModal.Refresh();
+            AdvancedModal.RefreshWindow();
             AdvancedModal.ShowDialog(this);
             if (AdvancedModal.CategoriesChanged) {
                 core.GetTagCategories();
@@ -833,6 +833,24 @@ namespace FileOrganizerUI
                 }
             } else {
                 logger.LogInformation("Replacing all image keys with old path to new path");
+                foreach (var imageKey in FileListView.LargeImageList.Images.Keys) {
+                    string newImageKey = imageKey.Replace(oldPath, newPath);
+
+                    if (newImageKey != imageKey) {
+                        logger.LogDebug($"Changing image key of {imageKey} to {newImageKey}");
+                        int index = FileListView.LargeImageList.Images.IndexOfKey(imageKey);
+                        FileListView.LargeImageList.Images.SetKeyName(index, newImageKey);
+                    }
+                }
+
+                foreach (ListViewItem item in FileListView.Items) {
+                    string newImageKey = item.ImageKey.Replace(oldPath, newPath);
+
+                    if (newImageKey != item.ImageKey) {
+                        logger.LogDebug($"Changing image key of item from {item.ImageKey} to {newImageKey}");
+                        item.ImageKey = newImageKey;
+                    }
+                }
             }
         }
 

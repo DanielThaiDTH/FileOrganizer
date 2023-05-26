@@ -869,5 +869,43 @@ namespace FileOrganizerCore
 
             return result;
         }
+
+        /// <summary>
+        ///     Changes all files with old path to the new path. In the DB, the 
+        ///     path id remains the same, only the path is renamed. No verification is 
+        ///     done to ensure the new path is actually valid.
+        /// </summary>
+        /// <param name="oldPath"></param>
+        /// <param name="newPath"></param>
+        /// <returns></returns>
+        public ActionResult<bool> ChangePathAll(string oldPath, string newPath)
+        {
+            var res = new ActionResult<bool>();
+            if (oldPath == newPath) {
+                res.SetResult(true);
+                return res;
+            }
+
+            int id = db.GetPathID(oldPath);
+
+            if (id != -1) {
+                bool status = db.ChangePath(id, newPath);
+                if (status) {
+                    logger.LogInformation($"All files with path {oldPath} changed to {newPath}");
+                    res.SetResult(true);
+                } else {
+                    logger.LogWarning($"Failure to update path {oldPath} to {newPath}");
+                    res.AddError(ErrorType.SQL, "Failed to update path");
+                    res.SetResult(false);
+                }
+            } else {
+                string msg = $"{oldPath} not used by any file and not known, cannot rename";
+                logger.LogWarning(msg);
+                res.AddError(ErrorType.SQL, msg);
+                res.SetResult(false);
+            }
+
+            return res;
+        }
     }
 }

@@ -73,7 +73,7 @@ namespace FileOrganizerUI.Windows
             ResultPathNotify = null;
         }
 
-        public void Refresh()
+        public void RefreshWindow()
         {
             RefreshTagCategoryComboBox();
         }
@@ -238,6 +238,7 @@ namespace FileOrganizerUI.Windows
             if (combinedRes.Result) {
                 int pathID = core.GetPathID(NewPathBox.Text.Trim()).Result;
                 foreach (var file in core.ActiveFiles) {
+                    logger.LogDebug($"Updating path of cached file from {file.Path} to {NewPathBox.Text.Trim()}");
                     file.PathID = pathID;
                     file.Path = NewPathBox.Text.Trim();
                 }
@@ -251,16 +252,47 @@ namespace FileOrganizerUI.Windows
             }
         }
 
-        private void NewPathBox_TextChange(object sender, EventArgs e)
+        private void UpdatePaths_Click(object sender, EventArgs e)
+        {
+            var result = core.ChangePathAll(OldPathBox.Text.Trim(), NewPathBox.Text.Trim());
+            if (result.Result) {
+                int id = core.GetPathID(NewPathBox.Text.Trim()).Result;
+                foreach (var file in core.ActiveFiles) {
+                    if (file.PathID == id) {
+                        logger.LogDebug($"Updating path of cached file from {file.Path} to {NewPathBox.Text.Trim()}");
+                        file.Path = NewPathBox.Text.Trim();
+                    }
+                }
+
+                if (ResultPathNotify != null) ResultPathNotify(OldPathBox.Text.Trim(), NewPathBox.Text.Trim());
+
+                UpdateMessage("Sucessfully updated paths for all files with that path", Color.Black);
+            } else {
+                UpdateMessage(result.GetErrorMessage(0), MainForm.ErrorMsgColor);
+            }
+        }
+
+        private void PathBox_TextChange(object sender, EventArgs e)
         {
             try {
+
                 if (Path.IsPathRooted(NewPathBox.Text.Trim())) {
                     UpdateResultsPathsButton.Enabled = true;
                 } else {
                     UpdateResultsPathsButton.Enabled = false;
                 }
+
+                if (Path.IsPathRooted(OldPathBox.Text.Trim()) && 
+                    Path.IsPathRooted(NewPathBox.Text.Trim()) &&
+                    OldPathBox.Text.Trim() != NewPathBox.Text.Trim()) {
+                    UpdatePathsButton.Enabled = true;
+                } else {
+                    UpdatePathsButton.Enabled = false;
+                }
+
             } catch {
                 UpdateResultsPathsButton.Enabled = false;
+                UpdatePathsButton.Enabled = false;
             }
         }
         #endregion
@@ -290,8 +322,11 @@ namespace FileOrganizerUI.Windows
         {
             UpdateResultsPathsButton.Click += UpdateResultsPath_Click;
             UpdateResultsPathsButton.Enabled = false;
+            UpdatePathsButton.Click += UpdatePaths_Click;
+            UpdatePathsButton.Enabled = false;
 
-            NewPathBox.TextChanged += NewPathBox_TextChange;
+            NewPathBox.TextChanged += PathBox_TextChange;
+            OldPathBox.TextChanged += PathBox_TextChange;
         }
 
         private void RefreshTagCategoryComboBox()
