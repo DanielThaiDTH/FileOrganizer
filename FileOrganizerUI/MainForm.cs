@@ -16,6 +16,7 @@ using FileDBManager.Entities;
 using FileOrganizerUI.Windows;
 using System.IO;
 using System.Security.Principal;
+using System.Diagnostics;
 
 namespace FileOrganizerUI
 {
@@ -70,7 +71,7 @@ namespace FileOrganizerUI
             FileListView.BackColor = Color.White;
             FileListView.MouseDoubleClick += FileListItem_DoubleClick;
             FileListView.MouseClick += FileListItem_Click;
-            FileListView.KeyDown += FileListView_SelectAll;
+            FileListView.KeyDown += FileListView_KeyDown;
             FileListView.SelectedIndexChanged += FileListView_SelectionChanged;
 
             imageList = new ImageList();
@@ -295,11 +296,18 @@ namespace FileOrganizerUI
             AssignTagsToFileVerify();
         }
 
-        private void FileListView_SelectAll(object sender, KeyEventArgs e)
+        private void FileListView_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.A && e.Control) {
                 foreach (ListViewItem item in FileListView.Items) {
                     item.Selected = true;
+                }
+                e.SuppressKeyPress = true;
+            } else if (e.KeyCode == Keys.O && e.Control && FileListView.SelectedItems.Count > 0) {
+                if (FileListView.SelectedItems.Count == 1) {
+                    OpenFile(FileListView.SelectedItems[0].ImageKey);
+                } else {
+                    UpdateMessage("Cannot open more than 1 file at a time", ErrorMsgColor);
                 }
                 e.SuppressKeyPress = true;
             }
@@ -709,6 +717,22 @@ namespace FileOrganizerUI
                 string errMsg = "Failed to query files";
                 UpdateMessage(errMsg, ErrorMsgColor);
                 UpdateMessageToolTip(fileData.Messages);
+            }
+        }
+
+        private void OpenFile(string filename)
+        {
+            using (Process ps = new Process()) {
+                ps.StartInfo.FileName = filename;
+                ps.StartInfo.UseShellExecute = true;
+                try {
+                    ps.Start();
+                }
+                catch (Exception ex) {
+                    logger.LogWarning($"File {filename} unable to be opened: {ex.Message}");
+                    logger.LogDebug(ex.StackTrace);
+                    UpdateMessage($"File {filename} unable to be opened: {ex.Message}", MainForm.ErrorMsgColor);
+                }
             }
         }
 
