@@ -148,5 +148,34 @@ namespace FileOrganizerUI.CodeBehind
 
             return imageList;
         }
+
+        /// <summary>
+        ///     Returns a list of tasks to get thumbnails async. Returns a list of tasks that 
+        ///     will return a kv pair with the filepath as the key and the Image as a value.
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="imageFiles"></param>
+        /// <returns></returns>
+        public List<Task<KeyValuePair<string, Image>>> GetThumbnailsAsync(IEnumerable<string> files, HashSet<string> imageFiles = null)
+        {
+            if (imageFiles is null) imageFiles = new HashSet<string>();
+            var taskList = new List<Task<KeyValuePair<string, Image>>>();
+
+            foreach (string file in files) {
+                string filepath = file;
+                if (!Path.IsPathRooted(file)) {
+                    logger.LogInformation($"Using file root of {root} to locate {file}");
+                    filepath = Path.Combine(root, file);
+                }
+
+                taskList.Add(Task.Factory.StartNew(() => { 
+                    string f = filepath;
+                    Image thumbnailData = GetThumbnail(f, !imageFiles.Contains(f));
+                    return new KeyValuePair<string, Image>(f, thumbnailData);
+                }));
+            }
+
+            return taskList;
+        }
     }
 }
