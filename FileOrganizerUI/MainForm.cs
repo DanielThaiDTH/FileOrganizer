@@ -906,11 +906,6 @@ namespace FileOrganizerUI
             }
         }
 
-        private void TaskCleanup()
-        {
-            
-        }
-
         private void UpdateMessage(string msg, Color color)
         {
             MessageText.Text = msg;

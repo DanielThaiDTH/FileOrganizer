@@ -83,10 +83,12 @@ namespace FileOrganizerUI.Windows
             specialDetailLines["Created"].Controls[1].Text = file.Created.ToString("yyyy-MM-dd");
             UpdateMessage("", Color.Black);
 
-            //Refer to FileOrganizerCore to see that file extensions are images
+            //Refer to FileOrganizerCore to see the file extensions that are images
             if (file.FileType == "image") {
                 try {
-                    image = new Bitmap(fileInfo.Fullname);
+                    using (var tempImg = new Bitmap(fileInfo.Fullname)) {
+                        image = new Bitmap(tempImg);
+                    }
                     PictureBox.SizeMode = PictureBoxSizeMode.Zoom;
                     PictureBox.Size = new Size(960, 540);
                     PictureBox.Image = image;
