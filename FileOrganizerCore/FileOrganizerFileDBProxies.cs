@@ -89,11 +89,13 @@ namespace FileOrganizerCore
             var res = new ActionResult<List<bool>>();
             List<bool> statuses = new List<bool>();
 
+            db.StartTransaction();
             foreach (string filename in filenames) {
                 var addRes = AddFile(filename);
                 if (addRes.HasError()) ActionResult.AppendErrors(res, addRes);
                 statuses.Add(addRes.Result);
             }
+            db.FinishTransaction();
 
             res.SetResult(statuses);
 
@@ -295,7 +297,6 @@ namespace FileOrganizerCore
             var res = new ActionResult<bool>();
 
             try {
-
                 bool status = db.AddTagToFile(fileID, tag, tagCategory);
                 if (!status) res.AddError(ErrorType.SQL, $"Failed to add tag {tag} to file");
                 res.SetResult(status);

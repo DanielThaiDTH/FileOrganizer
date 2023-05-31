@@ -1213,5 +1213,37 @@ namespace FileDBManager.Test
             Assert.NotEqual(-1, fix.db.GetPathID(@"Y:\unused_path"));
         }
 
+        [Fact]
+        public void StartTransactionSetsInTransactionVar()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            Assert.False(fix.db.InTransaction);
+            fix.db.StartTransaction();
+            Assert.True(fix.db.InTransaction);
+            fix.db.FinishTransaction();
+        }
+
+        [Fact]
+        public void FinishTransactionWhenNotInTransactionDoesNothing()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            Assert.False(fix.db.InTransaction);
+            fix.db.FinishTransaction();
+            Assert.False(fix.db.InTransaction);
+        }
+
+        [Fact]
+        public void FinishTransactionCommitsAndEndTransaction()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.StartTransaction();
+            fix.db.AddFile(@"T:\transaction_dummy", "text", "aaa");
+            fix.db.AddFile(@"T:\transaction_dummy2", "text", "aaa");
+            Assert.True(fix.db.InTransaction);
+            fix.db.FinishTransaction();
+            Assert.False(fix.db.InTransaction);
+            Assert.Single(fix.db.GetFileMetadata(new FileSearchFilter().SetFullnameFilter(@"T:\transaction_dummy2")));
+            Assert.Single(fix.db.GetFileMetadata(new FileSearchFilter().SetFullnameFilter(@"T:\transaction_dummy")));
+        }
     }
 }

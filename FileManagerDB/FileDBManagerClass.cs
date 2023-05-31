@@ -17,6 +17,9 @@ namespace FileDBManager
         public SQLiteConnection db;
         public ILogger logger;
 
+        SQLiteTransaction transaction;
+        public bool InTransaction { get; private set; } = false;
+
         public FileDBManagerClass(string dbLoc, ILogger logger)
         {
             this.logger = logger;
@@ -77,9 +80,10 @@ namespace FileDBManager
 
         private int ExecuteNonQuery(string query)
         {
-            var com = new SQLiteCommand(query, db);
-            int result = com.ExecuteNonQuery();
-            com.Dispose();
+            int result;
+            using (var com = new SQLiteCommand(query, db)) {
+                result = com.ExecuteNonQuery();
+            }
             return result;
         }
 
@@ -132,6 +136,33 @@ namespace FileDBManager
             }
         }
 
+        /// <summary>
+        ///     Starts a transaction. You can check if a transaction is active by looking at the 
+        ///     InTransaction member.
+        /// </summary>
+        public void StartTransaction()
+        {
+            transaction = db.BeginTransaction();
+            InTransaction = true;
+            logger.LogInformation("Transaction started");
+        }
+
+        /// <summary>
+        ///     Commits a transaction, finishes it and closes the transaction. Will always commit, 
+        ///     even if errors occured, so keep aware.
+        /// </summary>
+        public void FinishTransaction()
+        {
+            if (InTransaction) {
+                transaction.Commit();
+                transaction.Dispose();
+                InTransaction = false;
+                logger.LogInformation("Transaction commited and completed");
+            } else {
+                logger.LogInformation("Unnecessary attempt to close a transaction");
+            }
+        }
+
         /* File Section */
 
         /// <summary>
@@ -160,6 +191,8 @@ namespace FileDBManager
             string path = filepath.Substring(0, idx);
             string filename = filepath.Substring(idx + 1);
             long createdTime = 0;
+            int pathID, typeID;
+
             if (created != null) {
                 createdTime = DateTimeOptional.ToUnixTime(created);
             }
@@ -178,22 +211,22 @@ namespace FileDBManager
             }
 
             statement = createStatement("SELECT ID FROM FilePaths WHERE Path = ?", path);
-            var com = new SQLiteCommand(statement, db);
-            var reader = com.ExecuteReader();
-            reader.Read();
-            int pathID = reader.GetInt32(0);
-            reader.Close();
-            com.Dispose();
-            logger.LogDebug($"Found ID {pathID} for {path}");
+            using (var com = new SQLiteCommand(statement, db)) {
+                var reader = com.ExecuteReader();
+                reader.Read();
+                pathID = reader.GetInt32(0);
+                reader.Close();
+                logger.LogDebug($"Found ID {pathID} for {path}");
+            }
             statement = createStatement("SELECT ID FROM FileTypes WHERE Name = ?",
                             filetype.ToLowerInvariant());
-            com = new SQLiteCommand(statement, db);
-            reader = com.ExecuteReader();
-            reader.Read();
-            int typeID = reader.GetInt32(0);
-            logger.LogDebug($"Found ID {typeID} for {filetype}");
-            reader.Close();
-            com.Dispose();
+            using (var com = new SQLiteCommand(statement, db)) {
+                var reader = com.ExecuteReader();
+                reader.Read();
+                typeID = reader.GetInt32(0);
+                logger.LogDebug($"Found ID {typeID} for {filetype}");
+                reader.Close();
+            }
 
             if (created is null) { 
                 statement = createStatement("INSERT INTO Files " +
@@ -211,6 +244,7 @@ namespace FileDBManager
 
             return result;
         }
+
 
         /// <summary>
         ///     Returns full metadata of a file from a file ID.
@@ -674,28 +708,27 @@ namespace FileDBManager
 
             int pathID;
 
-            //Get Path ID segment, adding new path in necessary
+            //Get Path ID segment, adding new path if necessary
             string statement = createStatement("SELECT * FROM FilePaths WHERE Path = ?", newPath);
-            var com = new SQLiteCommand(statement, db);
-            var reader = com.ExecuteReader();
-            if (reader.HasRows) {
-                reader.Read();
-                pathID = reader.GetInt32(reader.GetOrdinal("ID"));
-                reader.Close();
-                com.Dispose();
-            } else {
-                logger.LogInformation($"Path {newPath} not in DB, adding");
-                reader.Close();
-                com.Dispose();
-                statement = createStatement("INSERT INTO FilePaths (Path) VALUES (?)", newPath);
-                ExecuteNonQuery(statement);
-                statement = createStatement("SELECT * FROM FilePaths WHERE Path = ?", newPath);
-                com = new SQLiteCommand(statement, db);
-                reader = com.ExecuteReader();
-                reader.Read();
-                pathID = reader.GetInt32(reader.GetOrdinal("ID"));
-                reader.Close();
-                com.Dispose();
+            using (var com = new SQLiteCommand(statement, db)) {
+                var reader = com.ExecuteReader();
+                if (reader.HasRows) {
+                    reader.Read();
+                    pathID = reader.GetInt32(reader.GetOrdinal("ID"));
+                    reader.Close();
+                } else {
+                    logger.LogInformation($"Path {newPath} not in DB, adding");
+                    reader.Close();
+                    statement = createStatement("INSERT INTO FilePaths (Path) VALUES (?)", newPath);
+                    ExecuteNonQuery(statement);
+                    statement = createStatement("SELECT * FROM FilePaths WHERE Path = ?", newPath);
+                    using (var com2 = new SQLiteCommand(statement, db)) {
+                        var reader2 = com2.ExecuteReader();
+                        reader2.Read();
+                        pathID = reader2.GetInt32(reader2.GetOrdinal("ID"));
+                        reader2.Close();
+                    }
+                }
             }
 
             statement = createStatement("UPDATE Files SET PathID = ? WHERE ID = ?", pathID, fileID);
@@ -709,6 +742,7 @@ namespace FileDBManager
 
         public void CloseConnection()
         {
+            FinishTransaction();
             db.Close();
         }
     }
