@@ -173,12 +173,13 @@ namespace FileDBManager
 
             string statement = createStatement("SELECT COUNT(*) FROM Files WHERE ID = ?", fileID);
             logger.LogDebug("Querying file existence using: " + statement);
-            var com = new SQLiteCommand(statement, db);
-            var read = com.ExecuteReader();
-            read.Read();
-            result = read.GetInt32(0) == 1;
-            read.Close();
-            com.Dispose();
+            using (var com = new SQLiteCommand(statement, db)) {
+                var read = com.ExecuteReader();
+                read.Read();
+                result = read.GetInt32(0) == 1;
+                read.Close();
+            }
+
             if (!result) {
                 logger.LogWarning(fileID + " does not exist in DB, cannot add tag");
                 return result;
@@ -188,22 +189,23 @@ namespace FileDBManager
 
             statement = createStatement("SELECT ID FROM Tags WHERE Name = ?", tag);
             logger.LogDebug("Querying tag id using: " + statement);
-            com = new SQLiteCommand(statement, db);
-            read = com.ExecuteReader();
-            read.Read();
-            int tagID = read.GetInt32(0);
-            read.Close();
-            com.Dispose();
+            int tagID;
+            using (var com = new SQLiteCommand(statement, db)) {
+                var read = com.ExecuteReader();
+                read.Read();
+                tagID = read.GetInt32(0);
+                read.Close();
+            }
 
             statement = createStatement("SELECT COUNT(*) FROM FileTagAssociations " +
                 "WHERE FileID = ? AND TagID = ?", fileID, tagID);
             logger.LogDebug("Checking file tag association existence using: " + statement);
-            com = new SQLiteCommand(statement, db);
-            read = com.ExecuteReader();
-            read.Read();
-            result = read.GetInt32(0) == 0;
-            read.Close();
-            com.Dispose();
+            using (var com = new SQLiteCommand(statement, db)) {
+                var read = com.ExecuteReader();
+                read.Read();
+                result = read.GetInt32(0) == 0;
+                read.Close();
+            }
 
             if (result) {
                 statement = createStatement("INSERT OR IGNORE INTO FileTagAssociations (FileID, TagID) VALUES (?, ?)",

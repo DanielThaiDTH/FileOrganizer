@@ -626,6 +626,35 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        ///     Adds all tags to each file.
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        public ActionResult<bool> AddTagsToFiles(List<string> files, List<string> tags)
+        {
+            ActionResult<bool> result = new ActionResult<bool>();
+            result.SetResult(true);
+            db.StartTransaction();
+
+            foreach (string filename in files) {
+                foreach (string tagname in tags) {
+                    var file = ActiveFiles.Find(f => f.Fullname == filename);
+                    var tag = AllTags.Find(t => t.Name == tagname);
+                    var addRes = AddTagToFile(file.ID, tag.Name);
+                    if (!addRes.Result) {
+                        result.SetResult(false);
+                        ActionResult.AppendErrors(result, addRes);
+                    }
+                }
+            }
+
+            db.FinishTransaction();
+
+            return result;
+        }
+
         public ActionResult<List<GetTagType>> GetTagsForFile(string filename)
         {
             var res = new ActionResult<List<GetTagType>>();

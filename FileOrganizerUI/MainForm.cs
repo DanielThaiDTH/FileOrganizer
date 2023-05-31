@@ -360,19 +360,18 @@ namespace FileOrganizerUI
             var selectedFiles = FileListView.SelectedItems;
 
             if (selectedFiles.Count > 0 && selectedTags.Count > 0) {
-                ActionResult<bool> result = new ActionResult<bool>();
-                result.SetResult(true);
+                var fileList = new List<string>();
+                var tagList = new List<string>();
+
                 foreach (ListViewItem fileItem in selectedFiles) {
-                    foreach (ListViewItem tagItem in selectedTags) {
-                        var file = core.ActiveFiles.Find(f => f.Fullname == fileItem.ImageKey);
-                        var tag = core.AllTags.Find(t => t.Name == tagItem.Text);
-                        var addRes = core.AddTagToFile(file.ID, tag.Name);
-                        if (!addRes.Result) {
-                            result.SetResult(false);
-                            ActionResult.AppendErrors(result, addRes);
-                        }
-                    }
+                    fileList.Add(fileItem.ImageKey);
                 }
+
+                foreach (ListViewItem tagItem in selectedTags) {
+                    tagList.Add(tagItem.Text);
+                }
+
+                var result = core.AddTagsToFiles(fileList, tagList);
 
                 if (result.Result) {
                     UpdateMessage("Added tags to files", Color.Black);
