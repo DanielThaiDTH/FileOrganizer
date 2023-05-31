@@ -44,6 +44,7 @@ namespace FileOrganizerUI
         private bool isAdmin;
         private Task ImageDisplayTask;
         private CancellationTokenSource TaskCanceller;
+        private delegate void AddImageDelegate(string fullname, Image thumbnail);
 
         public static Color ErrorMsgColor = Color.FromArgb(200, 50, 50);
         private static GetTagCategoryType DefaultCategory = new GetTagCategoryType { ID = -1, Name = "-- None --" };
@@ -80,6 +81,7 @@ namespace FileOrganizerUI
 
             imageList = new ImageList();
             imageList.ImageSize = new Size(32, 32);
+            FileListView.LargeImageList = imageList;
 
             FileInfoModal = new FileInfoForm(logger, core);
             FileInfoModal.FormBorderStyle = FormBorderStyle.SizableToolWindow;
@@ -240,7 +242,9 @@ namespace FileOrganizerUI
                     
                     if (dialogResult == DialogResult.OK || dialogResult == DialogResult.None || dialogResult == DialogResult.Cancel) {
                         if (FileInfoModal.IsUpdated) {
+                            core.SaveActiveFilesBackup();
                             var updated = core.GetFileData(new FileSearchFilter().SetIDFilter(selectedFile.ID));
+                            core.RestoreActiveFilesFromBackup();
                             if (updated.Result.Count == 1) {
                                 core.ActiveFiles.Remove(selectedFile);
                                 core.ActiveFiles.Add(updated.Result[0]);
@@ -387,7 +391,7 @@ namespace FileOrganizerUI
             var selectedTags = TagListView.SelectedItems;
             List<ListViewItem> removedTags = new List<ListViewItem>();
 
-            if (selectedTags.Count > 0) {
+            if (selectedTags.Count > 0 && selectedFileID != -1) {
                 ActionResult<bool> result = new ActionResult<bool>();
                 result.SetResult(true);
                 foreach (ListViewItem tagItem in selectedTags) {
@@ -660,7 +664,6 @@ namespace FileOrganizerUI
                 }
 
                 var fileData = core.GetFileData(filter);
-                imageList.Images.Clear();
                 ShowFiles(fileData);
             }
         }
@@ -677,7 +680,6 @@ namespace FileOrganizerUI
             if (!parseResult) {
                 UpdateMessage(errMsg, ErrorMsgColor);
             } else {
-                imageList.Images.Clear();
                 var files = core.GetFileData(parser.Filter);
                 ShowFiles(files);
 
@@ -693,26 +695,25 @@ namespace FileOrganizerUI
 
         private void ShowFiles(ActionResult<List<GetFileMetadataType>> fileData)
         {
-            FileListView.Clear();
+            FileListView.Items.Clear();
             TaskCanceller.Cancel();
+            FileListView.LargeImageList.Images.Clear();
             if (!fileData.HasError()) {
                 if (fileData.Result.Count < 5) {
                     var imageSet = fileData.Result.FindAll(f => f.FileType == "image").ConvertAll(f => f.Fullname).ToHashSet();
                     var thumbnailMap = thumbnailProxy.GetThumbnails(fileData.Result.ConvertAll(f => f.Fullname), imageSet);
-                    imageList.Images.Clear();
 
                     foreach (var pair in thumbnailMap) {
-                        imageList.Images.Add(pair.Key, pair.Value);
+                        FileListView.LargeImageList.Images.Add(pair.Key, pair.Value);
                     }
                 } else {
-                    imageList.Images.Clear();
+                    FileListView.LargeImageList.Images.Clear();
                     TaskCanceller.Dispose();
                     TaskCanceller = new CancellationTokenSource();
                     ImageDisplayTask = LoadImages(fileData.Result, TaskCanceller.Token);
                 }
 
                 FileListView.BeginUpdate();
-                FileListView.LargeImageList = imageList;
                 var sorted = fileData.Result.OrderBy(f => Path.GetFileNameWithoutExtension(f.Filename), new NaturalOrderComparer())
                                             .ToList();
 
@@ -738,13 +739,23 @@ namespace FileOrganizerUI
                     if (ct.IsCancellationRequested) break;
                     bool isIcon = file.FileType != "image";
                     Image thumbnail = thumbnailProxy.GetThumbnail(file.Fullname, isIcon);
-                    FileListView.LargeImageList.Images.Add(file.Fullname, thumbnail);
+                    SafeAddThumbnail(file.Fullname, thumbnail);
                 }
             }, ct);
 
             loadTask.Start();
 
             return loadTask;
+        }
+
+        private void SafeAddThumbnail(string fullname, Image thumbnail)
+        {
+            if (FileListView.InvokeRequired) {
+                var d = new AddImageDelegate(SafeAddThumbnail);
+                FileListView.Invoke(d, fullname, thumbnail);
+            } else {
+                FileListView.LargeImageList.Images.Add(fullname, thumbnail);
+            }
         }
 
         private void OpenFile(string filename)
