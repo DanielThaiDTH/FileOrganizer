@@ -28,6 +28,7 @@ namespace FileDBManager
             db.Open();
 
             //Creates
+            logger.LogInformation("Creating tables if they do not exist");
             CreateTable(FilePath.TableName, FilePath.Columns);
             CreateTable(FileType.TableName, FileType.Columns);
             CreateTable(FileMetadata.TableName, FileMetadata.Columns, FileMetadata.Constraint);
@@ -40,6 +41,7 @@ namespace FileDBManager
                 FileCollectionAssociation.Constraint);
 
             //Updates
+            logger.LogInformation("Updating tables with new columns if necessary");
             UpdateTable(Tag.TableName, Tag.Columns, new List<string> { "Description" });
             UpdateTable(TagCategory.TableName, TagCategory.Columns, new List<string> { "Color" });
 
@@ -103,7 +105,7 @@ namespace FileDBManager
                 query += constraint;
             }
             query += ")";
-            logger.LogDebug($"QUERY: \n{query}");
+            logger.LogDebug($"Create table statement: \n{query}");
             ExecuteNonQuery(query);
         }
 
@@ -115,7 +117,7 @@ namespace FileDBManager
         /// <param name="colsToAdd"></param>
         private void UpdateTable(string name, Dictionary<string, string> colDefs, List<string> colsToAdd)
         {
-            logger.LogInformation("Updating " + name);
+            logger.LogInformation("Updating table " + name);
             foreach (var colName in colsToAdd) {
                 var com = new SQLiteCommand($"SELECT 1 FROM pragma_table_info('{name}') WHERE Name='{colName}'", db);
                 var res = com.ExecuteReader();
@@ -126,6 +128,7 @@ namespace FileDBManager
                 if (colMissing) {
                     try {
                         string updateStmt = $"ALTER TABLE {name} ADD COLUMN {colName} {colDefs[colName]}";
+                        logger.LogInformation($"Adding column {colName} to {name}");
                         logger.LogDebug("Update statement: " + updateStmt);
                         ExecuteNonQuery(updateStmt);
                     } catch {

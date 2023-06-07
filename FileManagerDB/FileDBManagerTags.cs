@@ -31,7 +31,7 @@ namespace FileDBManager
                     logger.LogInformation("Added new tag category: " + tagCategory);
                     result = true;
                 } else {
-                    logger.LogInformation(tagCategory + " already exists, not adding");
+                    logger.LogDebug(tagCategory + " already exists, not adding");
                 }
             }
 
@@ -72,6 +72,8 @@ namespace FileDBManager
             logger.LogInformation("Deleting tag category with ID of " + id);
 
             result = ExecuteNonQuery(query) == 1;
+
+            if (!result) logger.LogWarning("Could not delete tag category " + id);
 
             return result;
         }
@@ -311,6 +313,8 @@ namespace FileDBManager
 
             result = ExecuteNonQuery(query) == 1;
 
+            if (!result) logger.LogWarning("Could not delete tag " + id);
+
             return result;
         }
 
@@ -323,6 +327,7 @@ namespace FileDBManager
             logger.LogInformation($"Removing tag {tagID} from file {fileID}");
 
             result = ExecuteNonQuery(statement) == 1;
+            if (!result) logger.LogInformation($"Failed to remove tag {tagID} from file {fileID}");
 
             return result;
         }

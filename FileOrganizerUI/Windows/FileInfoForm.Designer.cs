@@ -37,8 +37,8 @@ namespace FileOrganizerUI.Windows
         {
             this.MainVPanel = new System.Windows.Forms.FlowLayoutPanel();
             this.RightPanel = new System.Windows.Forms.Panel();
-            this.OpenFileButton = new System.Windows.Forms.Button();
             this.PictureBox = new System.Windows.Forms.PictureBox();
+            this.OpenFileButton = new System.Windows.Forms.Button();
             this.RightPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             this.SuspendLayout();
@@ -52,7 +52,7 @@ namespace FileOrganizerUI.Windows
             this.MainVPanel.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.MainVPanel.Location = new System.Drawing.Point(13, 13);
             this.MainVPanel.Name = "MainVPanel";
-            this.MainVPanel.Size = new System.Drawing.Size(718, 475);
+            this.MainVPanel.Size = new System.Drawing.Size(718, 508);
             this.MainVPanel.TabIndex = 0;
             this.MainVPanel.WrapContents = false;
             // 
@@ -66,8 +66,16 @@ namespace FileOrganizerUI.Windows
             this.RightPanel.Controls.Add(this.OpenFileButton);
             this.RightPanel.Location = new System.Drawing.Point(738, 13);
             this.RightPanel.Name = "RightPanel";
-            this.RightPanel.Size = new System.Drawing.Size(696, 482);
+            this.RightPanel.Size = new System.Drawing.Size(744, 515);
             this.RightPanel.TabIndex = 1;
+            // 
+            // PictureBox
+            // 
+            this.PictureBox.Location = new System.Drawing.Point(4, 34);
+            this.PictureBox.Name = "PictureBox";
+            this.PictureBox.Size = new System.Drawing.Size(735, 474);
+            this.PictureBox.TabIndex = 1;
+            this.PictureBox.TabStop = false;
             // 
             // OpenFileButton
             // 
@@ -78,19 +86,11 @@ namespace FileOrganizerUI.Windows
             this.OpenFileButton.Text = "Open";
             this.OpenFileButton.UseVisualStyleBackColor = true;
             // 
-            // PictureBox
-            // 
-            this.PictureBox.Location = new System.Drawing.Point(4, 34);
-            this.PictureBox.Name = "PictureBox";
-            this.PictureBox.Size = new System.Drawing.Size(689, 441);
-            this.PictureBox.TabIndex = 1;
-            this.PictureBox.TabStop = false;
-            // 
             // FileInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1441, 500);
+            this.ClientSize = new System.Drawing.Size(1489, 533);
             this.Controls.Add(this.RightPanel);
             this.Controls.Add(this.MainVPanel);
             this.Name = "FileInfoForm";
