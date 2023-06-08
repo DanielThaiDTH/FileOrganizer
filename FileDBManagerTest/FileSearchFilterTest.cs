@@ -28,7 +28,7 @@ namespace FileDBManager.Test
         public void FilenameFiltersBuildProperly()
         {
             string exact = "WHERE (Filename = ?)";
-            string approx = "WHERE (Filename LIKE ?)";
+            string approx = "WHERE (LOWER(Filename) GLOB ?)";
             var filter = new FileSearchFilter().SetFilenameFilter("test");
             string where = "";
             List<object> values = new List<object>();
@@ -38,7 +38,7 @@ namespace FileDBManager.Test
             filter.Reset().SetFilenameFilter("test", false);
             filter.BuildWhereStatementPart(ref where, ref values);
             Assert.Equal(approx, where);
-            Assert.Contains("%test%", values);
+            Assert.Contains("*test*", values);
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace FileDBManager.Test
         public void FullnameFiltersBuildProperly()
         {
             string exact = "WHERE (Path || '\\' || Filename = ?)";
-            string approx = "WHERE (Path || '\\' || Filename LIKE ?)";
+            string approx = "WHERE (LOWER(Path || '\\' || Filename) GLOB ?)";
             var filter = new FileSearchFilter().SetFullnameFilter("test");
             string where = "";
             List<object> values = new List<object>();
@@ -71,7 +71,7 @@ namespace FileDBManager.Test
             filter.Reset().SetFullnameFilter("test", false);
             filter.BuildWhereStatementPart(ref where, ref values);
             Assert.Equal(approx, where);
-            Assert.Contains("%test%", values);
+            Assert.Contains("*test*", values);
         }
 
         [Fact]

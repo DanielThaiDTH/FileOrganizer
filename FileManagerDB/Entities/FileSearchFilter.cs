@@ -380,6 +380,32 @@ namespace FileDBManager.Entities
             return this;
         }
 
+        private string MakeGlobString(string query)
+        {
+            // | shall be a placeholder for [, : for ]
+            query =  query.Replace("[","||:")
+                            .Replace("]","|::")
+                            .Replace("||:", "[[]")
+                            .Replace("|::", "[]]")
+                            .Replace("<!", "<^")
+                            .Replace('<', '[')
+                            .Replace('>', ']');
+
+            if (query.StartsWith("^")) {
+                query = query.Substring(1);
+            } else {
+                query = "*" + query;
+            }
+
+            if (query.EndsWith("$")) {
+                query = query.Substring(0, query.Length - 1);
+            } else {
+                query = query + "*";
+            }
+
+            return query.ToLowerInvariant();
+        }
+
         /// <summary>
         ///     Builds where arrays containing basic filters. 
         /// </summary>
@@ -400,8 +426,8 @@ namespace FileDBManager.Entities
                     wheres.Add("Filename = ?");
                     whereValues.Add(Filename);
                 } else {
-                    wheres.Add("Filename LIKE ?");
-                    whereValues.Add("%" + Filename + "%");
+                    wheres.Add("LOWER(Filename) GLOB ?");
+                    whereValues.Add(MakeGlobString(Filename));
                 }
             }
             if (UsingFullname) {
@@ -409,8 +435,8 @@ namespace FileDBManager.Entities
                     wheres.Add("Path || '\\' || Filename = ?");
                     whereValues.Add(Fullname);
                 } else {
-                    wheres.Add("Path || '\\' || Filename LIKE ?");
-                    whereValues.Add("%" + Fullname + "%");
+                    wheres.Add("LOWER(Path || '\\' || Filename) GLOB ?");
+                    whereValues.Add(MakeGlobString(Fullname));
                 }
             }
             if (UsingAltname) {
@@ -418,8 +444,8 @@ namespace FileDBManager.Entities
                     wheres.Add("Altname = ?");
                     whereValues.Add(Altname);
                 } else {
-                    wheres.Add("Altname LIKE ?");
-                    whereValues.Add("%" + Altname + "%");
+                    wheres.Add("LOWER(Altname) GLOB ?");
+                    whereValues.Add(MakeGlobString(Altname));
                 }
             }
             if (UsingFileTypeID) {
@@ -431,8 +457,8 @@ namespace FileDBManager.Entities
                     wheres.Add("Hash = ?");
                     whereValues.Add(Hash);
                 } else {
-                    wheres.Add("Hash LIKE ?");
-                    whereValues.Add("%" + Hash + "%");
+                    wheres.Add("LOWER(Hash) GLOB ?");
+                    whereValues.Add(MakeGlobString(Hash));
                 }
             }
             if (UsingPath) {
@@ -440,8 +466,8 @@ namespace FileDBManager.Entities
                     wheres.Add("Path = ?");
                     whereValues.Add(Path);
                 } else {
-                    wheres.Add("Path LIKE ?");
-                    whereValues.Add("%" + Path + "%");
+                    wheres.Add("LOWER(Path) GLOB ?");
+                    whereValues.Add(MakeGlobString(Path));
                 }
             }
             if (UsingFileType) {
@@ -493,11 +519,12 @@ namespace FileDBManager.Entities
                     if (TagFilterExact) {
                         statement += "UPPER(?) IN (SELECT UPPER(Tags.Name) FROM " +
                             "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                        whereValues.Add(TagNames[i]);
                     } else {
                         statement += "(SELECT COUNT(*) FROM FileTagAssociations " +
-                            "JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID AND Tags.Name LIKE '%'||?||'%') > 0";
+                            $"JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID AND LOWER(Tags.Name) GLOB ?) > 0";
+                        whereValues.Add(MakeGlobString(TagNames[i]));
                     }
-                    whereValues.Add(TagNames[i]);
                     if (i + 1 < TagNames.Count) {
                         statement += UsingTagAnd ? " AND " : " OR ";
                     }
@@ -533,11 +560,12 @@ namespace FileDBManager.Entities
                     if (TagFilterExact) {
                         statement += "UPPER(?) NOT IN (SELECT UPPER(Tags.Name) FROM " +
                             "FileTagAssociations JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID)";
+                        whereValues.Add(ExcludeTagNames[i]);
                     } else {
                         statement += "(SELECT COUNT(*) FROM FileTagAssociations " +
-                            "JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID AND Tags.Name LIKE '%'||?||'%') = 0";
+                            "JOIN Tags ON TagID=Tags.ID WHERE FileID=Files.ID AND LOWER(Tags.Name) GLOB ?) = 0";
+                        whereValues.Add(MakeGlobString(ExcludeTagNames[i]));
                     }
-                    whereValues.Add(ExcludeTagNames[i]);
                     if (i + 1 < ExcludeTagNames.Count) {
                         statement += UsingExcludeTagAnd ? " AND " : " OR ";
                     }

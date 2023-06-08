@@ -397,6 +397,75 @@ namespace FileDBManager.Test
             Assert.Equal(id1, result[0].ID);
         }
 
+        [Fact]
+        public void GetFileMetadataWithAnchorsWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var filter = new FileSearchFilter();
+            fix.db.AddFile(@"S:\Glob\globbed_start", "text", "aaa");
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"S:\Glob\globbed_start"))[0].ID;
+            fix.db.AddFile(@"S:\Glob\z_globbed", "text", "aaa");
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"S:\Glob\z_globbed"))[0].ID;
+
+            filter.Reset().SetFilenameFilter("^globbed", false);
+            var files = fix.db.GetFileMetadata(filter);
+            Assert.Single(files);
+            Assert.Contains(files, (f) => f.ID == id1);
+            Assert.DoesNotContain(files, (f) => f.ID == id2);
+
+            filter.Reset().SetFilenameFilter("globbed$", false);
+            files = fix.db.GetFileMetadata(filter);
+            Assert.Single(files);
+            Assert.Contains(files, (f) => f.ID == id2);
+            Assert.DoesNotContain(files, (f) => f.ID == id1);
+
+            filter.Reset().SetFilenameFilter("^globbed$", false);
+            files = fix.db.GetFileMetadata(filter);
+            Assert.Empty(files);
+        }
+
+        [Fact]
+        public void GetFileMetadataWithBracketFilenamesWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var filter = new FileSearchFilter();
+            fix.db.AddFile(@"S:\Glob\[test]", "text", "aaa");
+            int id = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"S:\Glob\[test]"))[0].ID;
+            
+            filter.Reset().SetFilenameFilter("[test]", false);
+            var files = fix.db.GetFileMetadata(filter);
+            Assert.Contains(files, f => f.ID == id);
+            Assert.Single(files);
+        }
+
+        [Fact]
+        public void GetFileMetadataWithCharClassesWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var filter = new FileSearchFilter();
+            fix.db.AddFile(@"S:\Glob\glob_char_class", "text", "aaa");
+            int id1 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"S:\Glob\glob_char_class"))[0].ID;
+            fix.db.AddFile(@"S:\Glob\gl0b_char_class", "text", "aaa");
+            int id2 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"S:\Glob\gl0b_char_class"))[0].ID;
+            fix.db.AddFile(@"S:\Glob\gl.b_char_class", "text", "aaa");
+            int id3 = fix.db.GetFileMetadata(filter.SetFullnameFilter(@"S:\Glob\gl.b_char_class"))[0].ID;
+
+            filter.Reset().SetFilenameFilter("gl<a-z>b_char_class", false);
+            var files = fix.db.GetFileMetadata(filter);
+            Assert.Single(files);
+            Assert.Contains(files, f => f.ID == id1);
+            Assert.DoesNotContain(files, f => f.ID == id2);
+            Assert.DoesNotContain(files, f => f.ID == id3);
+
+            filter.Reset().SetFilenameFilter("gl<!a-z>b_char_class", false);
+            files = fix.db.GetFileMetadata(filter);
+            Assert.Equal(2, files.Count);
+            Assert.DoesNotContain(files, f => f.ID == id1);
+            Assert.Contains(files, f => f.ID == id2);
+            Assert.Contains(files, f => f.ID == id3);
+        }
+
+
 
         [Fact]
         public void FileWithCreatedDatePersistsCorrectly()
