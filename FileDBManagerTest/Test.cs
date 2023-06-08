@@ -465,8 +465,6 @@ namespace FileDBManager.Test
             Assert.Contains(files, f => f.ID == id3);
         }
 
-
-
         [Fact]
         public void FileWithCreatedDatePersistsCorrectly()
         {
