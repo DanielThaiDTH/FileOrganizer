@@ -35,13 +35,16 @@ namespace FileOrganizerUI
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
+        private AddFileErrorDialog errDialog;
         
         private int selectedFileID = -1;
         private Queue<string> searchHistory;
         private HashSet<string> searchSet;
         private readonly int HistoryLimit = 50;
+        private int FolderDepthLimit = 5;
         private HashSet<string> categoryIcons;
         private bool isAdmin;
+        private bool isDisplayError;
         private Task ImageDisplayTask;
         private CancellationTokenSource TaskCanceller;
         private delegate void AddImageDelegate(string fullname, Image thumbnail);
@@ -150,6 +153,8 @@ namespace FileOrganizerUI
 
             CollectionInfoModal = new CollectionInfoForm(logger, core);
 
+            MessageText.Click += MessageText_Click;
+
             RefreshTagCategoryComboBox();
 
             FormClosed += Form_Closed;
@@ -170,29 +175,45 @@ namespace FileOrganizerUI
                     filesToAdd.Add(filename);
                     logger.LogDebug("Opened file: " + filename);
                 }
-                var res = core.AddFiles(filesToAdd);
+                int good = 0;
+                int bad = 0;
+                var res = AddFiles(filesToAdd, ref good, ref bad);
                 if (res.HasError()) {
-                    string errMsg = "";
-                    int good = 0;
-                    int bad = 0;
-                    foreach (var status in res.Result) {
-                        if (status) {
-                            good++;
-                        } else {
-                            bad++;
-                        }
-                    }
-                    errMsg += $"Adding files resulted in {good} successes and {bad} failures\n\n";
+                    string errMsg = $"Adding files resulted in {good} successes and {bad} failures\n\n";
                     UpdateMessage(errMsg, ErrorMsgColor);
-                    foreach (string msg in res.Messages) {
-                        errMsg += msg + "\n";
-                    }
-                    MessageTooltip.SetToolTip(MessageText, errMsg);
+                    PrintAddFileErrorsTooltipAlert(errMsg, res);
                 } else {
-                    UpdateMessage($"{filesToAdd.Count} files added", Color.Black);
+                    UpdateMessage($"{res.Result.Count} files added", Color.Black);
                     MessageTooltip.SetToolTip(MessageText, MessageText.Text);
                 }
             }
+        }
+
+        private void OpenFolderPicker_Click(object sender, EventArgs e)
+        {
+            var dlg = new FolderBrowserDialog();
+            if (dlg.ShowDialog() == DialogResult.OK) {
+                int good = 0, bad = 0;
+                List<string> badPaths = new List<string>();
+                var res = AddFilesInFolder(new DirectoryInfo(dlg.SelectedPath), ref good, ref bad, badPaths, FolderDepthLimit);
+
+                if (res.HasError()) {
+                    string errMsg = $"Adding files resulted in {good} successes and {bad} failures\n\n";
+                    UpdateMessage(errMsg, ErrorMsgColor);
+                    foreach (string path in badPaths) {
+                        errMsg += $"Failed to add files in {path}\n";
+                    }
+                    PrintAddFileErrorsTooltipAlert(errMsg, res);
+                } else {
+                    UpdateMessage($"{res.Result.Count} files added", Color.Black);
+                    MessageTooltip.SetToolTip(MessageText, MessageText.Text);
+                }
+            }
+        }
+
+        private void MessageText_Click(object sender, EventArgs e)
+        {
+            if (isDisplayError) errDialog.ShowDialog();
         }
 
         private void Search_Click(object sender, EventArgs e)
@@ -311,11 +332,19 @@ namespace FileOrganizerUI
                     item.Selected = true;
                 }
                 e.SuppressKeyPress = true;
-            } else if (((e.KeyCode == Keys.O && e.Control) || (e.KeyCode == Keys.Enter)) && FileListView.SelectedItems.Count > 0) {
+            } else if (((e.KeyCode == Keys.O && e.Control) || (e.KeyCode == Keys.Enter && !e.Control)) 
+                && FileListView.SelectedItems.Count > 0) {
                 if (FileListView.SelectedItems.Count == 1) {
                     OpenFile(FileListView.SelectedItems[0].ImageKey);
                 } else {
                     UpdateMessage("Cannot open more than 1 file at a time", ErrorMsgColor);
+                }
+                e.SuppressKeyPress = true;
+            } else if (e.KeyCode == Keys.Enter && e.Control && FileListView.SelectedItems.Count > 0) {
+                if (FileListView.SelectedItems.Count == 1) {
+                    OpenFolder(FileListView.SelectedItems[0].ImageKey);
+                } else {
+                    UpdateMessage("Cannot open folder for more than 1 file at a time", ErrorMsgColor);
                 }
                 e.SuppressKeyPress = true;
             }
@@ -693,6 +722,54 @@ namespace FileOrganizerUI
             }
         }
 
+        private ActionResult<List<bool>> AddFiles(List<string> files, ref int good, ref int bad)
+        {
+            var res = core.AddFiles(files);
+            foreach (var status in res.Result) {
+                if (status) {
+                    good++;
+                } else {
+                    bad++;
+                }
+            }
+
+            return res;
+        }
+
+        private ActionResult<List<bool>> AddFilesInFolder(DirectoryInfo dir, ref int good, ref int bad, List<string> badPaths, int limit)
+        {
+            logger.LogInformation("Adding files in " + dir.FullName);
+            var res = new ActionResult<List<bool>>();
+            if (limit > 0) {
+                try {
+                    foreach (var subdir in dir.GetDirectories()) {
+                        var subRes = AddFilesInFolder(subdir, ref good, ref bad, badPaths, limit - 1);
+                        ActionResult.AppendErrors(res, subRes);
+                        res.Result.AddRange(subRes.Result);
+                    }
+                }
+                catch (Exception ex) {
+                    res.AddError(ErrorType.Access, $"Unable to access folder {dir.FullName} due to access restrictions on " +
+                        $"the directory or on a subdirectory: {ex.Message}");
+                    badPaths.Add(dir.FullName);
+                }
+            } else {
+                res.AddError(ErrorType.Path, $"Folder depth limit reached at {dir.FullName}, ignoring subdirectories");
+                try {
+                    foreach (var subdir in dir.GetDirectories()) {
+                        badPaths.Add(subdir.FullName);
+                    }
+                } catch {}
+            }
+            
+
+            var fileRes = AddFiles(dir.GetFiles().ToList().ConvertAll(fi => fi.FullName), ref good, ref bad);
+            ActionResult.AppendErrors(res, fileRes);
+            res.Result.AddRange(fileRes.Result);
+
+            return res;
+        }
+
         private void ShowFiles(ActionResult<List<GetFileMetadataType>> fileData)
         {
             FileListView.Items.Clear();
@@ -772,6 +849,11 @@ namespace FileOrganizerUI
                     UpdateMessage($"File {filename} unable to be opened: {ex.Message}", MainForm.ErrorMsgColor);
                 }
             }
+        }
+
+        private void OpenFolder(string filename)
+        {
+            Process.Start("explorer.exe", Path.GetDirectoryName(filename));
         }
 
         private void SaveSymLinkFolderRoot(string filepath)
@@ -916,10 +998,25 @@ namespace FileOrganizerUI
             }
         }
 
+        private void PrintAddFileErrorsTooltipAlert(string errMsg, ActionResult<List<bool>> res)
+        {
+            if (res.Messages.Count <= 30) {
+                foreach (string msg in res.Messages) {
+                    errMsg += msg + "\n";
+                }
+            } else {
+                errMsg += "Failure to add multiple files, click message to see";
+                isDisplayError = true;
+                errDialog = new AddFileErrorDialog(res.Messages);
+            }
+            MessageTooltip.SetToolTip(MessageText, errMsg);
+        }
+
         private void UpdateMessage(string msg, Color color)
         {
             MessageText.Text = msg;
             MessageText.ForeColor = color;
+            isDisplayError = false;
         }
 
         private void UpdateMessageToolTip(List<string> msgs)
