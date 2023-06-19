@@ -67,7 +67,7 @@ namespace FileOrganizerUI
             SettingsDialog = new SettingsForm(logger, core);
 
             SearchBox.KeyDown += new KeyEventHandler(Search_Enter);
-            SearchBox.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            SearchBox.AutoCompleteMode = AutoCompleteMode.Suggest;
             SearchBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
             SearchBox.AutoCompleteCustomSource = new AutoCompleteStringCollection();
             searchHistory = new Queue<string>();

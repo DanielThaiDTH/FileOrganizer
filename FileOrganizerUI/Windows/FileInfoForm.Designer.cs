@@ -39,6 +39,7 @@ namespace FileOrganizerUI.Windows
             this.RightPanel = new System.Windows.Forms.Panel();
             this.PictureBox = new System.Windows.Forms.PictureBox();
             this.OpenFileButton = new System.Windows.Forms.Button();
+            this.MoveButton = new System.Windows.Forms.Button();
             this.RightPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             this.SuspendLayout();
@@ -62,6 +63,7 @@ namespace FileOrganizerUI.Windows
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.RightPanel.AutoScroll = true;
+            this.RightPanel.Controls.Add(this.MoveButton);
             this.RightPanel.Controls.Add(this.PictureBox);
             this.RightPanel.Controls.Add(this.OpenFileButton);
             this.RightPanel.Location = new System.Drawing.Point(738, 13);
@@ -86,6 +88,15 @@ namespace FileOrganizerUI.Windows
             this.OpenFileButton.Text = "Open";
             this.OpenFileButton.UseVisualStyleBackColor = true;
             // 
+            // MoveButton
+            // 
+            this.MoveButton.Location = new System.Drawing.Point(86, 4);
+            this.MoveButton.Name = "MoveButton";
+            this.MoveButton.Size = new System.Drawing.Size(75, 23);
+            this.MoveButton.TabIndex = 2;
+            this.MoveButton.Text = "Move";
+            this.MoveButton.UseVisualStyleBackColor = true;
+            // 
             // FileInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -107,5 +118,6 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.Panel RightPanel;
         private System.Windows.Forms.Button OpenFileButton;
         private System.Windows.Forms.PictureBox PictureBox;
+        private System.Windows.Forms.Button MoveButton;
     }
 }

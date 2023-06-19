@@ -62,6 +62,7 @@ namespace FileOrganizerUI.Windows
 
             //Right panel setup
             OpenFileButton.Click += OpenFile_Click;
+            MoveButton.Click += MoveFile_Click;
         }
 
         public void SetFileInfo(GetFileMetadataType file)
@@ -154,6 +155,35 @@ namespace FileOrganizerUI.Windows
                     logger.LogDebug(ex.StackTrace);
                     UpdateMessage($"File {fileInfo.Fullname} unable to be opened: {ex.Message}", MainForm.ErrorMsgColor);
                 }
+            }
+        }
+
+        private void MoveFile_Click(object sender, EventArgs e)
+        {
+            if (fileInfo is null) return;
+
+            if (File.Exists(fileInfo.Fullname)) {
+                SaveFileDialog dlg = new SaveFileDialog();
+                dlg.InitialDirectory = fileInfo.Path;
+                dlg.FileName = fileInfo.Filename;
+                if (dlg.ShowDialog() == DialogResult.OK) {
+                    try {
+                        File.Move(fileInfo.Fullname, dlg.FileName);
+                        logger.LogInformation($"Moved file {fileInfo.Fullname} to {dlg.FileName}");
+                        detailLines["Path"].Controls[1].Text = Path.GetDirectoryName(dlg.FileName);
+                        detailLines["Filename"].Controls[1].Text = Path.GetFileName(dlg.FileName);
+                        Update_Click(sender, e);
+                    } catch (IOException ex){
+                        UpdateMessage($"Failed to move the file because of: {ex.Message}", MainForm.ErrorMsgColor);
+                        logger.LogDebug(ex.StackTrace);
+                    } catch (UnauthorizedAccessException ex) {
+                        UpdateMessage($"Move operation failed due to lack of authroization: {ex.Message}", MainForm.ErrorMsgColor);
+                        logger.LogDebug(ex.StackTrace);
+                    }
+                }
+            } else {
+                UpdateMessage($"File {fileInfo.Fullname} not found, can't be moved", MainForm.ErrorMsgColor);
+                logger.LogWarning($"failed to move file {fileInfo.Fullname} because it does not exist");
             }
         }
 

@@ -85,6 +85,7 @@ namespace FileOrganizerUI.Windows
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.DoneButton = new System.Windows.Forms.Button();
             this.MessageLabel = new System.Windows.Forms.Label();
+            this.MoveFilesCheckbox = new System.Windows.Forms.CheckBox();
             this.ExportTab.SuspendLayout();
             this.ExportOptionsGroup.SuspendLayout();
             this.ExportTypeGroup.SuspendLayout();
@@ -559,6 +560,7 @@ namespace FileOrganizerUI.Windows
             // 
             // PathGroup
             // 
+            this.PathGroup.Controls.Add(this.MoveFilesCheckbox);
             this.PathGroup.Controls.Add(this.UpdateResultsPathsButton);
             this.PathGroup.Controls.Add(this.UpdatePathsButton);
             this.PathGroup.Controls.Add(this.flowLayoutPanel5);
@@ -668,6 +670,16 @@ namespace FileOrganizerUI.Windows
             this.MessageLabel.Size = new System.Drawing.Size(0, 17);
             this.MessageLabel.TabIndex = 2;
             // 
+            // MoveFilesCheckbox
+            // 
+            this.MoveFilesCheckbox.AutoSize = true;
+            this.MoveFilesCheckbox.Location = new System.Drawing.Point(405, 100);
+            this.MoveFilesCheckbox.Name = "MoveFilesCheckbox";
+            this.MoveFilesCheckbox.Size = new System.Drawing.Size(97, 21);
+            this.MoveFilesCheckbox.TabIndex = 8;
+            this.MoveFilesCheckbox.Text = "Move Files";
+            this.MoveFilesCheckbox.UseVisualStyleBackColor = true;
+            // 
             // AdvancedWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -702,6 +714,7 @@ namespace FileOrganizerUI.Windows
             this.AdvancedTabs.ResumeLayout(false);
             this.UpdateTab.ResumeLayout(false);
             this.PathGroup.ResumeLayout(false);
+            this.PathGroup.PerformLayout();
             this.flowLayoutPanel5.ResumeLayout(false);
             this.flowLayoutPanel5.PerformLayout();
             this.flowLayoutPanel4.ResumeLayout(false);
@@ -770,5 +783,6 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.ComboBox CategoryColorComboBox;
         private System.Windows.Forms.Button UpdateColorButton;
         private System.Windows.Forms.PictureBox ColorPictureBox;
+        private System.Windows.Forms.CheckBox MoveFilesCheckbox;
     }
 }

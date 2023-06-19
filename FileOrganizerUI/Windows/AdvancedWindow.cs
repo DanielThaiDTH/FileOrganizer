@@ -230,9 +230,30 @@ namespace FileOrganizerUI.Windows
             ActionResult<bool> combinedRes = new ActionResult<bool>();
             combinedRes.SetResult(true);
             foreach (var file in core.ActiveFiles) {
-                var res = core.ChangePathForFile(file.ID, NewPathBox.Text.Trim());
-                combinedRes.SetResult(combinedRes.Result && res.Result);
-                if (!res.Result) ActionResult.AppendErrors(combinedRes, res);
+                bool moveStatus = true;
+                string newFullname = Path.Combine(NewPathBox.Text.Trim(), file.Filename);
+                if (MoveFilesCheckbox.Checked && !File.Exists(newFullname)) {
+                    try {
+                        File.Move(file.Fullname, Path.Combine(NewPathBox.Text.Trim(), file.Filename));
+                    } catch (Exception ex) {
+                        logger.LogWarning($"Failed to move file {file.Fullname} to {newFullname}, access issue");
+                        logger.LogDebug(ex.StackTrace);
+                        combinedRes.SetResult(false);
+                        combinedRes.AddError(ErrorType.Access, $"Failed to move file {file.Fullname} to {newFullname}, access issue");
+                        moveStatus = false;
+                    }
+                } else if (MoveFilesCheckbox.Checked) {
+                    logger.LogWarning($"Failed to move file {file.Fullname} to {newFullname}, file already exists at there");
+                    combinedRes.SetResult(false);
+                    combinedRes.AddError(ErrorType.Path, $"Cannot move {file.Fullname}, {newFullname} already exists");
+                    moveStatus = false;
+                }
+
+                if (moveStatus) {
+                    var res = core.ChangePathForFile(file.ID, NewPathBox.Text.Trim());
+                    combinedRes.SetResult(combinedRes.Result && res.Result);
+                    if (!res.Result) ActionResult.AppendErrors(combinedRes, res);
+                }
             }
 
             if (combinedRes.Result) {
@@ -324,6 +345,9 @@ namespace FileOrganizerUI.Windows
             UpdateResultsPathsButton.Enabled = false;
             UpdatePathsButton.Click += UpdatePaths_Click;
             UpdatePathsButton.Enabled = false;
+            var MoveCheckboxTooltip = new ToolTip();
+            MoveCheckboxTooltip.SetToolTip(MoveFilesCheckbox, "Check to move files along with updating path. " +
+                "Only for updating files in the results");
 
             NewPathBox.TextChanged += PathBox_TextChange;
             OldPathBox.TextChanged += PathBox_TextChange;
