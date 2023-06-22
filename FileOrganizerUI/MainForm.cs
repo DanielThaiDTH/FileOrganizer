@@ -18,6 +18,7 @@ using System.IO;
 using System.Security.Principal;
 using System.Diagnostics;
 using System.Threading;
+using System.Reflection;
 
 namespace FileOrganizerUI
 {
@@ -35,6 +36,7 @@ namespace FileOrganizerUI
         private SearchParser parser;
         private ThumbnailProxy thumbnailProxy;
         private ImageList imageList;
+        private ImageList iconList;
         private AddFileErrorDialog errDialog;
         
         private int selectedFileID = -1;
@@ -63,6 +65,18 @@ namespace FileOrganizerUI
 
             FileDialog = new OpenFileDialog();
             FileDialog.Multiselect = true;
+
+            string root = Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase).Replace(@"file:\", "");
+            iconList = new ImageList();
+            iconList.ImageSize = new Size(25, 19);
+            iconList.Images.Add("Add", Image.FromFile(Path.Combine(root, @"Icons\Add.png")));
+            iconList.Images.Add("Add_folder", Image.FromFile(Path.Combine(root, @"Icons\Add_folder.png")));
+            OpenFilePicker.ImageList = iconList;
+            OpenFilePicker.ImageKey = "Add";
+            AddFolderButton.Click += OpenFilePicker_Click;
+            AddFolderButton.ImageList = iconList;
+            AddFolderButton.ImageKey = "Add_folder";
+            
 
             SettingsDialog = new SettingsForm(logger, core);
 

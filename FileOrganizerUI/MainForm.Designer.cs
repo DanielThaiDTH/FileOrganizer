@@ -33,7 +33,7 @@ namespace FileOrganizerUI
             this.OpenFilePicker = new System.Windows.Forms.Button();
             this.MessageText = new System.Windows.Forms.Label();
             this.MessageTooltip = new System.Windows.Forms.ToolTip(this.components);
-            this.UpdateButton = new System.Windows.Forms.Button();
+            this.AddFolderButton = new System.Windows.Forms.Button();
             this.FileResultHeader = new System.Windows.Forms.Label();
             this.SearchBox = new System.Windows.Forms.TextBox();
             this.Search = new System.Windows.Forms.Button();
@@ -81,9 +81,10 @@ namespace FileOrganizerUI
             this.OpenFilePicker.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.OpenFilePicker.Location = new System.Drawing.Point(1258, 591);
             this.OpenFilePicker.Name = "OpenFilePicker";
-            this.OpenFilePicker.Size = new System.Drawing.Size(65, 32);
+            this.OpenFilePicker.Size = new System.Drawing.Size(68, 32);
             this.OpenFilePicker.TabIndex = 13;
-            this.OpenFilePicker.Text = "Add";
+            this.OpenFilePicker.Text = "      ";
+            this.OpenFilePicker.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.OpenFilePicker.UseVisualStyleBackColor = true;
             this.OpenFilePicker.Click += new System.EventHandler(this.OpenFilePicker_Click);
             // 
@@ -98,16 +99,15 @@ namespace FileOrganizerUI
             this.MessageText.Size = new System.Drawing.Size(0, 17);
             this.MessageText.TabIndex = 1;
             // 
-            // UpdateButton
+            // AddFolderButton
             // 
-            this.UpdateButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.UpdateButton.Enabled = false;
-            this.UpdateButton.Location = new System.Drawing.Point(1329, 591);
-            this.UpdateButton.Name = "UpdateButton";
-            this.UpdateButton.Size = new System.Drawing.Size(83, 32);
-            this.UpdateButton.TabIndex = 2;
-            this.UpdateButton.Text = "Update";
-            this.UpdateButton.UseVisualStyleBackColor = true;
+            this.AddFolderButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.AddFolderButton.Location = new System.Drawing.Point(1345, 591);
+            this.AddFolderButton.Name = "AddFolderButton";
+            this.AddFolderButton.Size = new System.Drawing.Size(67, 32);
+            this.AddFolderButton.TabIndex = 2;
+            this.AddFolderButton.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.AddFolderButton.UseVisualStyleBackColor = true;
             // 
             // FileResultHeader
             // 
@@ -454,7 +454,7 @@ namespace FileOrganizerUI
             this.Controls.Add(this.Search);
             this.Controls.Add(this.SearchBox);
             this.Controls.Add(this.FileResultHeader);
-            this.Controls.Add(this.UpdateButton);
+            this.Controls.Add(this.AddFolderButton);
             this.Controls.Add(this.MessageText);
             this.Controls.Add(this.OpenFilePicker);
             this.Name = "MainForm";
@@ -479,7 +479,7 @@ namespace FileOrganizerUI
         private System.Windows.Forms.Button OpenFilePicker;
         private System.Windows.Forms.Label MessageText;
         private System.Windows.Forms.ToolTip MessageTooltip;
-        private System.Windows.Forms.Button UpdateButton;
+        private System.Windows.Forms.Button AddFolderButton;
         private System.Windows.Forms.Label FileResultHeader;
         private System.Windows.Forms.TextBox SearchBox;
         private System.Windows.Forms.Button Search;

@@ -252,4 +252,9 @@ del $(ProjectDir)publish\*.pdb
 del $(ProjectDir)publish\*.log
 del $(ProjectDir)publish\info.db*</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>IF NOT EXIST $(ProjectDir)$(OutDir)Icons md $(ProjectDir)$(OutDir)Icons 
+xcopy /Y /S $(ProjectDir)Icons\Add.png $(ProjectDir)$(OutDir)Icons
+xcopy /Y /S $(ProjectDir)Icons\Add_folder.png $(ProjectDir)$(OutDir)Icons</PreBuildEvent>
+  </PropertyGroup>
 </Project>
