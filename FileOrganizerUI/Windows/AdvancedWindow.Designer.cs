@@ -74,6 +74,7 @@ namespace FileOrganizerUI.Windows
             this.ImportTab = new System.Windows.Forms.TabPage();
             this.UpdateTab = new System.Windows.Forms.TabPage();
             this.PathGroup = new System.Windows.Forms.GroupBox();
+            this.MoveFilesCheckbox = new System.Windows.Forms.CheckBox();
             this.UpdateResultsPathsButton = new System.Windows.Forms.Button();
             this.UpdatePathsButton = new System.Windows.Forms.Button();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
@@ -85,7 +86,7 @@ namespace FileOrganizerUI.Windows
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.DoneButton = new System.Windows.Forms.Button();
             this.MessageLabel = new System.Windows.Forms.Label();
-            this.MoveFilesCheckbox = new System.Windows.Forms.CheckBox();
+            this.SelectFolderButton = new System.Windows.Forms.Button();
             this.ExportTab.SuspendLayout();
             this.ExportOptionsGroup.SuspendLayout();
             this.ExportTypeGroup.SuspendLayout();
@@ -534,7 +535,7 @@ namespace FileOrganizerUI.Windows
             this.AdvancedTabs.Location = new System.Drawing.Point(13, 13);
             this.AdvancedTabs.Name = "AdvancedTabs";
             this.AdvancedTabs.SelectedIndex = 0;
-            this.AdvancedTabs.Size = new System.Drawing.Size(799, 462);
+            this.AdvancedTabs.Size = new System.Drawing.Size(820, 462);
             this.AdvancedTabs.TabIndex = 0;
             // 
             // ImportTab
@@ -554,7 +555,7 @@ namespace FileOrganizerUI.Windows
             this.UpdateTab.Location = new System.Drawing.Point(4, 25);
             this.UpdateTab.Name = "UpdateTab";
             this.UpdateTab.Padding = new System.Windows.Forms.Padding(3);
-            this.UpdateTab.Size = new System.Drawing.Size(791, 433);
+            this.UpdateTab.Size = new System.Drawing.Size(812, 433);
             this.UpdateTab.TabIndex = 3;
             this.UpdateTab.Text = "Update";
             // 
@@ -567,10 +568,20 @@ namespace FileOrganizerUI.Windows
             this.PathGroup.Controls.Add(this.flowLayoutPanel4);
             this.PathGroup.Location = new System.Drawing.Point(7, 7);
             this.PathGroup.Name = "PathGroup";
-            this.PathGroup.Size = new System.Drawing.Size(778, 130);
+            this.PathGroup.Size = new System.Drawing.Size(799, 130);
             this.PathGroup.TabIndex = 0;
             this.PathGroup.TabStop = false;
             this.PathGroup.Text = "Path";
+            // 
+            // MoveFilesCheckbox
+            // 
+            this.MoveFilesCheckbox.AutoSize = true;
+            this.MoveFilesCheckbox.Location = new System.Drawing.Point(405, 100);
+            this.MoveFilesCheckbox.Name = "MoveFilesCheckbox";
+            this.MoveFilesCheckbox.Size = new System.Drawing.Size(97, 21);
+            this.MoveFilesCheckbox.TabIndex = 8;
+            this.MoveFilesCheckbox.Text = "Move Files";
+            this.MoveFilesCheckbox.UseVisualStyleBackColor = true;
             // 
             // UpdateResultsPathsButton
             // 
@@ -594,9 +605,10 @@ namespace FileOrganizerUI.Windows
             // 
             this.flowLayoutPanel5.Controls.Add(this.label3);
             this.flowLayoutPanel5.Controls.Add(this.NewPathBox);
+            this.flowLayoutPanel5.Controls.Add(this.SelectFolderButton);
             this.flowLayoutPanel5.Location = new System.Drawing.Point(9, 57);
             this.flowLayoutPanel5.Name = "flowLayoutPanel5";
-            this.flowLayoutPanel5.Size = new System.Drawing.Size(763, 27);
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(784, 27);
             this.flowLayoutPanel5.TabIndex = 5;
             // 
             // label3
@@ -613,7 +625,7 @@ namespace FileOrganizerUI.Windows
             // 
             this.NewPathBox.Location = new System.Drawing.Point(77, 3);
             this.NewPathBox.Name = "NewPathBox";
-            this.NewPathBox.Size = new System.Drawing.Size(625, 22);
+            this.NewPathBox.Size = new System.Drawing.Size(624, 22);
             this.NewPathBox.TabIndex = 3;
             // 
             // flowLayoutPanel4
@@ -622,7 +634,7 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel4.Controls.Add(this.OldPathBox);
             this.flowLayoutPanel4.Location = new System.Drawing.Point(9, 21);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
-            this.flowLayoutPanel4.Size = new System.Drawing.Size(763, 29);
+            this.flowLayoutPanel4.Size = new System.Drawing.Size(784, 29);
             this.flowLayoutPanel4.TabIndex = 4;
             // 
             // label1
@@ -654,7 +666,7 @@ namespace FileOrganizerUI.Windows
             // 
             // DoneButton
             // 
-            this.DoneButton.Location = new System.Drawing.Point(729, 482);
+            this.DoneButton.Location = new System.Drawing.Point(754, 482);
             this.DoneButton.Name = "DoneButton";
             this.DoneButton.Size = new System.Drawing.Size(75, 31);
             this.DoneButton.TabIndex = 1;
@@ -670,21 +682,20 @@ namespace FileOrganizerUI.Windows
             this.MessageLabel.Size = new System.Drawing.Size(0, 17);
             this.MessageLabel.TabIndex = 2;
             // 
-            // MoveFilesCheckbox
+            // SelectFolderButton
             // 
-            this.MoveFilesCheckbox.AutoSize = true;
-            this.MoveFilesCheckbox.Location = new System.Drawing.Point(405, 100);
-            this.MoveFilesCheckbox.Name = "MoveFilesCheckbox";
-            this.MoveFilesCheckbox.Size = new System.Drawing.Size(97, 21);
-            this.MoveFilesCheckbox.TabIndex = 8;
-            this.MoveFilesCheckbox.Text = "Move Files";
-            this.MoveFilesCheckbox.UseVisualStyleBackColor = true;
+            this.SelectFolderButton.Location = new System.Drawing.Point(707, 3);
+            this.SelectFolderButton.Name = "SelectFolderButton";
+            this.SelectFolderButton.Size = new System.Drawing.Size(64, 23);
+            this.SelectFolderButton.TabIndex = 4;
+            this.SelectFolderButton.Text = "Select";
+            this.SelectFolderButton.UseVisualStyleBackColor = true;
             // 
             // AdvancedWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(824, 517);
+            this.ClientSize = new System.Drawing.Size(845, 517);
             this.Controls.Add(this.MessageLabel);
             this.Controls.Add(this.DoneButton);
             this.Controls.Add(this.AdvancedTabs);
@@ -784,5 +795,6 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.Button UpdateColorButton;
         private System.Windows.Forms.PictureBox ColorPictureBox;
         private System.Windows.Forms.CheckBox MoveFilesCheckbox;
+        private System.Windows.Forms.Button SelectFolderButton;
     }
 }

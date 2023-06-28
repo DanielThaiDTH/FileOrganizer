@@ -61,6 +61,8 @@ namespace FileOrganizerUI.Windows
 
             ExportTabSetup();
             UpdateTabSetup();
+
+            SelectFolderButton.Click += SelectFolder_Click;
         }
 
         public void ResultPathSubscribe(Action<string, string> subscription)
@@ -290,6 +292,14 @@ namespace FileOrganizerUI.Windows
                 UpdateMessage("Sucessfully updated paths for all files with that path", Color.Black);
             } else {
                 UpdateMessage(result.GetErrorMessage(0), MainForm.ErrorMsgColor);
+            }
+        }
+
+        private void SelectFolder_Click(object sender, EventArgs e)
+        {
+            var selectFolderDlg = new FolderBrowserDialog();
+            if (selectFolderDlg.ShowDialog() == DialogResult.OK) {
+                NewPathBox.Text = selectFolderDlg.SelectedPath;
             }
         }
 
