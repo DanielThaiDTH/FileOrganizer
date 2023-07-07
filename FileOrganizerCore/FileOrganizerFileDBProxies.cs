@@ -623,6 +623,17 @@ namespace FileOrganizerCore
                 res.SetResult(false);
             }
 
+            //Add parent tags as well
+            if (res.Result) {
+                GetTagType currTag = null;
+                int tag_id = AllTags.Find(t => t.Name == tag).ID;
+                do {
+                    currTag = AllTags.Find(t => t.ID == tag_id);
+                    if (currTag != null) db.AddTagToFile(file[0].ID, currTag.Name);
+                    tag_id = currTag.ParentTagID;
+                } while (currTag != null);
+            }
+
             return res;
         }
 
@@ -937,5 +948,6 @@ namespace FileOrganizerCore
 
             return res;
         }
+
     }
 }
