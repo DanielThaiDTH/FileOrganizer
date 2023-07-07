@@ -1312,5 +1312,84 @@ namespace FileDBManager.Test
             Assert.Single(fix.db.GetFileMetadata(new FileSearchFilter().SetFullnameFilter(@"T:\transaction_dummy2")));
             Assert.Single(fix.db.GetFileMetadata(new FileSearchFilter().SetFullnameFilter(@"T:\transaction_dummy")));
         }
+
+        [Fact]
+        public void TagsHaveNegOneParentIDsByDefault()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("Default_no_parent");
+            var tags = fix.db.GetAllTags();
+            var tag = tags.Find(t => t.Name == "Default_no_parent");
+            Assert.Equal(-1, tag.ParentTagID);
+        }
+
+        [Fact]
+        public void UpdateTagParentWorks()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("parent");
+            fix.db.AddTag("child1");
+            fix.db.AddTag("child2");
+            var tags = fix.db.GetAllTags();
+            var parentID = tags.Find(t => t.Name == "parent").ID;
+            var childID1 = tags.Find(t => t.Name == "child1").ID;
+            var childID2 = tags.Find(t => t.Name == "child2").ID;
+            string msg;
+            Assert.True(fix.db.UpdateTagParent(childID1, parentID, out msg));
+            Assert.True(fix.db.UpdateTagParent(childID2, parentID, out msg));
+            
+            tags = fix.db.GetAllTags();
+            Assert.Equal(parentID, tags.Find(t => t.ID == childID1).ParentTagID);
+            Assert.Equal(parentID, tags.Find(t => t.ID == childID2).ParentTagID);
+        }
+
+        [Fact]
+        public void UpdateTagParentWithNegativeNumberClearsParentID()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("temp_parent");
+            fix.db.AddTag("clearing_child");
+            var tags = fix.db.GetAllTags();
+            var parentID = tags.Find(t => t.Name == "temp_parent").ID;
+            var childID = tags.Find(t => t.Name == "clearing_child").ID;
+
+            string msg;
+            fix.db.UpdateTagParent(childID, parentID, out msg);
+            fix.db.UpdateTagParent(childID, -10, out msg);
+            tags = fix.db.GetAllTags();
+            Assert.Equal(-1, tags.Find(t => t.ID == childID).ParentTagID);
+        }
+
+        [Fact]
+        public void UpdateTagParentWithInvalidParentIDFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("non_parent_test_tag");
+            var tags = fix.db.GetAllTags();
+            var tagID = tags.Find(t => t.Name == "non_parent_test_tag").ID;
+
+            string msg;
+            Assert.False(fix.db.UpdateTagParent(tagID, int.MaxValue, out msg));
+            Assert.Contains("does not exist", msg);
+        }
+
+        [Fact]
+        public void UpdateTagParentWithLoopingReferenceFails()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            fix.db.AddTag("loop1");
+            fix.db.AddTag("loop2");
+            fix.db.AddTag("loop3");
+            var tags = fix.db.GetAllTags();
+            var tagID1 = tags.Find(t => t.Name == "loop1").ID;
+            var tagID2 = tags.Find(t => t.Name == "loop2").ID;
+            var tagID3 = tags.Find(t => t.Name == "loop3").ID;
+
+            string msg;
+            fix.db.UpdateTagParent(tagID3, tagID1, out msg);
+            fix.db.UpdateTagParent(tagID2, tagID3, out msg);
+            Assert.False(fix.db.UpdateTagParent(tagID1, tagID2, out msg));
+            Assert.Contains("loop", msg);
+        }
     }
 }

@@ -243,7 +243,6 @@ namespace FileDBManager
 
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("ParentID")))) {
                     newTag.ParentTagID = -1;
-                    logger.LogDebug("No parent for tag " + newTag.Name);
                 } else {
                     newTag.ParentTagID = read.GetInt32(read.GetOrdinal("ParentID"));
                 }
@@ -292,7 +291,7 @@ namespace FileDBManager
 
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("ParentID")))) {
                     newTag.ParentTagID = -1;
-                    logger.LogDebug("No parent for tag " + newTag.Name);
+                    logger.LogTrace("No parent for tag " + newTag.Name);
                 } else {
                     newTag.ParentTagID = read.GetInt32(read.GetOrdinal("ParentID"));
                 }
@@ -300,7 +299,7 @@ namespace FileDBManager
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
                     newTag.CategoryID = -1;
                     newTag.Category = null;
-                    logger.LogDebug("No category for tag " + newTag.Name);
+                    logger.LogTrace("No category for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
                     newTag.Category = read.GetString(8);
@@ -434,11 +433,12 @@ namespace FileDBManager
         /// <param name="parentTagID"></param>
         /// <param name="errMsg"></param>
         /// <returns></returns>
-        public bool UpdateTagParent(int tagID, int parentTagID, ref string errMsg)
+        public bool UpdateTagParent(int tagID, int parentTagID, out string errMsg)
         {
             bool result;
 
             string statement = "";
+            errMsg = "";
             if (parentTagID > 0) {
                 List<GetTagType> tags = GetAllTags();
                 int ancestorID = parentTagID;
@@ -447,17 +447,29 @@ namespace FileDBManager
 
                 while (!seenIDs.Contains(ancestorID) && ancestorID != -1) {
                     var ancestor = tags.Find(t => t.ID == ancestorID);
+                    if (ancestor is null) {
+                        ancestorID = -1;
+                        break;
+                    }
                     seenIDs.Add(ancestorID);
-                    ancestorID = ancestor.ID;
+                    ancestorID = ancestor.ParentTagID;
                 }
 
-                if (ancestorID == -1) {
+                logger.LogDebug("Exiting loop with ancestor ID of " + ancestorID);
+
+                if (ancestorID == -1 && tags.Any(t => t.ID == parentTagID)) {
                     statement = createStatement("UPDATE Tags Set ParentID = ? WHERE ID = ?", parentTagID, tagID);
-                } else {
+                } else if (tags.Any(t => t.ID == ancestorID)) {
                     errMsg = $"Failed to make {tags.Find(t => t.ID == parentTagID).Name} " +
                         $"parent of {tags.Find(t => t.ID == tagID).Name} because it would create an ancestry loop";
                     logger.LogWarning(errMsg);
 
+                    return false;
+                } else {
+                    errMsg = $"Failed to add parent to {tags.Find(t => t.ID == tagID).Name} because " +
+                        $"the parent ({parentTagID}) does not exist.";
+                    logger.LogWarning(errMsg);
+                    
                     return false;
                 }
             } else {
