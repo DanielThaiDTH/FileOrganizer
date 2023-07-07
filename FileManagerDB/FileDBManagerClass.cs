@@ -42,7 +42,7 @@ namespace FileDBManager
 
             //Updates
             logger.LogInformation("Updating tables with new columns if necessary");
-            UpdateTable(Tag.TableName, Tag.Columns, new List<string> { "Description" });
+            UpdateTable(Tag.TableName, Tag.Columns, new List<string> { "Description", "ParentID" });
             UpdateTable(TagCategory.TableName, TagCategory.Columns, new List<string> { "Color" });
 
             ExecuteNonQuery("PRAGMA foreign_keys=ON");

@@ -241,13 +241,20 @@ namespace FileDBManager
                     Description = read.GetString(read.GetOrdinal("Description"))
                 };
 
+                if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("ParentID")))) {
+                    newTag.ParentTagID = -1;
+                    logger.LogDebug("No parent for tag " + newTag.Name);
+                } else {
+                    newTag.ParentTagID = read.GetInt32(read.GetOrdinal("ParentID"));
+                }
+
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
                     newTag.CategoryID = -1;
                     newTag.Category = null;
                     logger.LogDebug("No category for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
-                    newTag.Category = read.GetString(5);
+                    newTag.Category = read.GetString(6);
                 }
                 tags.Add(newTag);
             }
@@ -280,8 +287,15 @@ namespace FileDBManager
                 {
                     ID = read.GetInt32(read.GetOrdinal("TagID")),
                     Name = read.GetString(read.GetOrdinal("Name")),
-                    Description = read.GetString(read.GetOrdinal("Description"))
+                    Description = read.GetString(read.GetOrdinal("Description")),
                 };
+
+                if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("ParentID")))) {
+                    newTag.ParentTagID = -1;
+                    logger.LogDebug("No parent for tag " + newTag.Name);
+                } else {
+                    newTag.ParentTagID = read.GetInt32(read.GetOrdinal("ParentID"));
+                }
 
                 if (DBNull.Value.Equals(read.GetValue(read.GetOrdinal("CategoryID")))) {
                     newTag.CategoryID = -1;
@@ -289,7 +303,7 @@ namespace FileDBManager
                     logger.LogDebug("No category for tag " + newTag.Name);
                 } else {
                     newTag.CategoryID = read.GetInt32(read.GetOrdinal("CategoryID"));
-                    newTag.Category = read.GetString(7);
+                    newTag.Category = read.GetString(8);
                 }
                 fileTags.Add(newTag);
             }
@@ -408,6 +422,52 @@ namespace FileDBManager
             result = ExecuteNonQuery(statement) == 1;
 
             logger.LogInformation($"Tag {tagName} {(result ? "changed" : "did not change ")} category to {categoryID}");
+
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the tag parent. Checks if there is a loop in ancestry tree, fails if 
+        /// so. Can return an error message in the errMsg parameter.
+        /// </summary>
+        /// <param name="tagID"></param>
+        /// <param name="parentTagID"></param>
+        /// <param name="errMsg"></param>
+        /// <returns></returns>
+        public bool UpdateTagParent(int tagID, int parentTagID, ref string errMsg)
+        {
+            bool result;
+
+            string statement = "";
+            if (parentTagID > 0) {
+                List<GetTagType> tags = GetAllTags();
+                int ancestorID = parentTagID;
+                HashSet<int> seenIDs = new HashSet<int>();
+                seenIDs.Add(tagID);
+
+                while (!seenIDs.Contains(ancestorID) && ancestorID != -1) {
+                    var ancestor = tags.Find(t => t.ID == ancestorID);
+                    seenIDs.Add(ancestorID);
+                    ancestorID = ancestor.ID;
+                }
+
+                if (ancestorID == -1) {
+                    statement = createStatement("UPDATE Tags Set ParentID = ? WHERE ID = ?", parentTagID, tagID);
+                } else {
+                    errMsg = $"Failed to make {tags.Find(t => t.ID == parentTagID).Name} " +
+                        $"parent of {tags.Find(t => t.ID == tagID).Name} because it would create an ancestry loop";
+                    logger.LogWarning(errMsg);
+
+                    return false;
+                }
+            } else {
+                statement = createStatement("UPDATE Tags Set ParentID = ? WHERE ID = ?", null, tagID);
+            }
+
+            result = ExecuteNonQuery(statement) == 1;
+            logger.LogInformation($"Tag {tagID} {(result ? "changed" : "did not change ")} parent tag to {parentTagID}");
+
+            if (!result) errMsg = "Failed to update tag parent";
 
             return result;
         }

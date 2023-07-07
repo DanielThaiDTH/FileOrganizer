@@ -6,12 +6,10 @@
 
 **Column**: ParentTagID
 
-Unique Constraint (TagID, ParentTagID)
-
 ### Adding steps
 
 1. Check for reverse relationship (Existing TagID = new ParentTagID and vice versa), check for check for 
-unique constraint and primary key, stop if found
+ primary key, stop if found
 
 2. Start transaction
 
