@@ -415,6 +415,26 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        /// Updates tag parent. Parent ID of -1 will make so that there is no parent for the tag.
+        /// </summary>
+        /// <param name="tagID"></param>
+        /// <param name="parentID"></param>
+        /// <returns></returns>
+        public ActionResult<bool> UpdateTagParent(int tagID, int parentID)
+        {
+            var res = new ActionResult<bool>();
+
+            if (parentID < 1) parentID = -1;
+            string msg;
+            bool status = db.UpdateTagParent(tagID, parentID, out msg);
+            if (!status) res.AddError(ErrorType.SQL, msg);
+            if (status) AllTags.Find(t => t.ID == tagID).ParentTagID = parentID;
+            res.SetResult(status);
+
+            return res;
+        }
+
         public ActionResult<bool> AddCollection(string name, IEnumerable<int> fileSequence = null)
         {
             var res = new ActionResult<bool>();
@@ -604,6 +624,13 @@ namespace FileOrganizerCore
             return res;
         }
 
+        /// <summary>
+        /// Adds tag to file. Also adds the category of the tag along with any ancestor tags.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="tag"></param>
+        /// <param name="tagCategory"></param>
+        /// <returns></returns>
         public ActionResult<bool> AddTagToFile(string filename, string tag, string tagCategory = "")
         {
             var res = new ActionResult<bool>();
@@ -629,8 +656,10 @@ namespace FileOrganizerCore
                 int tag_id = AllTags.Find(t => t.Name == tag).ID;
                 do {
                     currTag = AllTags.Find(t => t.ID == tag_id);
-                    if (currTag != null) db.AddTagToFile(file[0].ID, currTag.Name);
-                    tag_id = currTag.ParentTagID;
+                    if (currTag != null) {
+                        db.AddTagToFile(file[0].ID, currTag.Name);
+                        tag_id = currTag.ParentTagID;
+                    }
                 } while (currTag != null);
             }
 
@@ -638,7 +667,7 @@ namespace FileOrganizerCore
         }
 
         /// <summary>
-        ///     Adds all tags to each file.
+        ///     Adds all tags to each file. Also adds ancestor tags.
         /// </summary>
         /// <param name="files"></param>
         /// <param name="tags"></param>
@@ -657,11 +686,19 @@ namespace FileOrganizerCore
                     if (!addRes.Result) {
                         result.SetResult(false);
                         ActionResult.AppendErrors(result, addRes);
+                    } else {
+                        //Add parent tags as well
+                        while (tag != null) {
+                            db.AddTagToFile(file.ID, tag.Name);
+                            tag = AllTags.Find(t => t.ID == tag.ParentTagID);
+                        } 
                     }
                 }
             }
 
             db.FinishTransaction();
+
+            GetTags();
 
             return result;
         }

@@ -312,5 +312,41 @@ namespace FileOrganizerCore.Test
             }
             Assert.Empty(fix.core.GetFileData().Result);
         }
+
+        [Fact]
+        public void AddTagsToFilesAddsAncestorTags()
+        {
+            Log.Information($"TEST: {MethodBase.GetCurrentMethod().Name}");
+            var files = new List<string> {
+                Path.Combine(fix.root, "other.xml"),
+                Path.Combine(fix.root, "temp.txt"),
+                Path.Combine(fix.root, "config.xml")
+            };
+            fix.core.AddFiles(files);
+            var ids = fix.core.GetFileData().Result.ConvertAll(f => f.ID);
+            fix.core.AddTag("c");
+            fix.core.AddTag("p");
+            fix.core.AddTag("gp");
+
+            var child_tag = fix.core.AllTags.Find(t => t.Name == "c");
+            var parent_tag = fix.core.AllTags.Find(t => t.Name == "p");
+            var grandparent_tag = fix.core.AllTags.Find(t => t.Name == "gp");
+            fix.core.UpdateTagParent(child_tag.ID, parent_tag.ID);
+            fix.core.UpdateTagParent(parent_tag.ID, grandparent_tag.ID);
+
+            Assert.True(fix.core.AddTagsToFiles(files, new List<string> { "c" }).Result);
+            var fileData = fix.core.GetFileData().Result;
+            foreach (var file in fileData) {
+                Assert.Contains(fix.core.GetTagsForFile(file.ID).Result, t => t.Name == "c");
+                Assert.Contains(fix.core.GetTagsForFile(file.ID).Result, t => t.Name == "p");
+                Assert.Contains(fix.core.GetTagsForFile(file.ID).Result, t => t.Name == "gp");
+            }
+
+            var idList = fileData.ConvertAll(fd => fd.ID);
+            foreach (int id in idList) {
+                Assert.True(fix.core.DeleteFile(id).Result);
+            }
+            Assert.Empty(fix.core.GetFileData().Result);
+        }
     }
 }

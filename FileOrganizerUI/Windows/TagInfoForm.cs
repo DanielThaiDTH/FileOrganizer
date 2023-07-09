@@ -27,6 +27,7 @@ namespace FileOrganizerUI.Windows
         public bool IsDeleted;
         public bool NameUpdated { get; private set; }
         public bool CategoryUpdated { get; private set; }
+        private bool hasError;
 
         public GetTagType Info { get; private set; }
         DeleteConfirmModal DeleteModal;
@@ -53,12 +54,14 @@ namespace FileOrganizerUI.Windows
                 NameBox.TextChanged += handler;
                 DescriptionBox.TextChanged += handler;
                 CategoryComboBox.SelectedIndexChanged += handler;
+                ParentComboBox.SelectedIndexChanged += handler;
             },
             handler =>
             {
                 NameBox.TextChanged -= handler;
                 DescriptionBox.TextChanged -= handler;
                 CategoryComboBox.SelectedIndexChanged -= handler;
+                ParentComboBox.SelectedIndexChanged -= handler;
             });
         }
 
@@ -75,6 +78,7 @@ namespace FileOrganizerUI.Windows
             DescriptionBox.Text = info.Description;
             MessageLabel.Text = "";
             RefreshTagCategoryComboBox();
+            RefreshParentComboBox();
             if (!string.IsNullOrWhiteSpace(info.Category) && info.CategoryID > -1) {
                 CategoryComboBox.SelectedText = info.Category;
             }
@@ -83,7 +87,7 @@ namespace FileOrganizerUI.Windows
             {
                 if (Info is null) return;
                 bool changed = NameBox.Text != Info.Name || DescriptionBox.Text != Info.Description;
-                changed = changed || IsCategoryChanged();
+                changed = changed || IsCategoryChanged() || IsParentChanged();
                 UpdateButton.Enabled = changed;
             });
         }
@@ -104,6 +108,8 @@ namespace FileOrganizerUI.Windows
 
         private void UpdateButton_Click(object sender, EventArgs e)
         {
+            hasError = false;
+
             if (NameBox.Text.Trim() != Info.Name) {
                 UpdateName();
             }
@@ -116,7 +122,11 @@ namespace FileOrganizerUI.Windows
                 UpdateDescription();
             }
 
-            UpdateMessage("Tag updated", Color.Black);
+            if (IsParentChanged()) {
+                UpdateParent();
+            }
+            
+            if (!hasError) UpdateMessage("Tag updated", Color.Black);
         }
 
         private void DeleteButton_Click(object sender, EventArgs e)
@@ -151,6 +161,19 @@ namespace FileOrganizerUI.Windows
             CategoryComboBox.SelectedItem = selectedCategory;
         }
 
+        private void RefreshParentComboBox()
+        {
+            ParentComboBox.Items.Clear();
+            string selectedTag = DefaultCategory.Name;
+            foreach (var tag in core.AllTags) {
+                ParentComboBox.Items.Add(tag.Name);
+                if (Info != null && tag.ID == Info.ParentTagID) selectedTag = tag.Name;
+            }
+
+            ParentComboBox.Items.Add(DefaultCategory.Name);
+            ParentComboBox.SelectedItem = selectedTag;
+        }
+
         private void UpdateMessage(string msg, Color color)
         {
             MessageLabel.Text = msg;
@@ -173,7 +196,27 @@ namespace FileOrganizerUI.Windows
                 IsUpdated = true;
                 NameUpdated = true;
             } else {
+                hasError = true;
                 UpdateMessage(nameRes.GetErrorMessage(0), MainForm.ErrorMsgColor);
+            }
+        }
+
+        private void UpdateParent()
+        {
+            var parent = core.AllTags.Find(t => t.Name == (string) ParentComboBox.SelectedItem);
+            int parentID = -1;
+            if (parent != null) {
+                parentID = parent.ID;
+            }
+            var res = core.UpdateTagParent(Info.ID, parentID);
+
+            if (res.Result) {
+                IsUpdated = true;
+            } else {
+                hasError = true;
+                string msg = res.GetErrorMessage(0);
+                if (msg.Length > 50) msg = "Failed to change parent due to ancestry loop"; 
+                UpdateMessage(msg, MainForm.ErrorMsgColor);
             }
         }
 
@@ -194,6 +237,7 @@ namespace FileOrganizerUI.Windows
                 Info.Category = SelectedCategoryText();
                 Info.CategoryID = newCategoryID;
             } else {
+                hasError = true;
                 UpdateMessage(categoryRes.GetErrorMessage(0), MainForm.ErrorMsgColor);
             }
         }
@@ -214,6 +258,15 @@ namespace FileOrganizerUI.Windows
             return CategoryComboBox.SelectedIndex != -1 && 
                 !(CategoryComboBox.SelectedItem.Equals(DefaultCategory) && Info.Category is null) &&
                 !(Info.Category != null && (CategoryComboBox.SelectedItem as GetTagCategoryType).Name == Info.Category);
+        }
+
+        private bool IsParentChanged()
+        {
+            if (Info is null) return false;
+            var parentTag = core.AllTags.Find(t => t.ID == Info.ID);
+            return ParentComboBox.SelectedIndex != -1 && 
+                !(parentTag is null && (ParentComboBox.SelectedItem as string) == DefaultCategory.Name) && 
+                !(parentTag != null && (ParentComboBox.SelectedItem as string) == parentTag.Name);
         }
         #endregion
     }

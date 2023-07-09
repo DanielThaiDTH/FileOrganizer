@@ -43,11 +43,15 @@ namespace FileOrganizerUI.Windows
             this.UpdateButton = new System.Windows.Forms.Button();
             this.DeleteButton = new System.Windows.Forms.Button();
             this.MessageLabel = new System.Windows.Forms.Label();
+            this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
+            this.ParentLabel = new System.Windows.Forms.Label();
+            this.ParentComboBox = new System.Windows.Forms.ComboBox();
             this.TagInfoFlowLayout.SuspendLayout();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
             this.flowLayoutPanel4.SuspendLayout();
+            this.flowLayoutPanel5.SuspendLayout();
             this.SuspendLayout();
             // 
             // TagInfoFlowLayout
@@ -59,12 +63,13 @@ namespace FileOrganizerUI.Windows
             this.TagInfoFlowLayout.AutoSize = true;
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel1);
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel2);
+            this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel5);
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel3);
             this.TagInfoFlowLayout.Controls.Add(this.flowLayoutPanel4);
             this.TagInfoFlowLayout.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.TagInfoFlowLayout.Location = new System.Drawing.Point(13, 13);
             this.TagInfoFlowLayout.Name = "TagInfoFlowLayout";
-            this.TagInfoFlowLayout.Size = new System.Drawing.Size(685, 301);
+            this.TagInfoFlowLayout.Size = new System.Drawing.Size(685, 363);
             this.TagInfoFlowLayout.TabIndex = 0;
             // 
             // flowLayoutPanel1
@@ -127,7 +132,7 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel3.AutoSize = true;
             this.flowLayoutPanel3.Controls.Add(this.DescriptionLabel);
             this.flowLayoutPanel3.Controls.Add(this.DescriptionBox);
-            this.flowLayoutPanel3.Location = new System.Drawing.Point(3, 73);
+            this.flowLayoutPanel3.Location = new System.Drawing.Point(3, 110);
             this.flowLayoutPanel3.Name = "flowLayoutPanel3";
             this.flowLayoutPanel3.Size = new System.Drawing.Size(670, 173);
             this.flowLayoutPanel3.TabIndex = 2;
@@ -156,7 +161,7 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel4.Controls.Add(this.DeleteButton);
             this.flowLayoutPanel4.Controls.Add(this.MessageLabel);
             this.flowLayoutPanel4.FlowDirection = System.Windows.Forms.FlowDirection.RightToLeft;
-            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 252);
+            this.flowLayoutPanel4.Location = new System.Drawing.Point(3, 289);
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
             this.flowLayoutPanel4.Size = new System.Drawing.Size(670, 32);
             this.flowLayoutPanel4.TabIndex = 3;
@@ -182,17 +187,46 @@ namespace FileOrganizerUI.Windows
             // MessageLabel
             // 
             this.MessageLabel.AutoSize = true;
+            this.flowLayoutPanel4.SetFlowBreak(this.MessageLabel, true);
             this.MessageLabel.Location = new System.Drawing.Point(505, 6);
             this.MessageLabel.Margin = new System.Windows.Forms.Padding(3, 6, 3, 0);
             this.MessageLabel.Name = "MessageLabel";
             this.MessageLabel.Size = new System.Drawing.Size(0, 17);
             this.MessageLabel.TabIndex = 2;
             // 
+            // flowLayoutPanel5
+            // 
+            this.flowLayoutPanel5.AutoSize = true;
+            this.flowLayoutPanel5.Controls.Add(this.ParentLabel);
+            this.flowLayoutPanel5.Controls.Add(this.ParentComboBox);
+            this.flowLayoutPanel5.Location = new System.Drawing.Point(3, 73);
+            this.flowLayoutPanel5.Name = "flowLayoutPanel5";
+            this.flowLayoutPanel5.Size = new System.Drawing.Size(670, 31);
+            this.flowLayoutPanel5.TabIndex = 4;
+            // 
+            // ParentLabel
+            // 
+            this.ParentLabel.AutoSize = true;
+            this.ParentLabel.Location = new System.Drawing.Point(3, 6);
+            this.ParentLabel.Margin = new System.Windows.Forms.Padding(3, 6, 30, 0);
+            this.ParentLabel.Name = "ParentLabel";
+            this.ParentLabel.Size = new System.Drawing.Size(50, 17);
+            this.ParentLabel.TabIndex = 0;
+            this.ParentLabel.Text = "Parent";
+            // 
+            // ParentComboBox
+            // 
+            this.ParentComboBox.FormattingEnabled = true;
+            this.ParentComboBox.Location = new System.Drawing.Point(86, 3);
+            this.ParentComboBox.Name = "ParentComboBox";
+            this.ParentComboBox.Size = new System.Drawing.Size(581, 24);
+            this.ParentComboBox.TabIndex = 1;
+            // 
             // TagInfoForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(707, 326);
+            this.ClientSize = new System.Drawing.Size(707, 388);
             this.Controls.Add(this.TagInfoFlowLayout);
             this.Name = "TagInfoForm";
             this.Text = "Tag Info";
@@ -206,6 +240,8 @@ namespace FileOrganizerUI.Windows
             this.flowLayoutPanel3.PerformLayout();
             this.flowLayoutPanel4.ResumeLayout(false);
             this.flowLayoutPanel4.PerformLayout();
+            this.flowLayoutPanel5.ResumeLayout(false);
+            this.flowLayoutPanel5.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -227,5 +263,8 @@ namespace FileOrganizerUI.Windows
         private System.Windows.Forms.Button UpdateButton;
         private System.Windows.Forms.Button DeleteButton;
         private System.Windows.Forms.Label MessageLabel;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel5;
+        private System.Windows.Forms.Label ParentLabel;
+        private System.Windows.Forms.ComboBox ParentComboBox;
     }
 }
