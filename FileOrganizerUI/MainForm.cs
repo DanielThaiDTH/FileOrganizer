@@ -95,6 +95,12 @@ namespace FileOrganizerUI
             FileListView.MouseClick += FileListItem_Click;
             FileListView.KeyDown += FileListView_KeyDown;
             FileListView.SelectedIndexChanged += FileListView_SelectionChanged;
+            FileListView.ContextMenuStrip = new ContextMenuStrip();
+            FileListView.ContextMenuStrip.Items.Add("&Open");
+            FileListView.ContextMenuStrip.Items[0].Click += FileContextMenuOpenFile_Click;
+            FileListView.ContextMenuStrip.Items.Add("Open &Folder");
+            FileListView.ContextMenuStrip.Items[1].Click += FileContextMenuOpenFolder_Click;
+
 
             imageList = new ImageList();
             imageList.ImageSize = new Size(32, 32);
@@ -327,8 +333,10 @@ namespace FileOrganizerUI
             RemoveTagButton.Enabled = false;
             selectedFileID = -1;
             if (e.Button == MouseButtons.Right) {
+                FileListView.ContextMenuStrip.Enabled = true;
                 ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
                 ViewFileTags(item);
+                OpenFileContextMenu(item);
                 RemoveTagButton.Enabled = true;
             }
         }
@@ -710,6 +718,20 @@ namespace FileOrganizerUI
                 ShowFiles(fileData);
             }
         }
+
+        private void FileContextMenuOpenFile_Click(object sender, EventArgs e)
+        {
+            if (FileListView.ContextMenuStrip.Enabled && FileListView.ContextMenuStrip.Tag != null) {
+                OpenFile((FileListView.ContextMenuStrip.Tag as ListViewItem).ImageKey);
+            }
+        }
+
+        private void FileContextMenuOpenFolder_Click(object sender, EventArgs e)
+        {
+            if (FileListView.ContextMenuStrip.Enabled && FileListView.ContextMenuStrip.Tag != null) {
+                OpenFolder((FileListView.ContextMenuStrip.Tag as ListViewItem).ImageKey);
+            }
+        }
         #endregion
 
         #region Functionality
@@ -789,6 +811,8 @@ namespace FileOrganizerUI
             FileListView.Items.Clear();
             TaskCanceller.Cancel();
             FileListView.LargeImageList.Images.Clear();
+            FileListView.ContextMenuStrip.Tag = null;
+
             if (!fileData.HasError()) {
                 if (fileData.Result.Count < 5) {
                     var imageSet = fileData.Result.FindAll(f => f.FileType == "image").ConvertAll(f => f.Fullname).ToHashSet();
@@ -846,6 +870,14 @@ namespace FileOrganizerUI
                 FileListView.Invoke(d, fullname, thumbnail);
             } else {
                 FileListView.LargeImageList.Images.Add(fullname, thumbnail);
+            }
+        }
+
+        private void OpenFileContextMenu(ListViewItem item)
+        {
+            FileListView.ContextMenuStrip.Tag = item;
+            if (item is null) {
+                FileListView.ContextMenuStrip.Enabled = false;
             }
         }
 
