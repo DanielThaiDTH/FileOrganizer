@@ -100,6 +100,8 @@ namespace FileOrganizerUI
             FileListView.ContextMenuStrip.Items[0].Click += FileContextMenuOpenFile_Click;
             FileListView.ContextMenuStrip.Items.Add("Open &Folder");
             FileListView.ContextMenuStrip.Items[1].Click += FileContextMenuOpenFolder_Click;
+            FileListView.ContextMenuStrip.Items.Add("Manage &Tags");
+            FileListView.ContextMenuStrip.Items[2].Click += FileContextMenuManageTags_Click;
 
 
             imageList = new ImageList();
@@ -335,9 +337,7 @@ namespace FileOrganizerUI
             if (e.Button == MouseButtons.Right) {
                 FileListView.ContextMenuStrip.Enabled = true;
                 ListViewItem item = FileListView.GetItemAt(e.X, e.Y);
-                ViewFileTags(item);
                 OpenFileContextMenu(item);
-                RemoveTagButton.Enabled = true;
             }
         }
 
@@ -732,6 +732,13 @@ namespace FileOrganizerUI
                 OpenFolder((FileListView.ContextMenuStrip.Tag as ListViewItem).ImageKey);
             }
         }
+
+        private void FileContextMenuManageTags_Click(object sender, EventArgs e)
+        {
+            if (FileListView.ContextMenuStrip.Enabled && FileListView.ContextMenuStrip.Tag != null) {
+                ViewFileTags(FileListView.ContextMenuStrip.Tag as ListViewItem);
+            }
+        }
         #endregion
 
         #region Functionality
@@ -930,6 +937,7 @@ namespace FileOrganizerUI
                     var fileTags = core.GetTagsForFile(selectedFile.ID).Result;
                     ShowTags(fileTags);
                     selectedFileID = selectedFile.ID;
+                    RemoveTagButton.Enabled = true;
                     UpdateMessage($"Viewing tags for {selectedFile.Filename}", Color.Black);
                 } else {
                     logger.LogError($"File {item.ImageKey} was missing from cached search results");
